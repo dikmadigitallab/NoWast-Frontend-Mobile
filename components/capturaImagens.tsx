@@ -1,48 +1,50 @@
 import { AntDesign, MaterialCommunityIcons } from "@expo/vector-icons";
-import * as ImagePicker from 'expo-image-picker';
-import React, { useState } from "react";
-import { Alert, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-
+import { CameraView, useCameraPermissions } from "expo-camera";
+import React, { useRef, useState } from "react";
+import { Alert, Image, Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export default function CapturaImagens({ texto, qtsImagens }: { texto: string, qtsImagens: number }) {
 
-
     const [images, setImages] = useState<string[]>([]);
+    const [permission, requestPermission] = useCameraPermissions();
+    const [cameraOpen, setCameraOpen] = useState(false);
+    const [takenCount, setTakenCount] = useState(0);
+    const cameraRef = useRef<any>(null);
 
-    const pickImage = async () => {
+    const openCamera = async () => {
+        if (!permission?.granted) {
+            const { granted } = await requestPermission();
+            if (!granted) {
+                Alert.alert("Permissão necessária", "Precisamos da câmera para tirar fotos.");
+                return;
+            }
+        }
         if (images.length >= 3) {
             Alert.alert("Aviso", "Você já adicionou o máximo de 3 fotos.");
             return;
         }
+        setTakenCount(0);
+        setCameraOpen(true);
+    };
 
-        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (status !== 'granted') {
-            Alert.alert("Permissão necessária", "Precisamos de acesso à sua galeria para adicionar fotos.");
-            return;
-        }
+    const takePicture = async () => {
+        if (cameraRef.current) {
+            const photo = await cameraRef.current.takePictureAsync({ quality: 0.7 });
+            setImages(prev => [...prev, photo.uri]);
+            setTakenCount(prev => prev + 1);
 
-        let result = await ImagePicker.launchImageLibraryAsync({
-            allowsMultipleSelection: qtsImagens > 1 ? true : false,
-            aspect: [4, 3],
-            quality: 1,
-        });
-
-        if (!result.canceled && result.assets && result.assets.length > 0) {
-            const selectedUris = result.assets.map(asset => asset.uri);
-
-            const remainingSlots = 3 - images.length;
-            const urisToAdd = selectedUris.slice(0, remainingSlots);
-
-            setImages(prev => [...prev, ...urisToAdd]);
+            if (takenCount + 1 >= 3 || images.length + 1 >= 3) {
+                setCameraOpen(false);
+            }
         }
     };
 
     const removeImage = (index: number) => {
         setImages(prev => prev.filter((_, i) => i !== index));
     };
+
     return (
         <View style={styles.containerFile}>
-
             <View style={styles.headerFoto}>
                 <AntDesign name="camera" size={24} color="#43575F" />
                 <Text style={styles.textFoto}>{texto}</Text>
@@ -65,29 +67,30 @@ export default function CapturaImagens({ texto, qtsImagens }: { texto: string, q
             </View>
 
             {images.length < qtsImagens && (
-                <TouchableOpacity style={styles.containerAddFoto} onPress={pickImage}>
+                <TouchableOpacity style={styles.containerAddFoto} onPress={openCamera}>
                     <MaterialCommunityIcons name="camera-plus-outline" size={30} color="#0B6780" />
-                    <Text style={{ fontSize: 16, color: "#0B6780", fontWeight: "500" }}>Adicionar foto</Text>
+                    <Text style={{ fontSize: 16, color: "#0B6780", fontWeight: "500" }}>Abrir câmera</Text>
                 </TouchableOpacity>
             )}
+
+            <Modal visible={cameraOpen} animationType="slide">
+                <CameraView ref={cameraRef} style={{ flex: 1 }}>
+                    <View style={styles.cameraOverlay}>
+                        <TouchableOpacity style={styles.snapButton} onPress={takePicture}>
+                            <View style={styles.innerSnapButton} />
+                        </TouchableOpacity>
+                        <Text style={styles.counterText}>{images.length} / {qtsImagens}</Text>
+                        <TouchableOpacity style={styles.closeButton} onPress={() => setCameraOpen(false)}>
+                            <AntDesign name="closecircle" size={32} color="white" />
+                        </TouchableOpacity>
+                    </View>
+                </CameraView>
+            </Modal>
         </View>
-    )
+    );
 }
 
-
 const styles = StyleSheet.create({
-    buttons: {
-        marginVertical: 20,
-        width: "100%",
-        borderWidth: 1,
-        borderRadius: 12,
-        paddingVertical: 20,
-        flexDirection: "row",
-        alignItems: "center",
-        borderColor: "#186B53",
-        justifyContent: "center",
-        backgroundColor: "transparent"
-    },
     containerFile: {
         width: "100%",
         flexDirection: "column",
@@ -150,4 +153,38 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    cameraOverlay: {
+        flex: 1,
+        backgroundColor: 'transparent',
+        justifyContent: 'flex-end',
+        alignItems: 'center',
+        paddingBottom: 30,
+    },
+    snapButton: {
+        width: 70,
+        height: 70,
+        borderRadius: 35,
+        borderWidth: 4,
+        borderColor: '#fff',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 10
+    },
+    innerSnapButton: {
+        width: 50,
+        height: 50,
+        backgroundColor: '#fff',
+        borderRadius: 25,
+    },
+    counterText: {
+        color: '#fff',
+        marginTop: 10,
+        fontSize: 18,
+        fontWeight: '600'
+    },
+    closeButton: {
+        position: 'absolute',
+        top: 50,
+        right: 30
+    }
 });

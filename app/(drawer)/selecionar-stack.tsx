@@ -15,7 +15,7 @@ export default function SelecionarStack() {
 
     const handleSelecionarStack = (stack: 'quedazero' | 'coleta' | 'residuos') => {
         setUserType(stack);
-        setTimeout(() => router.replace(`/(${stack})` as never), 1000);
+        setTimeout(() => router.replace(`/(${stack})` as never), 500);
 
     };
 
@@ -24,7 +24,7 @@ export default function SelecionarStack() {
         setTimeout(() => {
             logout();
             setUserType(null);
-        }, 1000);
+        }, 500);
     }
 
     return (

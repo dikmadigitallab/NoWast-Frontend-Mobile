@@ -1,4 +1,4 @@
-import { formatRouteNameQuedaZero } from "@/utils/formatRouteNameQuedaZero";
+import { formatRouteNameColeta } from "@/utils/formatRouteNameColeta";
 import { Feather, FontAwesome6, MaterialCommunityIcons } from "@expo/vector-icons";
 import type { DrawerNavigationProp } from '@react-navigation/drawer';
 import { useNavigation } from '@react-navigation/native';
@@ -11,7 +11,7 @@ interface TopBarProps {
 
 export function TopBar({ router, pathname }: TopBarProps) {
   const showIcon = pathname === "/ocorrencias";
-  const title = formatRouteNameQuedaZero(pathname);
+  const title = formatRouteNameColeta(pathname);
 
   const handleBack = () => {
     router.back();
@@ -22,7 +22,7 @@ export function TopBar({ router, pathname }: TopBarProps) {
   if (pathname === "/cronograma") {
     return null;
   }
- 
+
   const navigation = useNavigation() as DrawerNavigationProp<any>;
 
   return (
