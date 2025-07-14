@@ -10,7 +10,7 @@ interface TopBarProps {
 }
 
 export function TopBar({ router, pathname }: TopBarProps) {
-  const showIcon = pathname === "/ocorrencias";
+
   const title = formatRouteNameQuedaZero(pathname);
 
   const handleBack = () => {
@@ -56,7 +56,7 @@ export function TopBar({ router, pathname }: TopBarProps) {
 
       {!isHomeOrDashboard && (
         <View style={styles.containerLogo}>
-          {showIcon && (
+          {pathname === "/" && (
             <MaterialCommunityIcons name="excavator" size={24} color="black" />
           )}
           <Text style={styles.title}>{title}</Text>

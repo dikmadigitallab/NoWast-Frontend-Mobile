@@ -1,4 +1,3 @@
-import { customTheme } from '@/config/inputsTheme';
 import { Dados } from '@/data';
 import { AntDesign, Entypo, FontAwesome6 } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
@@ -6,7 +5,6 @@ import moment from 'moment';
 import 'moment/locale/pt-br';
 import React, { useMemo, useRef, useState } from 'react';
 import { ImageBackground, ScrollView, SectionList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Provider as PaperProvider } from 'react-native-paper';
 import { DatePickerModal } from 'react-native-paper-dates';
 import Calendario from '../../../components/calendario';
 import { StatusContainer, StyledMainContainer } from '../../../styles/StyledComponents';
@@ -56,7 +54,7 @@ export default function Cronograma() {
 
 
   return (
-    <PaperProvider theme={customTheme}>
+    <>
       <DatePickerModal
         locale="pt-BR"
         mode="range"
@@ -154,7 +152,7 @@ export default function Cronograma() {
           )}
         />
       </StyledMainContainer>
-    </PaperProvider>
+    </>
   );
 };
 

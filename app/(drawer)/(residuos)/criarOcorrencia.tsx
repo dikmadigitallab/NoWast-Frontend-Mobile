@@ -1,11 +1,10 @@
 import CapturaImagens from "@/components/capturaImagens";
 import AudioRecorderPlayer from "@/components/gravadorAudio";
-import { customTheme } from "@/config/inputsTheme";
 import { FontAwesome } from "@expo/vector-icons";
 import React from "react";
 import { Controller, useForm } from "react-hook-form";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { PaperProvider, TextInput } from "react-native-paper";
+import { TextInput } from "react-native-paper";
 import { DatePickerInput } from 'react-native-paper-dates';
 import { Dropdown } from 'react-native-paper-dropdown';
 import { StyledMainContainer } from "../../../styles/StyledComponents";
@@ -43,7 +42,6 @@ export default function CadastroOcorrencia() {
 
     return (
         <StyledMainContainer>
-            <PaperProvider theme={customTheme}>
                 <ScrollView>
                     <View style={{ flex: 1, justifyContent: "space-between" }}>
                         <View style={{ gap: 5 }}>
@@ -401,8 +399,6 @@ export default function CadastroOcorrencia() {
                         </TouchableOpacity>
                     </View>
                 </ScrollView>
-            </PaperProvider>
-
         </StyledMainContainer>
     );
 }

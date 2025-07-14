@@ -1,13 +1,11 @@
 // Ocorrencias.tsx
 import AprovacoStatus from "@/components/aprovacaoStatus";
-import { customTheme } from "@/config/inputsTheme";
 import { AntDesign, FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { Picker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import { FlatList, ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { PaperProvider } from "react-native-paper";
 import { DatePickerModal } from "react-native-paper-dates";
 import BotaoCriarOcorrencia from "../../../components/botaoCriarOcorrencia";
 import MapScreen from "../../../components/renderMapOcorrencias";
@@ -55,7 +53,6 @@ export default function Ocorrencias() {
   return (
     <>
       <StyledMainContainer>
-        <PaperProvider theme={customTheme}>
           <Picker
             style={{ display: "none" }}
             ref={pickerRef}
@@ -83,8 +80,6 @@ export default function Ocorrencias() {
             label="Selecione uma data"
             saveLabel="Confirmar"
           />
-
-        </PaperProvider>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}

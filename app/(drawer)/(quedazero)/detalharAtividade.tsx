@@ -1,5 +1,4 @@
 import AprovacoStatus from "@/components/aprovacaoStatus";
-import { customTheme } from "@/config/inputsTheme";
 import { Pessoas } from "@/types/IOcorrencias";
 import { AntDesign, FontAwesome, FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
 import Entypo from "@expo/vector-icons/Entypo";
@@ -9,7 +8,7 @@ import { router } from "expo-router";
 import { useRef, useState } from "react";
 import { Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import { Modalize } from 'react-native-modalize';
-import { PaperProvider, TextInput } from "react-native-paper";
+import { TextInput } from "react-native-paper";
 import { Dropdown } from "react-native-paper-dropdown";
 import { useAuth } from "../../../auth/authProvider";
 import CapturaImagens from "../../../components/capturaImagens";
@@ -278,7 +277,6 @@ export default function DetalharAtividade() {
                     contentContainerStyle: { flexGrow: 1 }
                 }}
             >
-                <PaperProvider theme={customTheme}>
                     <View>
                         <View style={styles.modalHeader}>
                             <View style={{ width: 40 }} />
@@ -307,7 +305,6 @@ export default function DetalharAtividade() {
                             <Text style={{ color: "#fff", fontSize: 16 }}>ENVIAR</Text>
                         </TouchableOpacity>
                     </View>
-                </PaperProvider>
             </Modalize>
 
             <Modalize
@@ -321,7 +318,6 @@ export default function DetalharAtividade() {
                     contentContainerStyle: { flexGrow: 1 }
                 }}
             >
-                <PaperProvider theme={customTheme}>
                     <View>
                         <View style={styles.modalHeader}>
                             <View style={{ width: 40 }} />
@@ -341,7 +337,6 @@ export default function DetalharAtividade() {
                             <Text style={{ color: "#fff", fontSize: 16 }}>ENVIAR</Text>
                         </TouchableOpacity>
                     </View>
-                </PaperProvider>
             </Modalize>
 
             <Modal transparent={true} visible={modalVisible} animationType="fade">
