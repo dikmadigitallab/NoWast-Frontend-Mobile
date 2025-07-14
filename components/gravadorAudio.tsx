@@ -29,6 +29,10 @@ export default function AudioRecorderPlayer({ onRecordingComplete, onRemove }: A
   }, [sound, recording]);
 
   const startRecording = async () => {
+
+    setRecordedUri(null);
+    setIsRecording(false);
+
     try {
       await Audio.requestPermissionsAsync();
       await Audio.setAudioModeAsync({
@@ -156,7 +160,6 @@ export default function AudioRecorderPlayer({ onRecordingComplete, onRemove }: A
 
   return (
     <View style={styles.container}>
-      {/* Botão de Gravar/Parar gravação */}
       <TouchableOpacity
         style={[styles.button, isRecording ? styles.buttonRecording : styles.buttonRecord]}
         onPress={toggleRecording}
@@ -169,12 +172,17 @@ export default function AudioRecorderPlayer({ onRecordingComplete, onRemove }: A
       </TouchableOpacity>
 
       {
-        !isRecording && !recordedUri && (
+        !isRecording && !recordedUri &&(
           <Text style={{ color: "#404944", fontSize: 14, fontWeight: 'bold' }}>Clique aqui para iniciar a gravação</Text>
         )
       }
 
-      {/* Controles de reprodução (só aparece após gravar) */}
+      {
+        isRecording && (
+          <Text style={{ color: "#404944", fontSize: 14, fontWeight: 'bold' }}>Gravando...</Text>
+        )
+      }
+
       {recordedUri && (
         <>
           <TouchableOpacity

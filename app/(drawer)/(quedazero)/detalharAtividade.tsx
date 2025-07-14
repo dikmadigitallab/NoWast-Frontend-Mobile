@@ -73,7 +73,7 @@ export default function DetalharAtividade() {
                             </Text>
                         </View>
                         <View style={[styles.linha, { height: ocorrenciaSelecionada.justificativa ? 250 : "auto", alignItems: "flex-start", gap: 10 }]}>
-                            <View style={{ width: 35, height: "100%", backgroundColor: "#EBEBEB", padding: 10, borderRadius: 100, justifyContent: "flex-start", alignItems: "center" }}>
+                            <View style={[styles.coluna,  {width: 35, height: "100%", padding: 10,  justifyContent: "flex-start"} ]}>
                                 <Entypo name="flag" size={15} color="#43575F" />
                             </View>
                             <View style={{ width: "100%", gap: 10 }}>
@@ -104,25 +104,31 @@ export default function DetalharAtividade() {
                             </View>
                         </View>
                         <View style={[styles.linha, { height: "auto", alignItems: "flex-start", gap: 10 }]}>
-                            <View style={{ width: 35, height: "100%", backgroundColor: "#EBEBEB", padding: 10, borderRadius: 100, justifyContent: "flex-start", alignItems: "center" }}>
+                            <View style={[styles.coluna,  {width: 35, height: "100%", padding: 10,  justifyContent: "flex-start"} ]}>
                                 <FontAwesome6 name="user-tie" size={15} color="#43575F" />
                             </View>
                             <View style={{ flexDirection: "column", gap: 5 }}>
                                 {
                                     ocorrenciaSelecionada?.pessoas?.map((pessoa: Pessoas, index: number) => (
-                                        <View style={{ gap: 5 }} key={index}>
-                                            <Text style={styles.textBold}>{pessoa.funcao}:</Text>
-                                            <View style={[styles.rowWithGap, { alignItems: "center", gap: 8 }]}>
+                                        <View key={index} style={{gap: 5}}>
+                                            <Text style={{ fontWeight: "semibold", color: "#43575F" }}>{pessoa.funcao}</Text>
+                                            <View style={[styles.rowWithGap, {justifyContent: "center", alignItems: "center", gap: 10 }]}>
                                                 <View style={styles.rowWithGap}>
-                                                    <Checkbox value={isChecked} onValueChange={setChecked} color={isChecked ? '#34C759' : undefined}/>
-                                                    <Text>{ocorrenciaSelecionada.nome}</Text>
+                                                    <Checkbox value={isChecked} onValueChange={setChecked} color={isChecked ? '#34C759' : undefined} />
+                                                    <View>
+                                                    <Text style={{ fontSize: 15 }}>{ocorrenciaSelecionada.nome}</Text>
+                                                    { pessoa.descricao && <Text style={{ fontSize: 13 }}>{pessoa.descricao}</Text>}
+                                                    </View>
                                                 </View>
-                                                <TouchableOpacity
-                                                    style={{ flexDirection: "row", gap: 2, justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: "#43575F", padding: 5, borderRadius: 10 }}
-                                                    onPress={() => modalizeDescricaoRef.current?.open()}>
-                                                    <AntDesign name="plus" size={15} color="#43575F" />
-                                                    <Text style={[styles.text, { fontWeight: "bold", color: "#43575F" }]}>Descrição</Text>
-                                                </TouchableOpacity>
+                                                {
+                                                    !pessoa.descricao && (
+                                                        <TouchableOpacity
+                                                            style={{ flexDirection: "row", gap: 2, justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: "#43575F", padding: 5, borderRadius: 10 }}
+                                                            onPress={() => modalizeDescricaoRef.current?.open()}>
+                                                            <AntDesign name="plus" size={15} color="#43575F" />
+                                                            <Text style={[styles.text, { fontWeight: "bold", color: "#43575F", fontSize: 12 }]}>Descrição</Text>
+                                                        </TouchableOpacity>
+                                                    )}
                                             </View>
                                         </View>
                                     ))
@@ -160,7 +166,7 @@ export default function DetalharAtividade() {
                             <Text style={styles.text}>{ocorrenciaSelecionada.status}</Text>
                         </View>
                         <View style={[styles.linha, { height: 320, alignItems: "flex-start" }]}>
-                            <View style={{ width: 35, height: "100%", backgroundColor: "#EBEBEB", padding: 10, borderRadius: 100, justifyContent: "flex-start", alignItems: "center" }}>
+                            <View style={[styles.coluna,  {width: 35, height: "100%", padding: 10,  justifyContent: "flex-start"} ]}>
                                 <FontAwesome6 name="location-dot" color="#43575F" size={15} />
                             </View>
                             <View style={styles.locationDetails}>
@@ -199,7 +205,7 @@ export default function DetalharAtividade() {
                         </View>
                     </View>
 
-                        {user?.tipoColaborador.id === 3 && <LeitorNFC />}
+                    {user?.tipoColaborador.id === 3 && <LeitorNFC />}
 
                     {
                         user?.tipoColaborador.id === 3 && (

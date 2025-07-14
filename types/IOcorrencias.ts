@@ -18,6 +18,7 @@ export interface Pessoas{
   nome: string;
   funcao: string;
   cpf: string;
+  descricao: string
 }
 
 export interface IOcorrencias {

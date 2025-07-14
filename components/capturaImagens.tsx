@@ -68,8 +68,8 @@ export default function CapturaImagens({ texto, qtsImagens }: { texto: string, q
 
             {images.length < qtsImagens && (
                 <TouchableOpacity style={styles.containerAddFoto} onPress={openCamera}>
-                    <MaterialCommunityIcons name="camera-plus-outline" size={30} color="#0B6780" />
-                    <Text style={{ fontSize: 16, color: "#0B6780", fontWeight: "500" }}>Abrir câmera</Text>
+                    <MaterialCommunityIcons name="camera-plus-outline" size={30} color="#186B53" />
+                    <Text style={{ fontSize: 16, color: "#186B53", fontWeight: "500" }}>Abrir câmera</Text>
                 </TouchableOpacity>
             )}
 
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
         paddingVertical: 20,
         flexDirection: "column",
         alignItems: "center",
-        borderColor: "#0B6780",
+        borderColor: "#186B53",
         justifyContent: "center",
         backgroundColor: "transparent"
     },
