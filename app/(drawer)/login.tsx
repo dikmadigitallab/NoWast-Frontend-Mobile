@@ -20,7 +20,7 @@ interface ProtectRouteProps {
   children: React.ReactNode;
 }
 
-export default function ProtectRoute({ children }: ProtectRouteProps) {
+export default function AuthRouter({ children }: ProtectRouteProps) {
   const [seePassword, setSeePassword] = useState(true);
   const [fontsLoaded] = useFonts({ Bangers_400Regular });
 

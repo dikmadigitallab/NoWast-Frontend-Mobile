@@ -47,7 +47,7 @@ export default function Perfil() {
                     />
                 </View>
 
-                <TouchableOpacity style={styles.Button} onPress={() => console.log('Pressed')}>
+                <TouchableOpacity style={styles.Button}>
                     <Text style={{ color: "#fff", fontSize: 16 }}>Atualizar Perfil</Text>
                 </TouchableOpacity>
             </View>

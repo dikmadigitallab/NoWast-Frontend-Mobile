@@ -48,7 +48,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         createdAt: new Date(),
         updatedAt: new Date(),
         tipoColaborador: {
-          id: 2,
+          id: 3,
           tipoApp: 1,
           nome: 'Colaborador',
         },

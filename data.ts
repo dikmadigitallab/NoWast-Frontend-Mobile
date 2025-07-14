@@ -16,6 +16,26 @@ export const Dados = [
     dataConclusao: "05/03/2025",
     horaConclusao: "22:40",
     justificativa: null,
+    pessoas: [
+      {
+        id: 1,
+        nome: "Carlos Silva",
+        funcao: "Supervisor",
+        cpf: "111.111.111-11",
+      },
+      {
+        id: 2,
+        nome: "Ana Oliveira",
+        funcao: "Técnico de Qualidade",
+        cpf: "222.222.222-22",
+      },
+      {
+        id: 3,
+        nome: "Pedro Santos",
+        funcao: "Operador",
+        cpf: "333.333.333-33",
+      },
+    ],
     localizacao: {
       latitude: -20.315000,
       longitude: -40.305000,
@@ -31,7 +51,7 @@ export const Dados = [
   {
     id: 2,
     tipo: 1,
-    nome: "João Pedro",
+    nome: "Maria Souza",
     status: "Concluído",
     aprovacao: "Reprovado",
     dataAprovacao: "06/03/2025 - 12:30h",
@@ -45,6 +65,26 @@ export const Dados = [
     dataConclusao: "05/03/2025",
     horaConclusao: "22:40",
     justificativa: {
+      pessoas: [
+        {
+          id: 1,
+          nome: "Fernando Costa",
+          funcao: "Gerente",
+          cpf: "444.444.444-44",
+        },
+        {
+          id: 2,
+          nome: "Juliana Pereira",
+          funcao: "Analista",
+          cpf: "555.555.555-55",
+        },
+        {
+          id: 3,
+          nome: "Ricardo Almeida",
+          funcao: "Assistente",
+          cpf: "666.666.666-66",
+        },
+      ],
       imagem: require("./assets/images/atestado.png"),
       descricao: "Descrição não disponível",
       motivo: "Atestado"
@@ -64,7 +104,7 @@ export const Dados = [
   {
     id: 3,
     tipo: 1,
-    nome: "João Pedro",
+    nome: "José Lima",
     status: "Concluído",
     aprovacao: "Aprovado",
     dataAprovacao: "06/03/2025 - 12:30h",
@@ -78,6 +118,26 @@ export const Dados = [
     dataConclusao: "05/03/2025",
     horaConclusao: "22:40",
     justificativa: null,
+    pessoas: [
+      {
+        id: 1,
+        nome: "Patrícia Gomes",
+        funcao: "Coordenadora",
+        cpf: "777.777.777-77",
+      },
+      {
+        id: 2,
+        nome: "Marcos Ribeiro",
+        funcao: "Inspetor",
+        cpf: "888.888.888-88",
+      },
+      {
+        id: 3,
+        nome: "Camila Ferreira",
+        funcao: "Auxiliar",
+        cpf: "999.999.999-99",
+      },
+    ],
     localizacao: {
       latitude: -20.305000,
       longitude: -40.315000,
@@ -93,7 +153,7 @@ export const Dados = [
   {
     id: 4,
     tipo: 1,
-    nome: "João Pedro",
+    nome: "Ana Carolina",
     status: "Concluído",
     aprovacao: "Aprovado",
     dataAprovacao: "06/03/2025 - 12:30h",
@@ -107,6 +167,26 @@ export const Dados = [
     dataConclusao: "05/03/2025",
     horaConclusao: "22:40",
     justificativa: {
+      pessoas: [
+        {
+          id: 1,
+          nome: "Roberto Nunes",
+          funcao: "Diretor",
+          cpf: "101.101.101-10",
+        },
+        {
+          id: 2,
+          nome: "Tatiana Martins",
+          funcao: "Supervisora",
+          cpf: "202.202.202-20",
+        },
+        {
+          id: 3,
+          nome: "Lucas Barbosa",
+          funcao: "Técnico",
+          cpf: "303.303.303-30",
+        },
+      ],
       imagem: require("./assets/images/atestado.png"),
       descricao: "Descrição não disponível",
       motivo: "Atestado"
@@ -126,7 +206,7 @@ export const Dados = [
   {
     id: 5,
     tipo: 1,
-    nome: "João Pedro",
+    nome: "Paulo Henrique",
     status: "Pendente",
     aprovacao: null,
     dataAprovacao: null,
@@ -140,6 +220,26 @@ export const Dados = [
     dataConclusao: null,
     horaConclusao: null,
     justificativa: null,
+    pessoas: [
+      {
+        id: 1,
+        nome: "Daniela Cunha",
+        funcao: "Engenheira",
+        cpf: "404.404.404-40",
+      },
+      {
+        id: 2,
+        nome: "Felipe Ramos",
+        funcao: "Consultor",
+        cpf: "505.505.505-50",
+      },
+      {
+        id: 3,
+        nome: "Vanessa Soares",
+        funcao: "Assessora",
+        cpf: "606.606.606-60",
+      },
+    ],
     localizacao: {
       latitude: -20.300000,
       longitude: -40.320000,
@@ -155,7 +255,7 @@ export const Dados = [
   {
     id: 6,
     tipo: 1,
-    nome: "João Pedro",
+    nome: "Fernanda Oliveira",
     status: "Aberto",
     aprovacao: null,
     dataAprovacao: null,
@@ -169,6 +269,26 @@ export const Dados = [
     dataConclusao: null,
     horaConclusao: null,
     justificativa: null,
+    pessoas: [
+      {
+        id: 1,
+        nome: "Gustavo Henrique",
+        funcao: "Auditor",
+        cpf: "707.707.707-70",
+      },
+      {
+        id: 2,
+        nome: "Isabela Santos",
+        funcao: "Coordenadora",
+        cpf: "808.808.808-80",
+      },
+      {
+        id: 3,
+        nome: "Rodrigo Pereira",
+        funcao: "Especialista",
+        cpf: "909.909.909-90",
+      },
+    ],
     localizacao: {
       latitude: -20.340000,
       longitude: -40.280000,
@@ -184,7 +304,7 @@ export const Dados = [
   {
     id: 7,
     tipo: 2,
-    nome: "João Pedro",
+    nome: "Rafaela Costa",
     status: "Grave",
     aprovacao: "Reprovado",
     dataAprovacao: "06/03/2025 - 12:30h",
@@ -198,9 +318,29 @@ export const Dados = [
     dataConclusao: "05/03/2025",
     horaConclusao: "22:40",
     justificativa: null,
+    pessoas: [
+      {
+        id: 1,
+        nome: "Leonardo Dias",
+        funcao: "Gestor",
+        cpf: "010.010.010-01",
+      },
+      {
+        id: 2,
+        nome: "Mariana Lopes",
+        funcao: "Analista Sênior",
+        cpf: "020.020.020-02",
+      },
+      {
+        id: 3,
+        nome: "Thiago Miranda",
+        funcao: "Supervisor",
+        cpf: "030.030.030-03",
+      },
+    ],
     localizacao: {
-      latitude: -20.350000,  // Ponto mais ao sul
-      longitude: -40.330000, // Ponto mais a oeste
+      latitude: -20.350000,
+      longitude: -40.330000,
       local: "Zona de Carga",
       origem: "Funil Principal",
       origem_detalhado: "Silo 9",
@@ -213,7 +353,7 @@ export const Dados = [
   {
     id: 8,
     tipo: 2,
-    nome: "João Pedro",
+    nome: "Bruno Carvalho",
     status: "Leve",
     aprovacao: "Reprovado",
     dataAprovacao: "06/03/2025 - 12:30h",
@@ -227,13 +367,33 @@ export const Dados = [
     dataConclusao: "05/03/2025",
     horaConclusao: "22:40",
     justificativa: {
+      pessoas: [
+        {
+          id: 1,
+          nome: "Carla Mendes",
+          funcao: "Diretora",
+          cpf: "040.040.040-04",
+        },
+        {
+          id: 2,
+          nome: "Eduardo Silva",
+          funcao: "Gerente",
+          cpf: "050.050.050-05",
+        },
+        {
+          id: 3,
+          nome: "Patrícia Lima",
+          funcao: "Coordenadora",
+          cpf: "060.060.060-06",
+        },
+      ],
       imagem: require("./assets/images/atestado.png"),
       descricao: "Descrição não disponível",
       motivo: "Atestado"
     },
     localizacao: {
-      latitude: -20.290000,  // Ponto mais ao norte
-      longitude: -40.270000, // Ponto mais a leste
+      latitude: -20.290000,
+      longitude: -40.270000,
       local: "Zona de Carga",
       origem: "Funil Principal",
       origem_detalhado: "Silo 9",
@@ -246,7 +406,7 @@ export const Dados = [
   {
     id: 9,
     tipo: 2,
-    nome: "João Pedro",
+    nome: "Amanda Santos",
     status: "Nenhum",
     aprovacao: "Aprovado",
     dataAprovacao: "06/03/2025 - 12:30h",
@@ -260,6 +420,26 @@ export const Dados = [
     dataConclusao: "05/03/2025",
     horaConclusao: "22:40",
     justificativa: null,
+    pessoas: [
+      {
+        id: 1,
+        nome: "Marcelo Costa",
+        funcao: "Superintendente",
+        cpf: "070.070.070-07",
+      },
+      {
+        id: 2,
+        nome: "Laura Fernandes",
+        funcao: "Gerente",
+        cpf: "080.080.080-08",
+      },
+      {
+        id: 3,
+        nome: "Ricardo Alves",
+        funcao: "Analista",
+        cpf: "090.090.090-09",
+      },
+    ],
     localizacao: {
       latitude: -20.310000,
       longitude: -40.310000,
@@ -275,7 +455,7 @@ export const Dados = [
   {
     id: 10,
     tipo: 2,
-    nome: "João Pedro",
+    nome: "Luciana Pereira",
     status: "Grave",
     aprovacao: "Aprovado",
     dataAprovacao: "06/03/2025 - 12:30h",
@@ -289,6 +469,26 @@ export const Dados = [
     dataConclusao: "05/03/2025",
     horaConclusao: "22:40",
     justificativa: {
+      pessoas: [
+        {
+          id: 1,
+          nome: "Hugo Ribeiro",
+          funcao: "Diretor",
+          cpf: "101.010.101-01",
+        },
+        {
+          id: 2,
+          nome: "Beatriz Almeida",
+          funcao: "Supervisora",
+          cpf: "202.020.202-02",
+        },
+        {
+          id: 3,
+          nome: "Diego Martins",
+          funcao: "Técnico",
+          cpf: "303.030.303-03",
+        },
+      ],
       imagem: require("./assets/images/atestado.png"),
       descricao: "Descrição não disponível",
       motivo: "Atestado"
@@ -308,7 +508,7 @@ export const Dados = [
   {
     id: 11,
     tipo: 2,
-    nome: "João Pedro",
+    nome: "Roberto Nascimento",
     status: "Leve",
     aprovacao: null,
     dataAprovacao: null,
@@ -322,6 +522,26 @@ export const Dados = [
     dataConclusao: null,
     horaConclusao: null,
     justificativa: null,
+    pessoas: [
+      {
+        id: 1,
+        nome: "Sandra Vieira",
+        funcao: "Coordenadora",
+        cpf: "404.040.404-04",
+      },
+      {
+        id: 2,
+        nome: "Fábio Souza",
+        funcao: "Especialista",
+        cpf: "505.050.505-05",
+      },
+      {
+        id: 3,
+        nome: "Gabriela Lima",
+        funcao: "Assistente",
+        cpf: "606.060.606-06",
+      },
+    ],
     localizacao: {
       latitude: -20.300500,
       longitude: -40.315000,
@@ -351,6 +571,26 @@ export const Dados = [
     dataConclusao: null,
     horaConclusao: null,
     justificativa: null,
+    pessoas: [
+      {
+        id: 1,
+        nome: "André Luiz",
+        funcao: "Gerente",
+        cpf: "707.070.707-07",
+      },
+      {
+        id: 2,
+        nome: "Tânia Oliveira",
+        funcao: "Supervisora",
+        cpf: "808.080.808-08",
+      },
+      {
+        id: 3,
+        nome: "Vinícius Costa",
+        funcao: "Analista",
+        cpf: "909.090.909-09",
+      },
+    ],
     localizacao: {
       latitude: -20.330000,
       longitude: -40.295000,

@@ -33,7 +33,7 @@ export default function CapturaImagens({ texto, qtsImagens }: { texto: string, q
             setImages(prev => [...prev, photo.uri]);
             setTakenCount(prev => prev + 1);
 
-            if (takenCount + 1 >= 3 || images.length + 1 >= 3) {
+            if (takenCount + 1 >= qtsImagens || images.length + 1 >= qtsImagens) {
                 setCameraOpen(false);
             }
         }
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
     containerAddFoto: {
         gap: 7,
         height: 95,
-        width: "90%",
+        width: "100%",
         borderWidth: 1,
         alignSelf: "center",
         borderStyle: 'dashed',

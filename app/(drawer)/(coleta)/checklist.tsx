@@ -78,7 +78,7 @@ export default function Checklist() {
                     </View>
                 </View>
 
-                <TouchableOpacity style={styles.Button} onPress={() => console.log('Pressed')}>
+                <TouchableOpacity style={styles.Button}>
                     <Text style={{ color: "#fff", fontSize: 16 }}>Finalizar Checklist</Text>
                 </TouchableOpacity>
             </View>

@@ -25,8 +25,6 @@ export default function TabBar({ state, navigation }: any) {
 
                     const routeName = route.name as IconKey;
 
-                    console.log(route.name)
-
                     if (user?.tipoColaborador?.tipoApp === 3 && routeName === 'dashboard') return null;
                     if (['_sitemap', '+not-found', 'detalharOcorrencia', 'criarOcorrencia', 'detalharAtividade', 'checklist', 'notificacoes'].includes(route.name)) return null;
 

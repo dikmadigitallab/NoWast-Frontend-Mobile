@@ -13,6 +13,13 @@ export interface ILocalizacao {
   destino_final: string;
 }
 
+export interface Pessoas{
+  id: number;
+  nome: string;
+  funcao: string;
+  cpf: string;
+}
+
 export interface IOcorrencias {
   id: string;
   tipo: number;
@@ -34,5 +41,6 @@ export interface IOcorrencias {
   data_fotos_registradas: string;
   hora_fotos_registradas: string;
   justificativa: IJustificativa;
+  pessoas: Pessoas[]
 }
 

@@ -1,7 +1,6 @@
 import CapturaImagens from "@/components/capturaImagens";
 import AudioRecorderPlayer from "@/components/gravadorAudio";
 import { customTheme } from "@/config/inputsTheme";
-import { toast } from '@backpackapp-io/react-native-toast';
 import { FontAwesome } from "@expo/vector-icons";
 import React from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -153,21 +152,6 @@ export default function CadastroOcorrencia() {
                                             onSelect={onChange}
                                             CustomMenuHeader={() => <></>}
                                             menuContentStyle={{ backgroundColor: '#fff' }}
-                                            CustomDropdownInput={({ onFocus, onBlur }: any) => (
-                                                <TextInput
-                                                    mode="outlined"
-                                                    label="Status"
-                                                    value={OPTIONS.find(opt => opt.value === value)?.label || ''}
-                                                    onFocus={onFocus}
-                                                    onBlur={onBlur}
-                                                    outlineColor="#707974"
-                                                    activeOutlineColor="#707974"
-                                                    style={{ backgroundColor: '#fff', height: 56 }}
-                                                    right={<TextInput.Icon icon="menu-down" />}
-                                                    editable={false}
-                                                    error={!!error}
-                                                />
-                                            )}
                                         />
                                         {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
                                     </>
@@ -188,21 +172,6 @@ export default function CadastroOcorrencia() {
                                             onSelect={onChange}
                                             CustomMenuHeader={() => <></>}
                                             menuContentStyle={{ backgroundColor: '#fff' }}
-                                            CustomDropdownInput={({ onFocus, onBlur }: any) => (
-                                                <TextInput
-                                                    mode="outlined"
-                                                    label="Trans. Ult. p/ Recolhimento"
-                                                    value={OPTIONS.find(opt => opt.value === value)?.label || ''}
-                                                    onFocus={onFocus}
-                                                    onBlur={onBlur}
-                                                    outlineColor="#707974"
-                                                    activeOutlineColor="#707974"
-                                                    style={{ backgroundColor: '#fff', height: 56 }}
-                                                    right={<TextInput.Icon icon="menu-down" />}
-                                                    editable={false}
-                                                    error={!!error}
-                                                />
-                                            )}
                                         />
                                         {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
                                     </>
@@ -223,21 +192,6 @@ export default function CadastroOcorrencia() {
                                             onSelect={onChange}
                                             CustomMenuHeader={() => <></>}
                                             menuContentStyle={{ backgroundColor: '#fff' }}
-                                            CustomDropdownInput={({ onFocus, onBlur }: any) => (
-                                                <TextInput
-                                                    mode="outlined"
-                                                    label="Origem"
-                                                    value={OPTIONS.find(opt => opt.value === value)?.label || ''}
-                                                    onFocus={onFocus}
-                                                    onBlur={onBlur}
-                                                    outlineColor="#707974"
-                                                    activeOutlineColor="#707974"
-                                                    style={{ backgroundColor: '#fff', height: 56 }}
-                                                    right={<TextInput.Icon icon="menu-down" />}
-                                                    editable={false}
-                                                    error={!!error}
-                                                />
-                                            )}
                                         />
                                         {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
                                     </>
@@ -258,21 +212,6 @@ export default function CadastroOcorrencia() {
                                             onSelect={onChange}
                                             CustomMenuHeader={() => <></>}
                                             menuContentStyle={{ backgroundColor: '#fff' }}
-                                            CustomDropdownInput={({ onFocus, onBlur }: any) => (
-                                                <TextInput
-                                                    mode="outlined"
-                                                    label="Origem detalhada"
-                                                    value={OPTIONS.find(opt => opt.value === value)?.label || ''}
-                                                    onFocus={onFocus}
-                                                    onBlur={onBlur}
-                                                    outlineColor="#707974"
-                                                    activeOutlineColor="#707974"
-                                                    style={{ backgroundColor: '#fff', height: 56 }}
-                                                    right={<TextInput.Icon icon="menu-down" />}
-                                                    editable={false}
-                                                    error={!!error}
-                                                />
-                                            )}
                                         />
                                         {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
                                     </>
@@ -293,21 +232,6 @@ export default function CadastroOcorrencia() {
                                             onSelect={onChange}
                                             CustomMenuHeader={() => <></>}
                                             menuContentStyle={{ backgroundColor: '#fff' }}
-                                            CustomDropdownInput={({ onFocus, onBlur }: any) => (
-                                                <TextInput
-                                                    mode="outlined"
-                                                    label="Destino final"
-                                                    value={OPTIONS.find(opt => opt.value === value)?.label || ''}
-                                                    onFocus={onFocus}
-                                                    onBlur={onBlur}
-                                                    outlineColor="#707974"
-                                                    activeOutlineColor="#707974"
-                                                    style={{ backgroundColor: '#fff', height: 56 }}
-                                                    right={<TextInput.Icon icon="menu-down" />}
-                                                    editable={false}
-                                                    error={!!error}
-                                                />
-                                            )}
                                         />
                                         {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
                                     </>
@@ -328,21 +252,6 @@ export default function CadastroOcorrencia() {
                                             onSelect={onChange}
                                             CustomMenuHeader={() => <></>}
                                             menuContentStyle={{ backgroundColor: '#fff' }}
-                                            CustomDropdownInput={({ onFocus, onBlur }: any) => (
-                                                <TextInput
-                                                    mode="outlined"
-                                                    label="Genero"
-                                                    value={OPTIONS.find(opt => opt.value === value)?.label || ''}
-                                                    onFocus={onFocus}
-                                                    onBlur={onBlur}
-                                                    outlineColor="#707974"
-                                                    activeOutlineColor="#707974"
-                                                    style={{ backgroundColor: '#fff', height: 56 }}
-                                                    right={<TextInput.Icon icon="menu-down" />}
-                                                    editable={false}
-                                                    error={!!error}
-                                                />
-                                            )}
                                         />
                                         {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
                                     </>
@@ -363,21 +272,6 @@ export default function CadastroOcorrencia() {
                                             onSelect={onChange}
                                             CustomMenuHeader={() => <></>}
                                             menuContentStyle={{ backgroundColor: '#fff' }}
-                                            CustomDropdownInput={({ onFocus, onBlur }: any) => (
-                                                <TextInput
-                                                    mode="outlined"
-                                                    label="Material"
-                                                    value={OPTIONS.find(opt => opt.value === value)?.label || ''}
-                                                    onFocus={onFocus}
-                                                    onBlur={onBlur}
-                                                    outlineColor="#707974"
-                                                    activeOutlineColor="#707974"
-                                                    style={{ backgroundColor: '#fff', height: 56 }}
-                                                    right={<TextInput.Icon icon="menu-down" />}
-                                                    editable={false}
-                                                    error={!!error}
-                                                />
-                                            )}
                                         />
                                         {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
                                     </>
@@ -399,7 +293,8 @@ export default function CadastroOcorrencia() {
 
                         <TouchableOpacity
                             style={styles.buttons}
-                            onPress={() => toast.success('Cadastro realizado com sucesso', { duration: 3000 })}
+                            onPress={handleSubmit(onSubmit)}
+                            /* onPress={() => toast.success('Cadastro realizado com sucesso', { duration: 3000 })} */
                         >
                             <Text style={{ color: "#fff", fontSize: 16 }}>Cadastrar</Text>
                         </TouchableOpacity>

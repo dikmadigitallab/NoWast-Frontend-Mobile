@@ -28,7 +28,7 @@ export default function CadastroNFC() {
                 <View style={styles.nfc} >
                     <MaterialCommunityIcons name="cellphone-nfc" size={40} color="#186B53" />
                     <Text style={styles.nfcText}>
-                        Aproxime a tag ou cartão para cadastrar o ID.
+                        Aproxime a tag ou cartão para começar a atividade.
                     </Text>
                 </View>
             )}
@@ -38,10 +38,8 @@ export default function CadastroNFC() {
 
 const styles = StyleSheet.create({
     container: {
-        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 20,
     },
     nfc: {
         gap: 10,

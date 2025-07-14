@@ -67,7 +67,6 @@ export default function Checklist() {
                     <Text style={{ color: checked.limparCorreia ? '#fff' : "#404944", fontSize: 16 }}>Limpar atrás da correia</Text>
                 </TouchableOpacity>
 
-
                 <View style={[styles.containerFile, { gap: 10 }]}>
                     <View style={styles.headerFoto}>
                         <FontAwesome name="microphone" size={24} color="#43575F" />
@@ -77,13 +76,10 @@ export default function Checklist() {
                         <AudioRecorderPlayer />
                     </View>
                 </View>
-
-                <TouchableOpacity style={styles.Button} onPress={() => console.log('Pressed')}>
+                <TouchableOpacity style={styles.Button}>
                     <Text style={{ color: "#fff", fontSize: 16 }}>Finalizar Checklist</Text>
                 </TouchableOpacity>
             </View>
-
-
         </StyledMainContainer>
     )
 }

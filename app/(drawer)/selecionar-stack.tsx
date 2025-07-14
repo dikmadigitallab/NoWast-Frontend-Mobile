@@ -6,7 +6,6 @@ import { useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { ActivityIndicator } from 'react-native-paper';
 
-
 export default function SelecionarStack() {
 
     const { logout } = useAuth()
@@ -14,9 +13,8 @@ export default function SelecionarStack() {
     const [loading, setLoading] = useState(false);
 
     const handleSelecionarStack = (stack: 'quedazero' | 'coleta' | 'residuos') => {
-        setUserType(stack);
+        setUserType(stack);        
         setTimeout(() => router.replace(`/(${stack})` as never), 500);
-
     };
 
     const Logout = () => {

@@ -3,18 +3,43 @@ import StatusBarComponent from '@/components/statusBar';
 import { useAuthStore } from '@/store/storeApp';
 import { Stack } from 'expo-router';
 import { Drawer } from 'expo-router/drawer';
-import ProtectRoute from './login';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Dimensions, View } from 'react-native';
+import AuthRouter from './login';
 import SelecionarStack from './selecionar-stack';
 
 export default function RootLayout() {
-
+  
   const { userType } = useAuthStore();
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+  }, [userType]);
+
+  if (userType === null) {
+    return (
+      <AuthProvider>
+        <AuthRouter>
+          <StatusBarComponent />
+          <SelecionarStack />
+        </AuthRouter>
+      </AuthProvider>
+    );
+  }
 
   return (
     <AuthProvider>
-      <ProtectRoute>
+      <AuthRouter>
+        {loading && (
+                <View style={{ flex: 1, position: 'absolute', zIndex: 999, width:  Dimensions.get('window').width, height: Dimensions.get('window').height, backgroundColor: "#fff", justifyContent: 'center', alignItems: 'center' }}>
+                  <ActivityIndicator size="large" color="#00A614" />
+                </View>
+        )}
         <StatusBarComponent />
-        {userType === null ? (<SelecionarStack />) : (
           <Drawer
             drawerContent={() => <SelecionarStack />}
             backBehavior="history"
@@ -33,8 +58,7 @@ export default function RootLayout() {
               <Stack.Screen name="+not-found" />
             </Stack>
           </Drawer>
-        )}
-      </ProtectRoute>
+      </AuthRouter>
     </AuthProvider>
   );
 }
