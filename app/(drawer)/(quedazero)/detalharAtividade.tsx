@@ -114,18 +114,14 @@ export default function DetalharAtividade() {
                                             <Text style={styles.textBold}>{pessoa.funcao}:</Text>
                                             <View style={[styles.rowWithGap, { alignItems: "center", gap: 8 }]}>
                                                 <View style={styles.rowWithGap}>
-                                                    <Checkbox
-                                                        value={isChecked}
-                                                        onValueChange={setChecked}
-                                                        color={isChecked ? '#34C759' : undefined}
-                                                    />
+                                                    <Checkbox value={isChecked} onValueChange={setChecked} color={isChecked ? '#34C759' : undefined}/>
                                                     <Text>{ocorrenciaSelecionada.nome}</Text>
                                                 </View>
                                                 <TouchableOpacity
                                                     style={{ flexDirection: "row", gap: 2, justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: "#43575F", padding: 5, borderRadius: 10 }}
                                                     onPress={() => modalizeDescricaoRef.current?.open()}>
                                                     <AntDesign name="plus" size={15} color="#43575F" />
-                                                    <Text style={styles.text}>Descrição</Text>
+                                                    <Text style={[styles.text, { fontWeight: "bold", color: "#43575F" }]}>Descrição</Text>
                                                 </TouchableOpacity>
                                             </View>
                                         </View>

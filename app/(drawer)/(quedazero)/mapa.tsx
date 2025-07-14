@@ -1,3 +1,4 @@
+import AprovacoStatus from "@/components/aprovacaoStatus";
 import { Dados } from "@/data";
 import { StatusContainer } from "@/styles/StyledComponents";
 import { getStatusColor } from "@/utils/statusColor";
@@ -9,7 +10,6 @@ import { IOcorrencias } from "../../../types/IOcorrencias";
 import { getStatusImage } from "../../../utils/getStatusImage";
 
 export default function Mapa() {
-
   const [selectedLocation, setSelectedLocation] = useState<IOcorrencias | null>(null);
 
   const initialRegion: Region = {
@@ -21,7 +21,6 @@ export default function Mapa() {
 
   return (
     <View style={styles.container}>
-
       <MapView style={styles.map} initialRegion={initialRegion}>
         {Dados.map((loc) => (
           <Marker
@@ -42,13 +41,14 @@ export default function Mapa() {
         ))}
       </MapView>
 
-      <View style={{ position: 'absolute', top: 10, flexDirection: 'row', alignSelf: 'center', justifyContent: 'space-between', alignItems: 'center', gap: 5 }}>
-        <TouchableOpacity style={styles.filterButton} >
+      <View style={styles.filterContainer}>
+        <TouchableOpacity style={styles.filterButton}>
           <Entypo name="calendar" size={15} color="#186B53" />
           <Text>Data</Text>
           <AntDesign name="caretdown" size={10} color="black" />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.filterButton} >
+
+        <TouchableOpacity style={styles.filterButton}>
           <Text>Ocorrências</Text>
           <AntDesign name="caretdown" size={10} color="black" />
         </TouchableOpacity>
@@ -56,42 +56,51 @@ export default function Mapa() {
 
       {selectedLocation && (
         <View style={styles.infoBox}>
-          <Image
-            style={styles.image}
-            source={selectedLocation?.foto[0]}
-            resizeMode="cover"
-          />
-          <View style={styles.infoContent}>
-            <View style={styles.row}>
-              <Entypo name="calendar" size={15} color="black" />
-              <Text style={styles.text}>
-                {selectedLocation?.data} / {selectedLocation?.hora}
-              </Text>
-            </View>
-            <View style={styles.row}>
-              <FontAwesome name="user" size={15} color="#385866" />
-              <Text style={styles.text} numberOfLines={1} ellipsizeMode="tail">
-                {selectedLocation?.nome}
-              </Text>
-            </View>
-            <View style={styles.addressRow}>
-              <Ionicons name="location" size={15} color="#385866" />
-              <View style={styles.flex1}>
-                <Text style={styles.text}>
-                  {selectedLocation?.localizacao?.local} -{" "}
-                  {selectedLocation?.localizacao?.origem} - {selectedLocation?.peso}
-                </Text>
+          <View style={styles.infoBoxContent}>
+            <View style={styles.infoHeader}>
+              <Image
+                style={styles.image}
+                source={selectedLocation?.foto[0]}
+                resizeMode="cover"
+              />
+              <View style={styles.infoContent}>
+                <View style={styles.row}>
+                  <Entypo name="calendar" size={15} color="black" />
+                  <Text style={styles.text}>
+                    {selectedLocation?.data} / {selectedLocation?.hora}
+                  </Text>
+                </View>
+                <View style={styles.row}>
+                  <FontAwesome name="user" size={15} color="#385866" />
+                  <Text style={styles.text} numberOfLines={1} ellipsizeMode="tail">
+                    {selectedLocation?.nome}
+                  </Text>
+                </View>
+                <View style={styles.addressRow}>
+                  <Ionicons name="location" size={15} color="#385866" />
+                  <View style={styles.flex1}>
+                    <Text style={styles.text}>
+                      {selectedLocation?.localizacao?.local} -{" "}
+                      {selectedLocation?.localizacao?.origem} - {selectedLocation?.peso}
+                    </Text>
+                  </View>
+                </View>
+                <StatusContainer backgroundColor={getStatusColor(selectedLocation?.status)}>
+                  <Text style={[styles.statusText, { color: "#fff" }]}>
+                    {selectedLocation?.status === "Concluído"
+                      ? `Concluído em ${selectedLocation?.dataConclusao} / ${selectedLocation?.horaConclusao}`
+                      : selectedLocation?.status}
+                  </Text>
+                </StatusContainer>
               </View>
             </View>
 
-            <StatusContainer backgroundColor={getStatusColor(selectedLocation?.status)}>
-              <Text style={[styles.statusText, { color: "#fff" }]}>
-                {selectedLocation?.status === "Concluído"
-                  ? `Concluído em ${selectedLocation?.dataConclusao} / ${selectedLocation?.horaConclusao}`
-                  : selectedLocation?.status}
-              </Text>
-            </StatusContainer>
-
+            <View style={styles.approvalContainer}>
+              <AprovacoStatus 
+                status={selectedLocation.aprovacao !== null ? selectedLocation.aprovacao : "Sem Aprovacao"} 
+                date={selectedLocation.dataAprovacao} 
+              />
+            </View>
           </View>
         </View>
       )}
@@ -100,6 +109,18 @@ export default function Mapa() {
 };
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  filterContainer: {
+    position: 'absolute',
+    top: 10,
+    flexDirection: 'row',
+    alignSelf: 'center',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 5
+  },
   filterButton: {
     height: 40,
     width: 120,
@@ -112,9 +133,6 @@ const styles = StyleSheet.create({
     borderColor: "#d9d9d9",
     backgroundColor: "#fff"
   },
-  container: {
-    flex: 1,
-  },
   markerImage: {
     width: 36,
     height: 36,
@@ -125,9 +143,9 @@ const styles = StyleSheet.create({
   },
   infoBox: {
     position: "absolute",
+    overflow: "hidden",
     bottom: 10,
     width: "95%",
-    padding: 10,
     borderRadius: 12,
     flexDirection: "row",
     justifyContent: "space-between",
@@ -138,6 +156,16 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 5,
     elevation: 5,
+  },
+  infoBoxContent: {
+    width: "100%",
+    flexDirection: "column",
+    gap: 5
+  },
+  infoHeader: {
+    flexDirection: "row",
+    gap: 10,
+    padding: 5
   },
   image: {
     width: "28%",
@@ -165,23 +193,12 @@ const styles = StyleSheet.create({
     marginBottom: 4,
     letterSpacing: -0.5,
   },
-  completedTag: {
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 5,
-    borderRadius: 10,
-    gap: 3,
-  },
-  completedBg: {
-    backgroundColor: "#1FB431",
-  },
-  whiteText: {
-    color: "#fff",
-  },
   statusText: {
     fontSize: 12,
     fontWeight: "600",
   },
+  approvalContainer: {
+    width: "100%",
+    height: 40
+  }
 });
-
-
