@@ -39,6 +39,7 @@ export const Dados = [
         descricao: null
       },
     ],
+    encarregado: "Roberto Nunes",
     localizacao: {
       latitude: -20.315000,
       longitude: -40.305000,
@@ -148,6 +149,7 @@ export const Dados = [
         descricao: "Descrição gerada automaticamente"
       },
     ],
+    encarregado: "Roberto Nunes",
     localizacao: {
       latitude: -20.305000,
       longitude: -40.315000,
@@ -257,6 +259,7 @@ export const Dados = [
         descricao: "Descrição gerada automaticamente"
       },
     ],
+    encarregado: "Roberto Nunes",
     localizacao: {
       latitude: -20.300000,
       longitude: -40.320000,
@@ -309,6 +312,7 @@ export const Dados = [
         descricao: "Descrição gerada automaticamente"
       },
     ],
+    encarregado: "Roberto Nunes",
     localizacao: {
       latitude: -20.340000,
       longitude: -40.280000,
@@ -360,6 +364,7 @@ export const Dados = [
         descricao: null
       },
     ],
+    encarregado: "Roberto Nunes",
     localizacao: {
       latitude: -20.350000,
       longitude: -40.330000,
@@ -467,6 +472,7 @@ export const Dados = [
         descricao: "Descrição gerada automaticamente"
       },
     ],
+    encarregado: "Roberto Nunes",
     localizacao: {
       latitude: -20.310000,
       longitude: -40.310000,
@@ -574,6 +580,7 @@ export const Dados = [
         descricao: null
       },
     ],
+    encarregado: "Roberto Nunes",
     localizacao: {
       latitude: -20.300500,
       longitude: -40.315000,
@@ -625,6 +632,7 @@ export const Dados = [
         descricao: "Descrição gerada automaticamente"
       },
     ],
+    encarregado: "Roberto Nunes",
     localizacao: {
       latitude: -20.330000,
       longitude: -40.295000,
