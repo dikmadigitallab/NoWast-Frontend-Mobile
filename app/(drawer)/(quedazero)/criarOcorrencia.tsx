@@ -19,10 +19,9 @@ export default function CadastroOcorrencia() {
 
     const { control, handleSubmit, formState: { errors } } = useForm({
         defaultValues: {
-            genero: '',
-            colaborador: "",
             data: "",
             hora: "",
+            colaborador: "",
             material: "",
             status: "",
             peso: "",
@@ -42,262 +41,265 @@ export default function CadastroOcorrencia() {
 
     return (
         <StyledMainContainer>
-                <ScrollView>
-                    <View style={{ flex: 1, justifyContent: "space-between" }}>
-                        <View style={{ gap: 5 }}>
-                            <Controller
-                                control={control}
-                                name="colaborador"
-                                rules={{ required: 'Digite nome do colaborador' }}
-                                render={({ field: { onChange, value }, fieldState: { error } }) => (
-                                    <>
-                                        <TextInput
-                                            mode="outlined"
-                                            label="Colaborador"
-                                            value={value}
-                                            onChangeText={onChange}
-                                            outlineColor="#707974"
-                                            activeOutlineColor="#707974"
-                                            style={{ backgroundColor: '#fff', height: 56 }}
-                                            error={!!error}
-                                        />
-                                        {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
-                                    </>
-                                )}
-                            />
+            <ScrollView>
+                <View style={{ flex: 1, justifyContent: "space-between" }}>
+                    <View style={{ gap: 5 }}>
 
-                            <Controller
-                                control={control}
-                                name="causa_queda"
-                                rules={{ required: 'Digite o causa da queda' }}
-                                render={({ field: { onChange, value }, fieldState: { error } }) => (
-                                    <>
-                                        <TextInput
-                                            mode="outlined"
-                                            label="Causa da queda"
-                                            value={value}
-                                            onChangeText={onChange}
-                                            outlineColor="#707974"
-                                            activeOutlineColor="#707974"
-                                            style={{ backgroundColor: '#fff', height: 56 }}
-                                            error={!!error}
-                                        />
-                                        {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
-                                    </>
-                                )}
-                            />
+                        <Controller
+                            control={control}
+                            name="data"
+                            rules={{ required: 'Digite a data' }}
+                            render={({ field: { onChange, value }, fieldState: { error } }) => (
+                                <>
+                                    <DatePickerInput
+                                        locale="pt-BR"
+                                        mode="outlined"
+                                        presentationStyle="pageSheet"
+                                        label="Selecione uma data"
+                                        saveLabel="Confirmar"
+                                        value={value ? new Date(value) : undefined}
+                                        onChange={onChange}
+                                        style={{ backgroundColor: '#fff', height: 56 }}
+                                        inputMode="start"
+                                        outlineColor="#707974"
+                                        activeOutlineColor="#707974"
+                                        error={!!error}
+                                    />
+                                    {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
+                                </>
+                            )}
+                        />
 
-                            <Controller
-                                control={control}
-                                name="data"
-                                rules={{ required: 'Digite a data' }}
-                                render={({ field: { onChange, value }, fieldState: { error } }) => (
-                                    <>
-                                        <DatePickerInput
-                                            locale="pt-BR"
-                                            mode="outlined"
-                                            presentationStyle="pageSheet"
-                                            label="Selecione uma data"
-                                            saveLabel="Confirmar"
-                                            value={value ? new Date(value) : undefined}
-                                            onChange={onChange}
-                                            style={{ backgroundColor: '#fff', height: 56 }}
-                                            inputMode="start"
-                                            outlineColor="#707974"
-                                            activeOutlineColor="#707974"
-                                            error={!!error}
-                                        />
-                                        {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
-                                    </>
-                                )}
-                            />
+                        <Controller
+                            control={control}
+                            name="hora"
+                            rules={{ required: 'Digite a hora' }}
+                            render={({ field: { onChange, value }, fieldState: { error } }) => (
+                                <>
+                                    <TextInput
+                                        mode="outlined"
+                                        label="Hora"
+                                        value={value}
+                                        onChangeText={onChange}
+                                        outlineColor="#707974"
+                                        activeOutlineColor="#707974"
+                                        style={{ backgroundColor: '#fff', height: 56 }}
+                                        error={!!error}
+                                        keyboardType="numeric"
+                                        placeholder="HH:MM"
+                                        maxLength={5}
+                                    />
+                                    {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
+                                </>
+                            )}
+                        />
 
-                            <Controller
-                                control={control}
-                                name="hora"
-                                rules={{ required: 'Digite a hora' }}
-                                render={({ field: { onChange, value }, fieldState: { error } }) => (
-                                    <>
-                                        <TextInput
-                                            mode="outlined"
-                                            label="Hora"
-                                            value={value}
-                                            onChangeText={onChange}
-                                            outlineColor="#707974"
-                                            activeOutlineColor="#707974"
-                                            style={{ backgroundColor: '#fff', height: 56 }}
-                                            error={!!error}
-                                            keyboardType="numeric"
-                                            placeholder="HH:MM"
-                                            maxLength={5}
-                                        />
-                                        {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
-                                    </>
-                                )}
-                            />
+                        <Controller
+                            control={control}
+                            name="colaborador"
+                            rules={{ required: 'Digite nome do colaborador' }}
+                            render={({ field: { onChange, value }, fieldState: { error } }) => (
+                                <>
+                                    <TextInput
+                                        mode="outlined"
+                                        label="Colaborador"
+                                        value={value}
+                                        onChangeText={onChange}
+                                        outlineColor="#707974"
+                                        activeOutlineColor="#707974"
+                                        style={{ backgroundColor: '#fff', height: 56 }}
+                                        error={!!error}
+                                    />
+                                    {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
+                                </>
+                            )}
+                        />
 
-                            <Controller
-                                control={control}
-                                name="status"
-                                rules={{ required: 'Selecione o Status' }}
-                                render={({ field: { onChange, value }, fieldState: { error } }) => (
-                                    <>
-                                        <Dropdown
-                                            mode="outlined"
-                                            label="Status"
-                                            options={OPTIONS}
-                                            value={value}
-                                            onSelect={onChange}
-                                            CustomMenuHeader={() => <></>}
-                                            menuContentStyle={{ backgroundColor: '#fff' }}
-                                        />
-                                        {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
-                                    </>
-                                )}
-                            />
+                        <Controller
+                            control={control}
+                            name="material"
+                            rules={{ required: 'Selecione o Material' }}
+                            render={({ field: { onChange, value }, fieldState: { error } }) => (
+                                <>
+                                    <Dropdown
+                                        mode="outlined"
+                                        label="Material"
+                                        options={OPTIONS}
+                                        value={value}
+                                        onSelect={onChange}
+                                        CustomMenuHeader={() => <></>}
+                                        menuContentStyle={{ backgroundColor: '#fff' }}
+                                    />
+                                    {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
+                                </>
+                            )}
+                        />
 
-                            <Controller
-                                control={control}
-                                name="trans_ult_para_recolhimento"
-                                rules={{ required: 'Selecione o Trans. Ult. p/ Recolhimento' }}
-                                render={({ field: { onChange, value }, fieldState: { error } }) => (
-                                    <>
-                                        <Dropdown
-                                            mode="outlined"
-                                            label="Trans. Ult. p/ Recolhimento"
-                                            options={OPTIONS}
-                                            value={value}
-                                            onSelect={onChange}
-                                            CustomMenuHeader={() => <></>}
-                                            menuContentStyle={{ backgroundColor: '#fff' }}
-                                        />
-                                        {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
-                                    </>
-                                )}
-                            />
+                        <Controller
+                            control={control}
+                            name="status"
+                            rules={{ required: 'Selecione o Status' }}
+                            render={({ field: { onChange, value }, fieldState: { error } }) => (
+                                <>
+                                    <Dropdown
+                                        mode="outlined"
+                                        label="Status"
+                                        options={OPTIONS}
+                                        value={value}
+                                        onSelect={onChange}
+                                        CustomMenuHeader={() => <></>}
+                                        menuContentStyle={{ backgroundColor: '#fff' }}
+                                    />
+                                    {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
+                                </>
+                            )}
+                        />
 
-                            <Controller
-                                control={control}
-                                name="origem"
-                                rules={{ required: 'Selecione o Origem' }}
-                                render={({ field: { onChange, value }, fieldState: { error } }) => (
-                                    <>
-                                        <Dropdown
-                                            mode="outlined"
-                                            label="Origem"
-                                            options={OPTIONS}
-                                            value={value}
-                                            onSelect={onChange}
-                                            CustomMenuHeader={() => <></>}
-                                            menuContentStyle={{ backgroundColor: '#fff' }}
-                                        />
-                                        {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
-                                    </>
-                                )}
-                            />
+                        <Controller
+                            control={control}
+                            name="peso"
+                            rules={{ required: 'Digite o peso' }}
+                            render={({ field: { onChange, value }, fieldState: { error } }) => (
+                                <>
+                                    <TextInput
+                                        mode="outlined"
+                                        label="Peso"
+                                        value={value}
+                                        onChangeText={onChange}
+                                        outlineColor="#707974"
+                                        activeOutlineColor="#707974"
+                                        style={{ backgroundColor: '#fff', height: 56 }}
+                                        error={!!error}
+                                    />
+                                    {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
+                                </>
+                            )}
+                        />
 
-                            <Controller
-                                control={control}
-                                name="origem_detalhada"
-                                rules={{ required: 'Selecione o origem detalhada' }}
-                                render={({ field: { onChange, value }, fieldState: { error } }) => (
-                                    <>
-                                        <Dropdown
-                                            mode="outlined"
-                                            label="Origem detalhada"
-                                            options={OPTIONS}
-                                            value={value}
-                                            onSelect={onChange}
-                                            CustomMenuHeader={() => <></>}
-                                            menuContentStyle={{ backgroundColor: '#fff' }}
-                                        />
-                                        {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
-                                    </>
-                                )}
-                            />
+                        <Controller
+                            control={control}
+                            name="origem"
+                            rules={{ required: 'Selecione o Origem' }}
+                            render={({ field: { onChange, value }, fieldState: { error } }) => (
+                                <>
+                                    <Dropdown
+                                        mode="outlined"
+                                        label="Origem"
+                                        options={OPTIONS}
+                                        value={value}
+                                        onSelect={onChange}
+                                        CustomMenuHeader={() => <></>}
+                                        menuContentStyle={{ backgroundColor: '#fff' }}
+                                    />
+                                    {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
+                                </>
+                            )}
+                        />
 
-                            <Controller
-                                control={control}
-                                name="destino_final"
-                                rules={{ required: 'Selecione o destino final' }}
-                                render={({ field: { onChange, value }, fieldState: { error } }) => (
-                                    <>
-                                        <Dropdown
-                                            mode="outlined"
-                                            label="Destino final"
-                                            options={OPTIONS}
-                                            value={value}
-                                            onSelect={onChange}
-                                            CustomMenuHeader={() => <></>}
-                                            menuContentStyle={{ backgroundColor: '#fff' }}
-                                        />
-                                        {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
-                                    </>
-                                )}
-                            />
+                        <Controller
+                            control={control}
+                            name="origem_detalhada"
+                            rules={{ required: 'Selecione o origem detalhada' }}
+                            render={({ field: { onChange, value }, fieldState: { error } }) => (
+                                <>
+                                    <Dropdown
+                                        mode="outlined"
+                                        label="Origem detalhada"
+                                        options={OPTIONS}
+                                        value={value}
+                                        onSelect={onChange}
+                                        CustomMenuHeader={() => <></>}
+                                        menuContentStyle={{ backgroundColor: '#fff' }}
+                                    />
+                                    {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
+                                </>
+                            )}
+                        />
 
-                            <Controller
-                                control={control}
-                                name="genero"
-                                rules={{ required: 'Selecione o genero' }}
-                                render={({ field: { onChange, value }, fieldState: { error } }) => (
-                                    <>
-                                        <Dropdown
-                                            mode="outlined"
-                                            label="Genero"
-                                            options={OPTIONS}
-                                            value={value}
-                                            onSelect={onChange}
-                                            CustomMenuHeader={() => <></>}
-                                            menuContentStyle={{ backgroundColor: '#fff' }}
-                                        />
-                                        {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
-                                    </>
-                                )}
-                            />
+                        <Controller
+                            control={control}
+                            name="destino_final"
+                            rules={{ required: 'Selecione o destino final' }}
+                            render={({ field: { onChange, value }, fieldState: { error } }) => (
+                                <>
+                                    <Dropdown
+                                        mode="outlined"
+                                        label="Destino final"
+                                        options={OPTIONS}
+                                        value={value}
+                                        onSelect={onChange}
+                                        CustomMenuHeader={() => <></>}
+                                        menuContentStyle={{ backgroundColor: '#fff' }}
+                                    />
+                                    {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
+                                </>
+                            )}
+                        />
 
-                            <Controller
-                                control={control}
-                                name="material"
-                                rules={{ required: 'Selecione o Material' }}
-                                render={({ field: { onChange, value }, fieldState: { error } }) => (
-                                    <>
-                                        <Dropdown
-                                            mode="outlined"
-                                            label="Material"
-                                            options={OPTIONS}
-                                            value={value}
-                                            onSelect={onChange}
-                                            CustomMenuHeader={() => <></>}
-                                            menuContentStyle={{ backgroundColor: '#fff' }}
-                                        />
-                                        {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
-                                    </>
-                                )}
-                            />
-                        </View>
+                        <Controller
+                            control={control}
+                            name="causa_queda"
+                            rules={{ required: 'Digite o causa da queda' }}
+                            render={({ field: { onChange, value }, fieldState: { error } }) => (
+                                <>
+                                    <TextInput
+                                        mode="outlined"
+                                        label="Causa da queda"
+                                        value={value}
+                                        onChangeText={onChange}
+                                        outlineColor="#707974"
+                                        activeOutlineColor="#707974"
+                                        style={{ backgroundColor: '#fff', height: 56 }}
+                                        error={!!error}
+                                    />
+                                    {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
+                                </>
+                            )}
+                        />
 
-                        <CapturaImagens texto="Adicionar fotos" qtsImagens={3} />
+                        <Controller
+                            control={control}
+                            name="trans_ult_para_recolhimento"
+                            rules={{ required: 'Selecione o Trans. Ult. p/ Recolhimento' }}
+                            render={({ field: { onChange, value }, fieldState: { error } }) => (
+                                <>
+                                    <Dropdown
+                                        mode="outlined"
+                                        label="Trans. Ult. p/ Recolhimento"
+                                        options={OPTIONS}
+                                        value={value}
+                                        onSelect={onChange}
+                                        CustomMenuHeader={() => <></>}
+                                        menuContentStyle={{ backgroundColor: '#fff' }}
+                                    />
+                                    {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
+                                </>
+                            )}
+                        />
 
-                        <View style={[styles.containerFile, { gap: 10 }]}>
-                            <View style={styles.headerFoto}>
-                                <FontAwesome name="microphone" size={24} color="#43575F" />
-                                <Text style={styles.textFoto}>Descrição por áudio</Text>
-                            </View>
-                            <View>
-                                <AudioRecorderPlayer />
-                            </View>
-                        </View>
-
-                        <TouchableOpacity
-                            style={styles.buttons}
-                            onPress={handleSubmit(onSubmit)}
-                            /* onPress={() => toast.success('Cadastro realizado com sucesso', { duration: 3000 })} */
-                        >
-                            <Text style={{ color: "#fff", fontSize: 16 }}>Cadastrar</Text>
-                        </TouchableOpacity>
                     </View>
-                </ScrollView>
+
+                    <CapturaImagens texto="Adicionar fotos" qtsImagens={3} />
+
+                    <View style={[styles.containerFile, { gap: 10 }]}>
+                        <View style={styles.headerFoto}>
+                            <FontAwesome name="microphone" size={24} color="#43575F" />
+                            <Text style={styles.textFoto}>Descrição por áudio</Text>
+                        </View>
+                        <View>
+                            <AudioRecorderPlayer />
+                        </View>
+                    </View>
+
+                    <TouchableOpacity
+                        style={styles.buttons}
+                        onPress={handleSubmit(onSubmit)}
+                    /* onPress={() => toast.success('Cadastro realizado com sucesso', { duration: 3000 })} */
+                    >
+                        <Text style={{ color: "#fff", fontSize: 16 }}>Cadastrar</Text>
+                    </TouchableOpacity>
+                </View>
+            </ScrollView>
         </StyledMainContainer>
 
     );

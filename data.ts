@@ -93,8 +93,9 @@ export const Dados = [
       ],
       imagem: require("./assets/images/atestado.png"),
       descricao: "Descrição não disponível",
-      motivo: "Atestado"
+      motivo: "Atestado",
     },
+    encarregado: "Roberto Nunes",
     localizacao: {
       latitude: -20.325000,
       longitude: -40.295000,
@@ -201,8 +202,9 @@ export const Dados = [
       ],
       imagem: require("./assets/images/atestado.png"),
       descricao: "Descrição não disponível",
-      motivo: "Atestado"
+      motivo: "Atestado",
     },
+    encarregado: "Roberto Nunes",
     localizacao: {
       latitude: -20.335000,
       longitude: -40.285000,
@@ -411,8 +413,9 @@ export const Dados = [
       ],
       imagem: require("./assets/images/atestado.png"),
       descricao: "Descrição não disponível",
-      motivo: "Atestado"
+      motivo: "Atestado",
     },
+    encarregado: "Roberto Nunes",
     localizacao: {
       latitude: -20.290000,
       longitude: -40.270000,
@@ -517,8 +520,9 @@ export const Dados = [
       ],
       imagem: require("./assets/images/atestado.png"),
       descricao: "Descrição não disponível",
-      motivo: "Atestado"
+      motivo: "Atestado",
     },
+    encarregado: "Roberto Nunes",
     localizacao: {
       latitude: -20.320000,
       longitude: -40.290000,

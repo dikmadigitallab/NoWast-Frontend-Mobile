@@ -13,7 +13,7 @@ export interface ILocalizacao {
   destino_final: string;
 }
 
-export interface Pessoas{
+export interface Pessoas {
   id: number;
   nome: string;
   funcao: string;
@@ -43,5 +43,6 @@ export interface IOcorrencias {
   hora_fotos_registradas: string;
   justificativa: IJustificativa;
   pessoas: Pessoas[]
+  encarregado: string
 }
 

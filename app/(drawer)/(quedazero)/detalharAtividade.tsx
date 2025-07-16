@@ -87,6 +87,14 @@ export default function DetalharAtividade() {
                                 {ocorrenciaSelecionada.data} - {ocorrenciaSelecionada.hora}
                             </Text>
                         </View>
+                        <View style={styles.linha}>
+                            <View style={styles.coluna}>
+                                <FontAwesome6 name="user-tie" size={15} color="#43575F" />
+                            </View>
+                            <Text style={styles.text}>
+                                Encarregado: {ocorrenciaSelecionada?.encarregado}
+                            </Text>
+                        </View>
                         <View style={[styles.linha, { height: ocorrenciaSelecionada.justificativa ? 250 : "auto", alignItems: "flex-start", gap: 10 }]}>
                             <View style={[styles.coluna, { width: 35, height: "100%", padding: 10, justifyContent: "flex-start" }]}>
                                 <Entypo name="flag" size={15} color="#43575F" />
@@ -118,40 +126,44 @@ export default function DetalharAtividade() {
                                 }
                             </View>
                         </View>
-                        <View style={[styles.linha, { height: "auto", alignItems: "flex-start", gap: 10 }]}>
-                            <View style={[styles.coluna, { width: 35, height: "100%", padding: 10, justifyContent: "flex-start" }]}>
-                                <FontAwesome6 name="user-tie" size={15} color="#43575F" />
-                            </View>
-                            <View style={{ flexDirection: "column", gap: 5 }}>
-                                {
-                                    ocorrenciaSelecionada?.pessoas?.map((pessoa: Pessoas, index: number) => (
-                                        <View key={index} style={{ gap: 5 }}>
-                                            <Text style={{ fontWeight: "semibold", color: "#43575F" }}>{pessoa.funcao}</Text>
-                                            <View style={[styles.rowWithGap, { justifyContent: "center", alignItems: "center", gap: 10 }]}>
-                                                <View style={styles.rowWithGap}>
-                                                    <Checkbox value={isChecked} onValueChange={setChecked} color={isChecked ? '#34C759' : undefined} />
-                                                    <View>
-                                                        <Text style={{ fontSize: 15 }}>{ocorrenciaSelecionada.nome}</Text>
-                                                        {pessoa.descricao && <Text style={{ fontSize: 13 }}>{pessoa.descricao}</Text>}
+                        {
+                            ocorrenciaSelecionada?.pessoas && (
+                                <View style={[styles.linha, { height: "auto", alignItems: "flex-start", gap: 10 }]}>
+                                    <View style={[styles.coluna, { width: 35, height: "100%", padding: 10, justifyContent: "flex-start" }]}>
+                                        <FontAwesome6 name="user-tie" size={15} color="#43575F" />
+                                    </View>
+                                    <View style={{ flexDirection: "column", gap: 5 }}>
+                                        {
+                                            ocorrenciaSelecionada?.pessoas?.map((pessoa: Pessoas, index: number) => (
+                                                <View key={index} style={{ gap: 5 }}>
+                                                    <Text style={{ fontWeight: "semibold", color: "#43575F" }}>{pessoa.funcao}</Text>
+                                                    <View style={[styles.rowWithGap, { justifyContent: "center", alignItems: "center", gap: 10 }]}>
+                                                        <View style={styles.rowWithGap}>
+                                                            <Checkbox value={isChecked} onValueChange={setChecked} color={isChecked ? '#34C759' : undefined} />
+                                                            <View>
+                                                                <Text style={{ fontSize: 15 }}>{ocorrenciaSelecionada.nome}</Text>
+                                                                {pessoa.descricao && <Text style={{ fontSize: 13 }}>{pessoa.descricao}</Text>}
+                                                            </View>
+                                                        </View>
+                                                        {
+                                                            !pessoa.descricao && (
+                                                                <TouchableOpacity
+                                                                    style={{ flexDirection: "row", gap: 2, justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: "#43575F", padding: 5, borderRadius: 10 }}
+                                                                    onPress={() => modalizeDescricaoRef.current?.open()}>
+                                                                    <AntDesign name="plus" size={15} color="#43575F" />
+                                                                    <Text style={[styles.text, { fontWeight: "bold", color: "#43575F", fontSize: 12 }]}>Descrição</Text>
+                                                                </TouchableOpacity>
+                                                            )}
                                                     </View>
                                                 </View>
-                                                {
-                                                    !pessoa.descricao && (
-                                                        <TouchableOpacity
-                                                            style={{ flexDirection: "row", gap: 2, justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: "#43575F", padding: 5, borderRadius: 10 }}
-                                                            onPress={() => modalizeDescricaoRef.current?.open()}>
-                                                            <AntDesign name="plus" size={15} color="#43575F" />
-                                                            <Text style={[styles.text, { fontWeight: "bold", color: "#43575F", fontSize: 12 }]}>Descrição</Text>
-                                                        </TouchableOpacity>
-                                                    )}
-                                            </View>
-                                        </View>
-                                    ))
-                                }
-                            </View>
-                        </View>
+                                            ))
+                                        }
+                                    </View>
+                                </View>
+                            )
+                        }
 
-                        <View style={[styles.linha, { height: 140, alignItems: "flex-start" }]}>
+                        <View style={[styles.linha, { height: 150, alignItems: "flex-start" }]}>
                             <View style={[styles.coluna, { width: 35, height: "100%", padding: 10, justifyContent: "flex-start" }]}>
                                 <AntDesign name="camera" size={15} color="#43575F" />
                             </View>
@@ -159,7 +171,7 @@ export default function DetalharAtividade() {
                                 <Text style={styles.text}>Fotos Registradas: {ocorrenciaSelecionada.data_fotos_registradas} - {ocorrenciaSelecionada.hora_fotos_registradas}</Text>
                                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingRight: 50 }}>
                                     {images.map((image, index) => (
-                                        <View key={index} style={{ width: 150, height: 100, marginRight: 10 }}>
+                                        <View key={index} style={{ width: 200, height: "100%", marginRight: 10 }}>
                                             <Image source={image} style={styles.image} />
                                         </View>
                                     ))}
@@ -174,10 +186,10 @@ export default function DetalharAtividade() {
                             <View style={styles.locationDetails}>
                                 <View style={styles.locationTextContainer}>
                                     <View style={styles.coluna_localizacao}>
-                                        <Text style={styles.textBold}>Localização</Text>
-                                        <Text style={[styles.text, { fontWeight: "500" }]}>Prédio: <Text style={{ fontWeight: 400 }}>{ocorrenciaSelecionada.localizacao.local}</Text></Text>
-                                        <Text style={[styles.text, { fontWeight: "500" }]}>Setor: <Text style={{ fontWeight: 400 }}>{ocorrenciaSelecionada.localizacao.origem}</Text></Text>
-                                        <Text style={[styles.text, { fontWeight: "500" }]}>Dimensão: <Text style={{ fontWeight: 400 }}>{ocorrenciaSelecionada.localizacao.origem_detalhado}</Text></Text>
+                                        <Text style={styles.textBold}>Localização:</Text>
+                                        <Text style={[styles.text, { fontWeight: "700" }]}>Prédio: <Text style={{ fontWeight: 400 }}>{ocorrenciaSelecionada.localizacao.local}</Text></Text>
+                                        <Text style={[styles.text, { fontWeight: "700" }]}>Setor: <Text style={{ fontWeight: 400 }}>{ocorrenciaSelecionada.localizacao.origem}</Text></Text>
+                                        <Text style={[styles.text, { fontWeight: "700" }]}>Dimensão: <Text style={{ fontWeight: 400 }}>{ocorrenciaSelecionada.localizacao.origem_detalhado}</Text></Text>
                                     </View>
                                 </View>
                                 <View style={styles.mapContainer}>
@@ -404,7 +416,7 @@ const styles = StyleSheet.create({
     },
     container: {
         flexDirection: "column",
-        gap: 2
+        gap: 6
     },
     header: {
         marginTop: 20,
@@ -475,7 +487,8 @@ const styles = StyleSheet.create({
         borderRadius: 5,
     },
     coluna_localizacao: {
-        flexDirection: "column"
+        flexDirection: "column",
+        gap: 5
     },
     locationContainer: {
         flexDirection: "row",

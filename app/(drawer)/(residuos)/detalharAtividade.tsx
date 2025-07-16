@@ -1,10 +1,9 @@
 import { AntDesign, FontAwesome, FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-import * as ImagePicker from 'expo-image-picker';
 import { router } from "expo-router";
 import { useRef, useState } from "react";
-import { Alert, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Modalize } from 'react-native-modalize';
 import { TextInput } from "react-native-paper";
 import CapturaImagens from "../../../components/capturaImagens";
@@ -25,35 +24,6 @@ export default function DetalharAtividade() {
         if (modalizeRef.current) {
             modalizeRef.current.close();
         }
-    };
-
-    const pickImage = async () => {
-        if (images.length >= 3) {
-            Alert.alert("Aviso", "Você já adicionou o máximo de 3 fotos.");
-            return;
-        }
-
-        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (status !== 'granted') {
-            Alert.alert("Permissão necessária", "Precisamos de acesso à sua galeria para adicionar fotos.");
-            return;
-        }
-
-        let result = await ImagePicker.launchImageLibraryAsync({
-            aspect: [4, 3],
-            quality: 1,
-        });
-
-        if (!result.canceled && result.assets && result.assets.length > 0) {
-            const selectedUris = result.assets.map(asset => asset.uri);
-            const remainingSlots = 3 - images.length;
-            const urisToAdd = selectedUris.slice(0, remainingSlots);
-            setImages(prev => [...prev, ...urisToAdd]);
-        }
-    };
-
-    const removeImage = (index: number) => {
-        setImages(prev => prev.filter((_, i) => i !== index));
     };
 
     if (!ocorrenciaSelecionada) {
@@ -288,6 +258,7 @@ const styles = StyleSheet.create({
         flexDirection: "column",
         gap: 2,
         paddingBottom: 20,
+
     },
     header: {
         marginBottom: 10,
