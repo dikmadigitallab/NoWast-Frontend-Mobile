@@ -98,7 +98,7 @@ export default function DetalharOcorrencia() {
               </View>
               <View style={{ flexDirection: "column", gap: 10 }}>
                 <Text style={styles.text}>Fotos Registradas: {ocorrenciaSelecionada.data_fotos_registradas} - {ocorrenciaSelecionada.hora_fotos_registradas}</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterButtonsContainer}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingRight: 50 }}>
                   {images.map((image, index) => (
                     <View key={index} style={styles.imageContainer}>
                       <Image source={image} style={styles.image} />
@@ -390,9 +390,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#ccc",
     borderRadius: 20,
     overflow: "hidden"
-  },
-  filterButtonsContainer: {
-    paddingRight: 50,
   },
   buttonsContainer: {
     gap: 10,

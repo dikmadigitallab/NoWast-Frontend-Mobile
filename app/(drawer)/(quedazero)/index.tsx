@@ -9,7 +9,6 @@ import { useCallback, useRef, useState } from "react";
 import { FlatList, ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { DatePickerModal } from "react-native-paper-dates";
 import { useAuth } from "../../../auth/authProvider";
-import BotaoCriarOcorrencia from "../../../components/botaoCriarOcorrencia";
 import MapScreen from "../../../components/renderMapOcorrencias";
 import { Dados } from "../../../data";
 import { useOcorrenciasStore } from "../../../store/storeOcorrencias";
@@ -18,11 +17,11 @@ export default function Ocorrencias() {
 
     const router = useRouter();
     const { user } = useAuth();
+    const [date, setDate] = useState(undefined);
     const [showMap, setShowMap] = useState(false);
+    const [openDate, setOpenDate] = useState(false);
     const { setOcorrenciaSelecionada } = useOcorrenciasStore();
     const [atividadeSelecionada, setAtividadeSelecionada] = useState({ atividade: "", label: "" });
-    const [date, setDate] = useState(undefined);
-    const [openDate, setOpenDate] = useState(false);
 
     const onDismissSingle = useCallback(() => {
         setOpenDate(false);
@@ -150,37 +149,40 @@ export default function Ocorrencias() {
                         </TouchableOpacity>
                     )}
                 />
-                    <Picker
-                        style={{ display: "none" }}
-                        ref={pickerRef}
-                        selectedValue={atividadeSelecionada.atividade}
-                        onValueChange={(itemValue, itemIndex) =>
-                            setAtividadeSelecionada((prev) => ({
-                                ...prev,
-                                atividade: itemValue,
-                                label: atividades[itemIndex],
-                            }))
-                        }
-                    >
-                        <Picker.Item label="Atividades" value="atividades" />
-                        <Picker.Item label="Ocorrências" value="ocorrências" />
-                    </Picker>
-                    <DatePickerModal
-                        locale="pt-BR"
-                        mode="single"
-                        visible={openDate}
-                        onDismiss={onDismissSingle}
-                        date={date}
-                        onConfirm={onConfirmSingle}
-                        presentationStyle="pageSheet"
-                        label="Selecione uma data"
-                        saveLabel="Confirmar"
-                    />
+                <Picker
+                    style={{ display: "none" }}
+                    ref={pickerRef}
+                    selectedValue={atividadeSelecionada.atividade}
+                    onValueChange={(itemValue, itemIndex) =>
+                        setAtividadeSelecionada((prev) => ({
+                            ...prev,
+                            atividade: itemValue,
+                            label: atividades[itemIndex],
+                        }))
+                    }
+                >
+                    <Picker.Item label="Atividades" value="atividades" />
+                    <Picker.Item label="Ocorrências" value="ocorrências" />
+                </Picker>
+                <DatePickerModal
+                    locale="pt-BR"
+                    mode="single"
+                    visible={openDate}
+                    onDismiss={onDismissSingle}
+                    date={date}
+                    onConfirm={onConfirmSingle}
+                    presentationStyle="pageSheet"
+                    label="Selecione uma data"
+                    saveLabel="Confirmar"
+                />
             </StyledMainContainer>
-            {showMap ? (
-                <MapScreen location={location} showMap={() => setShowMap(!showMap)} />
-            ) : null}
-            <BotaoCriarOcorrencia />
+            {showMap ? (<MapScreen location={location} showMap={() => setShowMap(!showMap)} />) : null}
+
+            <TouchableOpacity
+                onPress={() => router.push('criarOcorrencia' as never)}
+                style={styles.containerCreate}>
+                <AntDesign name="plus" size={24} color="#fff" />
+            </TouchableOpacity>
         </>
     );
 }
@@ -272,5 +274,16 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "flex-start",
     },
+    containerCreate: {
+        width: 60,
+        height: 60,
+        position: 'absolute',
+        bottom: 20,
+        right: 20,
+        borderRadius: 100,
+        backgroundColor: '#186B53',
+        alignItems: 'center',
+        justifyContent: 'center'
+    }
 });
 

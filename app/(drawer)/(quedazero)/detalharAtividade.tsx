@@ -1,6 +1,6 @@
 import AprovacoStatus from "@/components/aprovacaoStatus";
 import { Pessoas } from "@/types/IOcorrencias";
-import { AntDesign, FontAwesome, FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
+import { AntDesign, FontAwesome5 } from "@expo/vector-icons";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import Checkbox from 'expo-checkbox';
@@ -24,6 +24,16 @@ const OPTIONS = [
     { label: 'Outro', value: 'outro' },
 ];
 
+const images = [
+    require("../../../assets/images/ocorrencias.png"),
+    require("../../../assets/images/ocorrencias.png"),
+    require("../../../assets/images/ocorrencias.png"),
+    require("../../../assets/images/ocorrencias.png"),
+    require("../../../assets/images/ocorrencias.png"),
+    require("../../../assets/images/ocorrencias.png"),
+];
+
+
 export default function DetalharAtividade() {
 
     const { user } = useAuth()
@@ -32,6 +42,12 @@ export default function DetalharAtividade() {
     const [isChecked, setChecked] = useState(false);
     const { ocorrenciaSelecionada } = useOcorrenciasStore();
     const [modalVisible, setModalizeVisible] = useState(false);
+
+    const [justificativa, setJustificativa] = useState<any>({
+        justificativa: '',
+        descricao: '',
+        material: ''
+    });
 
     const closeModal = () => {
         if (modalizeJustificativaRef.current && modalizeDescricaoRef.current) {
@@ -72,7 +88,7 @@ export default function DetalharAtividade() {
                             </Text>
                         </View>
                         <View style={[styles.linha, { height: ocorrenciaSelecionada.justificativa ? 250 : "auto", alignItems: "flex-start", gap: 10 }]}>
-                            <View style={[styles.coluna,  {width: 35, height: "100%", padding: 10,  justifyContent: "flex-start"} ]}>
+                            <View style={[styles.coluna, { width: 35, height: "100%", padding: 10, justifyContent: "flex-start" }]}>
                                 <Entypo name="flag" size={15} color="#43575F" />
                             </View>
                             <View style={{ width: "100%", gap: 10 }}>
@@ -103,20 +119,20 @@ export default function DetalharAtividade() {
                             </View>
                         </View>
                         <View style={[styles.linha, { height: "auto", alignItems: "flex-start", gap: 10 }]}>
-                            <View style={[styles.coluna,  {width: 35, height: "100%", padding: 10,  justifyContent: "flex-start"} ]}>
+                            <View style={[styles.coluna, { width: 35, height: "100%", padding: 10, justifyContent: "flex-start" }]}>
                                 <FontAwesome6 name="user-tie" size={15} color="#43575F" />
                             </View>
                             <View style={{ flexDirection: "column", gap: 5 }}>
                                 {
                                     ocorrenciaSelecionada?.pessoas?.map((pessoa: Pessoas, index: number) => (
-                                        <View key={index} style={{gap: 5}}>
+                                        <View key={index} style={{ gap: 5 }}>
                                             <Text style={{ fontWeight: "semibold", color: "#43575F" }}>{pessoa.funcao}</Text>
-                                            <View style={[styles.rowWithGap, {justifyContent: "center", alignItems: "center", gap: 10 }]}>
+                                            <View style={[styles.rowWithGap, { justifyContent: "center", alignItems: "center", gap: 10 }]}>
                                                 <View style={styles.rowWithGap}>
                                                     <Checkbox value={isChecked} onValueChange={setChecked} color={isChecked ? '#34C759' : undefined} />
                                                     <View>
-                                                    <Text style={{ fontSize: 15 }}>{ocorrenciaSelecionada.nome}</Text>
-                                                    { pessoa.descricao && <Text style={{ fontSize: 13 }}>{pessoa.descricao}</Text>}
+                                                        <Text style={{ fontSize: 15 }}>{ocorrenciaSelecionada.nome}</Text>
+                                                        {pessoa.descricao && <Text style={{ fontSize: 13 }}>{pessoa.descricao}</Text>}
                                                     </View>
                                                 </View>
                                                 {
@@ -134,48 +150,34 @@ export default function DetalharAtividade() {
                                 }
                             </View>
                         </View>
-                        <View style={styles.linha}>
-                            <View style={styles.coluna}>
-                                <MaterialCommunityIcons name="wheel-barrow" size={20} color="#43575F" />
+
+                        <View style={[styles.linha, { height: 140, alignItems: "flex-start" }]}>
+                            <View style={[styles.coluna, { width: 35, height: "100%", padding: 10, justifyContent: "flex-start" }]}>
+                                <AntDesign name="camera" size={15} color="#43575F" />
                             </View>
-                            <View style={styles.rowWithGap}>
-                                <Text style={styles.textBold}>Material:</Text>
-                                <Text style={styles.text}>{ocorrenciaSelecionada.material}</Text>
-                            </View>
-                        </View>
-                        <View style={styles.linha}>
-                            <View style={styles.coluna}>
-                                <MaterialCommunityIcons name="weight" size={20} color="#43575F" />
-                            </View>
-                            <Text style={styles.text}>{ocorrenciaSelecionada.peso}</Text>
-                        </View>
-                        <View style={styles.linha}>
-                            <View style={styles.coluna}>
-                                <FontAwesome5 name="briefcase-medical" size={15} color="#43575F" />
-                            </View>
-                            <View style={styles.rowWithGap}>
-                                <Text style={styles.textBold}>Causa da queda:</Text>
-                                <Text style={styles.text}>{ocorrenciaSelecionada.causa_queda}</Text>
+                            <View style={{ flexDirection: "column", gap: 10 }}>
+                                <Text style={styles.text}>Fotos Registradas: {ocorrenciaSelecionada.data_fotos_registradas} - {ocorrenciaSelecionada.hora_fotos_registradas}</Text>
+                                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingRight: 50 }}>
+                                    {images.map((image, index) => (
+                                        <View key={index} style={{ width: 150, height: 100, marginRight: 10 }}>
+                                            <Image source={image} style={styles.image} />
+                                        </View>
+                                    ))}
+                                </ScrollView>
                             </View>
                         </View>
-                        <View style={styles.linha}>
-                            <View style={styles.coluna}>
-                                <FontAwesome name="exclamation-triangle" size={15} color="#43575F" />
-                            </View>
-                            <Text style={styles.text}>{ocorrenciaSelecionada.status}</Text>
-                        </View>
+
                         <View style={[styles.linha, { height: 320, alignItems: "flex-start" }]}>
-                            <View style={[styles.coluna,  {width: 35, height: "100%", padding: 10,  justifyContent: "flex-start"} ]}>
+                            <View style={[styles.coluna, { width: 35, height: "100%", padding: 10, justifyContent: "flex-start" }]}>
                                 <FontAwesome6 name="location-dot" color="#43575F" size={15} />
                             </View>
                             <View style={styles.locationDetails}>
                                 <View style={styles.locationTextContainer}>
                                     <View style={styles.coluna_localizacao}>
                                         <Text style={styles.textBold}>Localização</Text>
-                                        <Text style={styles.text}>Local: {ocorrenciaSelecionada.localizacao.local}</Text>
-                                        <Text style={styles.text}>Origem: {ocorrenciaSelecionada.localizacao.origem}</Text>
-                                        <Text style={styles.text}>Origem: {ocorrenciaSelecionada.localizacao.origem_detalhado}</Text>
-                                        <Text style={styles.text}>Origem: {ocorrenciaSelecionada.localizacao.destino_final}</Text>
+                                        <Text style={[styles.text, { fontWeight: "500" }]}>Prédio: <Text style={{ fontWeight: 400 }}>{ocorrenciaSelecionada.localizacao.local}</Text></Text>
+                                        <Text style={[styles.text, { fontWeight: "500" }]}>Setor: <Text style={{ fontWeight: 400 }}>{ocorrenciaSelecionada.localizacao.origem}</Text></Text>
+                                        <Text style={[styles.text, { fontWeight: "500" }]}>Dimensão: <Text style={{ fontWeight: 400 }}>{ocorrenciaSelecionada.localizacao.origem_detalhado}</Text></Text>
                                     </View>
                                 </View>
                                 <View style={styles.mapContainer}>
@@ -190,6 +192,16 @@ export default function DetalharAtividade() {
                             <View style={styles.rowWithGap}>
                                 <Text style={styles.textBold}>EPI:</Text>
                                 <Text style={styles.text}>Capacete - Luva - bota</Text>
+                            </View>
+                        </View>
+
+                        <View style={styles.linha}>
+                            <View style={styles.coluna}>
+                                <Entypo name="tools" size={18} color="#43575F" />
+                            </View>
+                            <View style={styles.rowWithGap}>
+                                <Text style={styles.textBold}>Equipamento:</Text>
+                                <Text style={styles.text}>Pá - Carrinho de mão</Text>
                             </View>
                         </View>
 
@@ -277,34 +289,49 @@ export default function DetalharAtividade() {
                     contentContainerStyle: { flexGrow: 1 }
                 }}
             >
-                    <View>
-                        <View style={styles.modalHeader}>
-                            <View style={{ width: 40 }} />
-                            <Text style={styles.modalTitle}>Justificar</Text>
-                            <TouchableOpacity onPress={() => setModalizeVisible(!modalVisible)} style={styles.closeButton}>
-                                <AntDesign name="close" size={26} color="#43575F" />
-                            </TouchableOpacity>
-                        </View>
-                        <Text style={styles.modalSubtitle}>Selecione o motivo e envie sua justificativa</Text>
-                        <View style={{ gap: 10 }}>
-                            <Dropdown
-                                mode="outlined"
-                                label="Material"
-                                options={OPTIONS}
-                                // value={value}
-                                // onSelect={onChange}
-                                CustomMenuHeader={() => <></>}
-                                menuContentStyle={{ backgroundColor: '#fff' }}
-                            />
-                            <TextInput mode="outlined" label="Descrição" outlineColor="#707974" activeOutlineColor="#707974" style={{ backgroundColor: '#fff', height: 120 }} multiline={true} numberOfLines={4} />
-                        </View>
-                    </View>
-                    <View style={styles.fotosContainer}>
-                        <CapturaImagens texto="Anexe a foto abaixo (obrigatório)" qtsImagens={1} />
-                        <TouchableOpacity style={styles.sendButton}>
-                            <Text style={{ color: "#fff", fontSize: 16 }}>ENVIAR</Text>
+                <View>
+                    <View style={styles.modalHeader}>
+                        <View style={{ width: 40 }} />
+                        <Text style={styles.modalTitle}>Justificar</Text>
+                        <TouchableOpacity onPress={() => setModalizeVisible(!modalVisible)} style={styles.closeButton}>
+                            <AntDesign name="close" size={26} color="#43575F" />
                         </TouchableOpacity>
                     </View>
+                    <Text style={styles.modalSubtitle}>Selecione o motivo e envie sua justificativa</Text>
+                    <View style={{ gap: 10 }}>
+                        <Dropdown
+                            mode="outlined"
+                            label="Tipo de Justificativa"
+                            options={[
+                                { label: 'Interna', value: 'option2' },
+                                { label: 'Externa', value: 'outro' },
+                            ]}
+                            value={justificativa.justificativa}
+                            onSelect={(value) => setJustificativa({ ...justificativa, justificativa: value })}
+                            CustomMenuHeader={() => <></>}
+                            menuContentStyle={{ backgroundColor: '#fff' }}
+                        />
+                        <Dropdown
+                            mode="outlined"
+                            label="Material"
+                            options={OPTIONS}
+                            value={justificativa.material}
+                            onSelect={(value) => setJustificativa({ ...justificativa, material: value })}
+                            CustomMenuHeader={() => <></>}
+                            menuContentStyle={{ backgroundColor: '#fff' }}
+                        />
+                        <TextInput
+                            value={justificativa.descricao}
+                            onChangeText={(value) => setJustificativa({ ...justificativa, descricao: value })}
+                            mode="outlined" label="Descrição" outlineColor="#707974" activeOutlineColor="#707974" style={{ backgroundColor: '#fff', height: 120 }} multiline={true} numberOfLines={4} />
+                    </View>
+                </View>
+                <View style={styles.fotosContainer}>
+                    <CapturaImagens texto="Anexe a foto abaixo (obrigatório)" qtsImagens={1} />
+                    <TouchableOpacity style={styles.sendButton}>
+                        <Text style={{ color: "#fff", fontSize: 16 }}>ENVIAR</Text>
+                    </TouchableOpacity>
+                </View>
             </Modalize>
 
             <Modalize
@@ -318,25 +345,25 @@ export default function DetalharAtividade() {
                     contentContainerStyle: { flexGrow: 1 }
                 }}
             >
-                    <View>
-                        <View style={styles.modalHeader}>
-                            <View style={{ width: 40 }} />
-                            <Text style={styles.modalTitle}>Descrição</Text>
-                            <TouchableOpacity onPress={() => setModalizeVisible(!modalVisible)} style={styles.closeButton}>
-                                <AntDesign name="close" size={26} color="#43575F" />
-                            </TouchableOpacity>
-                        </View>
-                        <Text style={styles.modalSubtitle}>Insira uma descrição do motivo pelo qual não participou da realização da atividade.</Text>
-                        <View style={{ gap: 10 }}>
-                            <TextInput mode="outlined" label="Pessoa" outlineColor="#707974" activeOutlineColor="#707974" />
-                            <TextInput mode="outlined" label="Descrição" outlineColor="#707974" activeOutlineColor="#707974" style={{ height: 120 }} multiline={true} numberOfLines={4} />
-                        </View>
-                    </View>
-                    <View style={styles.fotosContainer}>
-                        <TouchableOpacity style={styles.sendButton}>
-                            <Text style={{ color: "#fff", fontSize: 16 }}>ENVIAR</Text>
+                <View>
+                    <View style={styles.modalHeader}>
+                        <View style={{ width: 40 }} />
+                        <Text style={styles.modalTitle}>Descrição</Text>
+                        <TouchableOpacity onPress={() => setModalizeVisible(!modalVisible)} style={styles.closeButton}>
+                            <AntDesign name="close" size={26} color="#43575F" />
                         </TouchableOpacity>
                     </View>
+                    <Text style={styles.modalSubtitle}>Insira uma descrição do motivo pelo qual não participou da realização da atividade.</Text>
+                    <View style={{ gap: 10 }}>
+                        <TextInput mode="outlined" label="Pessoa" outlineColor="#707974" activeOutlineColor="#707974" />
+                        <TextInput mode="outlined" label="Descrição" outlineColor="#707974" activeOutlineColor="#707974" style={{ height: 120 }} multiline={true} numberOfLines={4} />
+                    </View>
+                </View>
+                <View style={styles.fotosContainer}>
+                    <TouchableOpacity style={styles.sendButton}>
+                        <Text style={{ color: "#fff", fontSize: 16 }}>ENVIAR</Text>
+                    </TouchableOpacity>
+                </View>
             </Modalize>
 
             <Modal transparent={true} visible={modalVisible} animationType="fade">
@@ -527,7 +554,6 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        marginBottom: 20
     },
     modalTitle: {
         fontSize: 26,
