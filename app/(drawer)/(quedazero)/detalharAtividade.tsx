@@ -58,7 +58,6 @@ export default function DetalharAtividade() {
         setModalizeVisible(false);
     };
 
-
     if (!ocorrenciaSelecionada) {
         return (
             <StyledMainContainer>
@@ -73,28 +72,28 @@ export default function DetalharAtividade() {
             <ScrollView showsVerticalScrollIndicator={false}>
                 <View style={styles.wrapper}>
                     <View style={styles.container}>
-                        <View style={styles.header}>
-                            <Text style={styles.headerDescription}>Descrição da atividade, aqui vai ficar a descrição que foi digitada da atividade.</Text>
-                        </View>
                         <View style={styles.linha}>
-                            <View style={styles.coluna}>
+                            <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
                                 <Entypo name="calendar" size={15} color="#43575F" />
+                                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                             </View>
                             <Text style={styles.text}>
                                 {ocorrenciaSelecionada.data} - {ocorrenciaSelecionada.hora}
                             </Text>
                         </View>
                         <View style={styles.linha}>
-                            <View style={styles.coluna}>
+                            <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
                                 <FontAwesome6 name="user-tie" size={15} color="#43575F" />
+                                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                             </View>
                             <Text style={styles.text}>
                                 Encarregado: {ocorrenciaSelecionada?.encarregado}
                             </Text>
                         </View>
-                        <View style={[styles.linha, { height: ocorrenciaSelecionada.justificativa ? 250 : "auto", alignItems: "flex-start", gap: 10 }]}>
-                            <View style={[styles.coluna, { width: 35, height: "100%", padding: 10, justifyContent: "flex-start" }]}>
+                        <View style={[styles.linha, { height: ocorrenciaSelecionada.justificativa ? 250 : 40, alignItems: "flex-start" }]}>
+                            <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
                                 <Entypo name="flag" size={15} color="#43575F" />
+                                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                             </View>
                             <View style={{ width: "100%", gap: 10 }}>
                                 <StatusContainer backgroundColor={getStatusColor(ocorrenciaSelecionada?.status)}>
@@ -126,20 +125,21 @@ export default function DetalharAtividade() {
                         {
                             ocorrenciaSelecionada?.pessoas && (
                                 <View style={[styles.linha, { height: "auto", alignItems: "flex-start", gap: 10 }]}>
-                                    <View style={[styles.coluna, { width: 35, height: "100%", padding: 10, justifyContent: "flex-start" }]}>
+                                    <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 10 }]}>
                                         <FontAwesome6 name="user-tie" size={15} color="#43575F" />
+                                        <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                                     </View>
                                     <View style={{ flexDirection: "column", gap: 5 }}>
                                         {
                                             ocorrenciaSelecionada?.pessoas?.map((pessoa: Pessoas, index: number) => (
-                                                <View key={index} style={{ gap: 5 }}>
-                                                    <Text style={{ fontWeight: "semibold", color: "#43575F" }}>{pessoa.funcao}</Text>
-                                                    <View style={[styles.rowWithGap, { justifyContent: "center", alignItems: "center", gap: 10 }]}>
-                                                        <View style={styles.rowWithGap}>
+                                                <View key={index} style={{ gap: 5, marginBottom: 10 }}>
+                                                    <Text style={{ fontSize: 12, fontWeight: "semibold", color: "#43575F" }}>{pessoa.funcao}</Text>
+                                                    <View style={[styles.rowWithGap, { width: "auto", justifyContent: "center", alignItems: "center", gap: 10 }]}>
+                                                        <View style={[styles.rowWithGap]}>
                                                             <Checkbox value={isChecked} onValueChange={setChecked} color={isChecked ? '#34C759' : undefined} />
                                                             <View>
-                                                                <Text style={{ fontSize: 15 }}>{ocorrenciaSelecionada.nome}</Text>
-                                                                {pessoa.descricao && <Text style={{ fontSize: 13 }}>{pessoa.descricao}</Text>}
+                                                                <Text style={{ fontSize: 13 }}>{ocorrenciaSelecionada.nome}</Text>
+                                                                {pessoa.descricao && <Text style={{ fontSize: 10 }}>{pessoa.descricao}</Text>}
                                                             </View>
                                                         </View>
                                                         {
@@ -148,9 +148,11 @@ export default function DetalharAtividade() {
                                                                     style={{ flexDirection: "row", gap: 2, justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: "#43575F", padding: 5, borderRadius: 10 }}
                                                                     onPress={() => modalizeDescricaoRef.current?.open()}>
                                                                     <AntDesign name="plus" size={15} color="#43575F" />
-                                                                    <Text style={[styles.text, { fontWeight: "bold", color: "#43575F", fontSize: 12 }]}>Descrição</Text>
+                                                                    <Text style={{ fontWeight: "bold", color: "#43575F", fontSize: 12 }}>Descrição</Text>
                                                                 </TouchableOpacity>
-                                                            )}
+                                                            )
+                                                        }
+
                                                     </View>
                                                 </View>
                                             ))
@@ -161,8 +163,9 @@ export default function DetalharAtividade() {
                         }
 
                         <View style={[styles.linha, { height: 150, alignItems: "flex-start" }]}>
-                            <View style={[styles.coluna, { width: 35, height: "100%", padding: 10, justifyContent: "flex-start" }]}>
+                            <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 10 }]}>
                                 <AntDesign name="camera" size={15} color="#43575F" />
+                                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                             </View>
                             <View style={{ flexDirection: "column", gap: 10 }}>
                                 <Text style={styles.text}>Fotos Registradas: {ocorrenciaSelecionada.data_fotos_registradas} - {ocorrenciaSelecionada.hora_fotos_registradas}</Text>
@@ -176,9 +179,10 @@ export default function DetalharAtividade() {
                             </View>
                         </View>
 
-                        <View style={[styles.linha, { height: 320, alignItems: "flex-start" }]}>
-                            <View style={[styles.coluna, { width: 35, height: "100%", padding: 10, justifyContent: "flex-start" }]}>
+                        <View style={[styles.linha, { height: 320, alignItems: "flex-start", marginTop: 5 }]}>
+                            <View style={[styles.coluna, { height: "100%", justifyContent: "space-between", gap: 10 }]}>
                                 <FontAwesome6 name="location-dot" color="#43575F" size={15} />
+                                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                             </View>
                             <View style={styles.locationDetails}>
                                 <View style={styles.locationTextContainer}>
@@ -195,8 +199,9 @@ export default function DetalharAtividade() {
                             </View>
                         </View>
                         <View style={styles.linha}>
-                            <View style={styles.coluna}>
+                            <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
                                 <FontAwesome6 name="helmet-safety" size={15} color="#43575F" />
+                                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                             </View>
                             <View style={styles.rowWithGap}>
                                 <Text style={styles.textBold}>EPI:</Text>
@@ -205,8 +210,9 @@ export default function DetalharAtividade() {
                         </View>
 
                         <View style={styles.linha}>
-                            <View style={styles.coluna}>
+                            <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
                                 <Entypo name="tools" size={18} color="#43575F" />
+                                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                             </View>
                             <View style={styles.rowWithGap}>
                                 <Text style={styles.textBold}>Equipamento:</Text>
@@ -215,7 +221,7 @@ export default function DetalharAtividade() {
                         </View>
 
                         <View style={styles.linha}>
-                            <View style={styles.coluna}>
+                            <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
                                 <FontAwesome5 name="box-open" size={12} color="#43575F" />
                             </View>
                             <View style={styles.rowWithGap}>
@@ -225,9 +231,9 @@ export default function DetalharAtividade() {
                         </View>
                     </View>
 
-                    {/* {user?.userType.id === 3 && <LeitorNFC />}
+                    {/* {user?.userType.id === 3 && <LeitorNFC />} */}
 
-                    {
+                    {/* {
                         user?.userType.id === 3 && (
                             <View style={styles.buttonsContainer}>
                                 <TouchableOpacity onPress={() => modalizeJustificativaRef.current?.open()} style={styles.justifyButton}>
@@ -240,9 +246,10 @@ export default function DetalharAtividade() {
                                 </TouchableOpacity>
                             </View>
                         )
-                    }
+                    } */}
+
                     {
-                        user?.userType.id === 1 && (
+                        user?.userType === "ADM_DIKMA" && (
                             <View style={styles.buttonsContainer}>
                                 <TouchableOpacity style={styles.justifyButton}>
                                     <Text style={{ color: "#404944", fontSize: 16 }}>REPROVAR</Text>
@@ -254,20 +261,20 @@ export default function DetalharAtividade() {
                             </View>
                         )
                     }
-                    {
+                    {/* {
                         user?.userType.id !== 3 && ocorrenciaSelecionada.aprovacao === "Aprovado" && (
                             <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
                                 <AprovacoStatus status={ocorrenciaSelecionada?.aprovacao} date={ocorrenciaSelecionada?.dataAprovacao} />
                             </View>
                         )
-                    }
-                    {
+                    } */}
+                    {/* {
                         ocorrenciaSelecionada.aprovacao === "Reprovado" && (
                             <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
                                 <AprovacoStatus status={ocorrenciaSelecionada?.aprovacao} date={ocorrenciaSelecionada?.dataAprovacao} />
                             </View>
                         )
-                    } */}
+                    }  */}
                     {/* {
                         ocorrenciaSelecionada.status === "Pendente" && user?.userType.id !== 3 && (
                             <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
@@ -408,20 +415,14 @@ const styles = StyleSheet.create({
     },
     wrapper: {
         flex: 1,
-        gap: 10,
         flexDirection: "column",
     },
     container: {
         flexDirection: "column",
-        gap: 6
     },
     header: {
         marginTop: 20,
         marginBottom: 10,
-    },
-    headerDescription: {
-        color: "#43575F",
-        fontSize: 14
     },
     text: {
         fontSize: 14,
@@ -438,21 +439,21 @@ const styles = StyleSheet.create({
         fontWeight: "600",
     },
     linha: {
-        flexDirection: "row",
-        alignItems: "center",
         gap: 5,
-        height: 40
+        height: 40,
+        alignItems: "flex-start",
+        flexDirection: "row",
     },
     coluna: {
-        height: 35,
         width: 35,
-        backgroundColor: "#EBEBEB",
-        borderRadius: 100,
+        padding: 2,
         justifyContent: "center",
         alignItems: "center"
     },
     rowWithGap: {
         flexDirection: "row",
+        justifyContent: "center",
+        alignItems: "center",
         gap: 5
     },
     iconesContainer:
@@ -490,7 +491,7 @@ const styles = StyleSheet.create({
     locationContainer: {
         flexDirection: "row",
         gap: 10,
-        height: 320
+        height: 320,
     },
     locationDetails: {
         flexDirection: "column",

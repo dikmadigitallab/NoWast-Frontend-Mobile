@@ -1,14 +1,17 @@
 // Ocorrencias.tsx
-import { AntDesign } from "@expo/vector-icons";
+import AprovacoStatus from "@/components/aprovacaoStatus";
+import { Dados } from "@/data";
+import { getStatusColor } from "@/utils/statusColor";
+import { AntDesign, FontAwesome, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
 import { useCallback, useRef, useState } from "react";
-import { StyleSheet, TouchableOpacity } from "react-native";
+import { FlatList, ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { DatePickerModal } from "react-native-paper-dates";
 import { useAuth } from "../../../auth/authProvider";
 import MapScreen from "../../../components/renderMapOcorrencias";
 import { useOcorrenciasStore } from "../../../store/storeOcorrencias";
-import { StyledMainContainer } from "../../../styles/StyledComponents";
+import { StatusContainer, StyledMainContainer } from "../../../styles/StyledComponents";
 export default function Ocorrencias() {
 
     const router = useRouter();
@@ -44,24 +47,10 @@ export default function Ocorrencias() {
         router.push(rota as never);
     };
 
-    // const dataForUser =
-    //     (() => {
-    //         if (user?.userType.id === 1) {
-    //             return Dados.filter(atividade => atividade.aprovacao === null);
-    //         }
-    //         if (user?.userType.id === 3) {
-    //             return Dados.filter(atividade =>
-    //                 atividade.tipo === 1 &&
-    //                 (atividade.status === "Aberto" || atividade.status === "Pendente")
-    //             );
-    //         }
-    //         return Dados.filter(atividade => atividade.aprovacao !== null);
-    //     })();
-
     return (
         <>
             <StyledMainContainer>
-                {/* {user?.userType.id !== 3 &&
+                {user?.userType === "ADM_DIKMA" &&
                     <View style={{ height: 50, marginBottom: 10 }}>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterButtonsContainer}>
                             <TouchableOpacity style={styles.filterButton} onPress={() => setOpenDate(true)}>
@@ -75,26 +64,15 @@ export default function Ocorrencias() {
                                 <AntDesign name="caretdown" size={10} color="black" />
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.filterButton}>
-                                <Text>Siterização</Text>
-                                <AntDesign name="caretdown" size={10} color="black" />
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.filterButton}>
-                                <Text>Pessoa</Text>
-                                <AntDesign name="caretdown" size={10} color="black" />
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.filterButton}>
-                                <Text>Atividades</Text>
-                                <AntDesign name="caretdown" size={10} color="black" />
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.filterButton}>
-                                <Text>Aprovadas</Text>
+                                <Text>Todos</Text>
                                 <AntDesign name="caretdown" size={10} color="black" />
                             </TouchableOpacity>
                         </ScrollView>
                     </View>
-                } */}
-                {/* <FlatList
-                    data={dataForUser}
+                }
+
+                <FlatList
+                    data={Dados}
                     showsVerticalScrollIndicator={false}
                     keyExtractor={(item) => String(item?.id)}
                     contentContainerStyle={{ gap: 10, paddingBottom: 20 }}
@@ -144,18 +122,12 @@ export default function Ocorrencias() {
                             </View>
                         </TouchableOpacity>
                     )}
-                /> */}
+                />
                 <Picker
                     style={{ display: "none" }}
                     ref={pickerRef}
                     selectedValue={atividadeSelecionada.atividade}
-                    onValueChange={(itemValue, itemIndex) =>
-                        setAtividadeSelecionada((prev) => ({
-                            ...prev,
-                            atividade: itemValue,
-                            label: atividades[itemIndex],
-                        }))
-                    }
+                    onValueChange={(itemValue, itemIndex) => setAtividadeSelecionada((prev) => ({ ...prev, atividade: itemValue, label: atividades[itemIndex] }))}
                 >
                     <Picker.Item label="Atividades" value="atividades" />
                     <Picker.Item label="Ocorrências" value="ocorrências" />
@@ -173,6 +145,16 @@ export default function Ocorrencias() {
                 />
             </StyledMainContainer>
             {showMap ? (<MapScreen location={location} showMap={() => setShowMap(!showMap)} />) : null}
+
+            {
+                user?.userType !== "ADM_DIKMA" && (
+                    <TouchableOpacity
+                        onPress={() => router.push('criarOcorrencia' as never)}
+                        style={styles.containerCreate}>
+                        <AntDesign name="plus" size={24} color="#fff" />
+                    </TouchableOpacity>
+                )
+            }
 
             <TouchableOpacity
                 onPress={() => router.push('criarOcorrencia' as never)}

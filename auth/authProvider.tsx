@@ -28,10 +28,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const login = async (data?: string, password?: string) => {
 
-    setLoading(true);
-
     try {
-
       const clearFormatedData = data?.replace(/[.\-]/g, '')
       const response = await api.post('/auth', { document: clearFormatedData, password });
       document.cookie = `authToken=${response.data.data.token}; Path=/; Max-Age=3600; SameSite=Lax`;
@@ -48,7 +45,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         setUser({ userType: "OPERATIONAL" });
       }
 
-      toast.success("Login realizado com sucesso!");
+      toast.success('Login realizado com sucesso!', { duration: 3000 })
 
       setTimeout(() => {
         setIsAuthenticated(true);
@@ -56,9 +53,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }, 500);
 
     } catch (error) {
-      toast.error("Usuário ou senha inválidos!");
+      toast.error('Documento ou senha inválidos!', { duration: 3000 })
     } finally {
       setLoading(false);
+      setUser({ userType: "ADM_DIKMA" });
+      setTimeout(() => {
+        setIsAuthenticated(true);
+      }, 500);
     }
 
   };

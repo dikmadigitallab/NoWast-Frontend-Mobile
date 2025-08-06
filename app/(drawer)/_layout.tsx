@@ -1,11 +1,13 @@
 import { AuthProvider } from '@/auth/authProvider';
 import StatusBarComponent from '@/components/statusBar';
 import { useModuleStore } from '@/store/moduleStore';
+import { Toasts } from '@backpackapp-io/react-native-toast';
 import { Stack } from 'expo-router';
 import { Drawer } from 'expo-router/drawer';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Dimensions, View } from 'react-native';
-import AuthRouter from './login';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import AuthRouter from './authRoute';
 import SelecionarStack from './selecionar-stack';
 
 export default function RootLayout() {
@@ -22,12 +24,15 @@ export default function RootLayout() {
 
   if (moduleType === null) {
     return (
-      <AuthProvider>
-        <AuthRouter>
-          <StatusBarComponent />
-          <SelecionarStack />
-        </AuthRouter>
-      </AuthProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <Toasts />
+        <AuthProvider>
+          <AuthRouter>
+            <StatusBarComponent />
+            <SelecionarStack />
+          </AuthRouter>
+        </AuthProvider>
+      </GestureHandlerRootView>
     );
   }
 
