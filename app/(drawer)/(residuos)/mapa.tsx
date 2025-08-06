@@ -1,10 +1,9 @@
 import { Entypo, FontAwesome, Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { Dimensions, Image, StyleSheet, Text, View } from "react-native";
-import MapView, { Marker, Region } from "react-native-maps";
-import { ocorrencias } from "../../../data";
+import MapView, { Region } from "react-native-maps";
+// import { ocorrencias } from "../../../data";
 import { IOcorrencias } from "../../../types/IOcorrencias";
-import { getStatusImage } from "../../../utils/getStatusImage";
 
 const Mapa: React.FC = () => {
 
@@ -28,7 +27,7 @@ const Mapa: React.FC = () => {
   return (
     <View style={styles.container}>
       <MapView style={styles.map} initialRegion={initialRegion}>
-        {ocorrencias.map((loc) => (
+        {/* {ocorrencias.map((loc) => (
           <Marker
             key={loc.id}
             coordinate={{
@@ -44,7 +43,7 @@ const Mapa: React.FC = () => {
               source={getStatusImage(loc?.status) as never}
             />
           </Marker>
-        ))}
+        ))} */}
       </MapView>
 
       {selectedLocation && (

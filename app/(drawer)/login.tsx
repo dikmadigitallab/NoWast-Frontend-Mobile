@@ -3,15 +3,7 @@ import { Bangers_400Regular, useFonts } from "@expo-google-fonts/bangers";
 import Feather from "@expo/vector-icons/Feather";
 import React, { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import {
-  ActivityIndicator,
-  Dimensions,
-  Image,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
-} from "react-native";
+import { ActivityIndicator, Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Button, TextInput } from "react-native-paper";
 
 const { width } = Dimensions.get("window");
@@ -21,12 +13,15 @@ interface ProtectRouteProps {
 }
 
 export default function AuthRouter({ children }: ProtectRouteProps) {
+
   const [seePassword, setSeePassword] = useState(true);
-  const [fontsLoaded] = useFonts({ Bangers_400Regular });
-
-  const { control, handleSubmit, formState: { errors } } = useForm({ defaultValues: { email: "grupo_dikma@gmail", password: "ddasddSD!@dsdas", }, });
-
   const { login, isAuthenticated, loading } = useAuth();
+  const [fontsLoaded] = useFonts({ Bangers_400Regular });
+  const { control, handleSubmit, formState: { errors } } = useForm({ defaultValues: { document: "", password: "", } });
+
+  const onSubmit = (data: { document: string; password: string }) => {
+    login(data.document, data.password);
+  }
 
   if (!fontsLoaded) {
     return null;
@@ -37,6 +32,7 @@ export default function AuthRouter({ children }: ProtectRouteProps) {
       <View style={styles.container}>
         <View style={styles.card}>
           <View style={styles.form}>
+
             <View style={styles.containerLogo}>
               <Image
                 style={styles.logo}
@@ -53,27 +49,17 @@ export default function AuthRouter({ children }: ProtectRouteProps) {
                     theme={{ colors: { primary: "#00A614", outline: "#d9d9d9" } }}
                     textColor="#000"
                     style={styles.input}
-                    label="Email"
+                    label="Documento"
                     onBlur={onBlur}
                     onChangeText={onChange}
                     value={value}
                   />
                 )}
-                name="email"
+                name="document"
                 rules={{ required: true }}
               />
-              <Text
-                style={[
-                  styles.error,
-                  {
-                    opacity: errors.email ? 1 : 0,
-                    textAlign: "left",
-                    color: "red",
-                    fontSize: 10
-                  },
-                ]}
-              >
-                Email é obrigatório
+              <Text style={[styles.error, { opacity: errors.document ? 1 : 0, textAlign: "left", color: "red", fontSize: 10 }]}>
+                Documento é obrigatório
               </Text>
             </View>
 
@@ -128,10 +114,7 @@ export default function AuthRouter({ children }: ProtectRouteProps) {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity
-            style={{ width: "100%" }}
-            onPress={handleSubmit(login)}
-          >
+          <TouchableOpacity style={{ width: "100%" }} onPress={handleSubmit(onSubmit)}>
             <Button
               icon={!loading ? "login" : ""}
               mode="contained"

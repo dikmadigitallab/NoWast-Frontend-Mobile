@@ -1,5 +1,6 @@
 import CapturaImagens from "@/components/capturaImagens";
 import AudioRecorderPlayer from "@/components/gravadorAudio";
+import { toast } from "@backpackapp-io/react-native-toast";
 import { FontAwesome } from "@expo/vector-icons";
 import React from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -37,6 +38,7 @@ export default function CadastroOcorrencia() {
 
     const onSubmit = (data: any) => {
         console.log(data);
+        toast.success('Cadastro realizado com sucesso', { duration: 3000 })
     };
 
     return (
@@ -294,7 +296,6 @@ export default function CadastroOcorrencia() {
                     <TouchableOpacity
                         style={styles.buttons}
                         onPress={handleSubmit(onSubmit)}
-                    /* onPress={() => toast.success('Cadastro realizado com sucesso', { duration: 3000 })} */
                     >
                         <Text style={{ color: "#fff", fontSize: 16 }}>Cadastrar</Text>
                     </TouchableOpacity>

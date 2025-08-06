@@ -1,18 +1,14 @@
 // Ocorrencias.tsx
-import AprovacoStatus from "@/components/aprovacaoStatus";
-import { getStatusColor } from "@/utils/statusColor";
-import { AntDesign, FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { AntDesign } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
 import { useCallback, useRef, useState } from "react";
-import { FlatList, ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, TouchableOpacity } from "react-native";
 import { DatePickerModal } from "react-native-paper-dates";
 import { useAuth } from "../../../auth/authProvider";
 import MapScreen from "../../../components/renderMapOcorrencias";
-import { Dados } from "../../../data";
 import { useOcorrenciasStore } from "../../../store/storeOcorrencias";
-import { StatusContainer, StyledMainContainer } from "../../../styles/StyledComponents";
+import { StyledMainContainer } from "../../../styles/StyledComponents";
 export default function Ocorrencias() {
 
     const router = useRouter();
@@ -48,24 +44,24 @@ export default function Ocorrencias() {
         router.push(rota as never);
     };
 
-    const dataForUser =
-        (() => {
-            if (user?.tipoColaborador.id === 1) {
-                return Dados.filter(atividade => atividade.aprovacao === null);
-            }
-            if (user?.tipoColaborador.id === 3) {
-                return Dados.filter(atividade =>
-                    atividade.tipo === 1 &&
-                    (atividade.status === "Aberto" || atividade.status === "Pendente")
-                );
-            }
-            return Dados.filter(atividade => atividade.aprovacao !== null);
-        })();
+    // const dataForUser =
+    //     (() => {
+    //         if (user?.userType.id === 1) {
+    //             return Dados.filter(atividade => atividade.aprovacao === null);
+    //         }
+    //         if (user?.userType.id === 3) {
+    //             return Dados.filter(atividade =>
+    //                 atividade.tipo === 1 &&
+    //                 (atividade.status === "Aberto" || atividade.status === "Pendente")
+    //             );
+    //         }
+    //         return Dados.filter(atividade => atividade.aprovacao !== null);
+    //     })();
 
     return (
         <>
             <StyledMainContainer>
-                {user?.tipoColaborador.id !== 3 &&
+                {/* {user?.userType.id !== 3 &&
                     <View style={{ height: 50, marginBottom: 10 }}>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterButtonsContainer}>
                             <TouchableOpacity style={styles.filterButton} onPress={() => setOpenDate(true)}>
@@ -96,8 +92,8 @@ export default function Ocorrencias() {
                             </TouchableOpacity>
                         </ScrollView>
                     </View>
-                }
-                <FlatList
+                } */}
+                {/* <FlatList
                     data={dataForUser}
                     showsVerticalScrollIndicator={false}
                     keyExtractor={(item) => String(item?.id)}
@@ -148,7 +144,7 @@ export default function Ocorrencias() {
                             </View>
                         </TouchableOpacity>
                     )}
-                />
+                /> */}
                 <Picker
                     style={{ display: "none" }}
                     ref={pickerRef}

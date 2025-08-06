@@ -1,5 +1,4 @@
 import { useAuth } from "@/auth/authProvider";
-import AprovacoStatus from "@/components/aprovacaoStatus";
 import CapturaImagens from "@/components/capturaImagens";
 import { AntDesign, FontAwesome, FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
 import Entypo from "@expo/vector-icons/Entypo";
@@ -185,8 +184,8 @@ export default function DetalharOcorrencia() {
             </View>
           </View>
 
-          {
-            user?.tipoColaborador.id === 3 && (
+          {/* {
+            user?.userType.id === 3 && (
               <View style={styles.buttonsContainer}>
                 <TouchableOpacity onPress={() => modalizeRef.current?.open()} style={styles.justifyButton}>
                   <Text style={{ color: "#404944", fontSize: 16 }}>JUSTIFICAR</Text>
@@ -201,7 +200,7 @@ export default function DetalharOcorrencia() {
           }
 
           {
-            user?.tipoColaborador.id === 1 && (
+            user?.userType.id === 1 && (
               <View style={styles.buttonsContainer}>
                 <TouchableOpacity style={styles.justifyButton}>
                   <Text style={{ color: "#404944", fontSize: 16 }}>REPROVAR</Text>
@@ -215,7 +214,7 @@ export default function DetalharOcorrencia() {
           }
 
           {
-            user?.tipoColaborador.id !== 3 && ocorrenciaSelecionada.aprovacao === "Aprovado" && (
+            user?.userType.id !== 3 && ocorrenciaSelecionada.aprovacao === "Aprovado" && (
               <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
                 <AprovacoStatus status={ocorrenciaSelecionada?.aprovacao} date={ocorrenciaSelecionada?.dataAprovacao} />
               </View>
@@ -228,10 +227,10 @@ export default function DetalharOcorrencia() {
                 <AprovacoStatus status={ocorrenciaSelecionada?.aprovacao} date={ocorrenciaSelecionada?.dataAprovacao} />
               </View>
             )
-          }
+          } */}
 
           {/* {
-                                  ocorrenciaSelecionada.status === "Pendente" && user?.tipoColaborador.id !== 3 && (
+                                  ocorrenciaSelecionada.status === "Pendente" && user?.userType.id !== 3 && (
                                       <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
                                           <AprovacoStatus status={ocorrenciaSelecionada?.status} date={ocorrenciaSelecionada?.dataAprovacao} />
                                       </View>
@@ -240,7 +239,7 @@ export default function DetalharOcorrencia() {
 
           {/* 
                               {
-                                  ocorrenciaSelecionada.status !== "Pendente" && user?.tipoColaborador.id !== 3 && ocorrenciaSelecionada.aprovacao === null && (
+                                  ocorrenciaSelecionada.status !== "Pendente" && user?.userType.id !== 3 && ocorrenciaSelecionada.aprovacao === null && (
                                       <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
                                           <AprovacoStatus status={ocorrenciaSelecionada?.provacao} date={ocorrenciaSelecionada?.dataAprovacao} />
                                       </View>

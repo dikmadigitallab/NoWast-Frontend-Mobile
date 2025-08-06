@@ -1,10 +1,8 @@
-import AprovacoStatus from "@/components/aprovacaoStatus";
 import { Pessoas } from "@/types/IOcorrencias";
 import { AntDesign, FontAwesome5 } from "@expo/vector-icons";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import Checkbox from 'expo-checkbox';
-import { router } from "expo-router";
 import { useRef, useState } from "react";
 import { Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import { Modalize } from 'react-native-modalize';
@@ -12,7 +10,6 @@ import { TextInput } from "react-native-paper";
 import { Dropdown } from "react-native-paper-dropdown";
 import { useAuth } from "../../../auth/authProvider";
 import CapturaImagens from "../../../components/capturaImagens";
-import LeitorNFC from "../../../components/leitorNFC";
 import MapScreen from "../../../components/renderMapOcorrencias";
 import { useOcorrenciasStore } from "../../../store/storeOcorrencias";
 import { StatusContainer, StyledMainContainer } from "../../../styles/StyledComponents";
@@ -228,10 +225,10 @@ export default function DetalharAtividade() {
                         </View>
                     </View>
 
-                    {user?.tipoColaborador.id === 3 && <LeitorNFC />}
+                    {/* {user?.userType.id === 3 && <LeitorNFC />}
 
                     {
-                        user?.tipoColaborador.id === 3 && (
+                        user?.userType.id === 3 && (
                             <View style={styles.buttonsContainer}>
                                 <TouchableOpacity onPress={() => modalizeJustificativaRef.current?.open()} style={styles.justifyButton}>
                                     <Text style={{ color: "#404944", fontSize: 16 }}>JUSTIFICAR</Text>
@@ -245,7 +242,7 @@ export default function DetalharAtividade() {
                         )
                     }
                     {
-                        user?.tipoColaborador.id === 1 && (
+                        user?.userType.id === 1 && (
                             <View style={styles.buttonsContainer}>
                                 <TouchableOpacity style={styles.justifyButton}>
                                     <Text style={{ color: "#404944", fontSize: 16 }}>REPROVAR</Text>
@@ -258,7 +255,7 @@ export default function DetalharAtividade() {
                         )
                     }
                     {
-                        user?.tipoColaborador.id !== 3 && ocorrenciaSelecionada.aprovacao === "Aprovado" && (
+                        user?.userType.id !== 3 && ocorrenciaSelecionada.aprovacao === "Aprovado" && (
                             <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
                                 <AprovacoStatus status={ocorrenciaSelecionada?.aprovacao} date={ocorrenciaSelecionada?.dataAprovacao} />
                             </View>
@@ -270,9 +267,9 @@ export default function DetalharAtividade() {
                                 <AprovacoStatus status={ocorrenciaSelecionada?.aprovacao} date={ocorrenciaSelecionada?.dataAprovacao} />
                             </View>
                         )
-                    }
+                    } */}
                     {/* {
-                        ocorrenciaSelecionada.status === "Pendente" && user?.tipoColaborador.id !== 3 && (
+                        ocorrenciaSelecionada.status === "Pendente" && user?.userType.id !== 3 && (
                             <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
                                 <AprovacoStatus status={ocorrenciaSelecionada?.status} date={ocorrenciaSelecionada?.dataAprovacao} />
                             </View>
@@ -280,7 +277,7 @@ export default function DetalharAtividade() {
                     } */}
                     {/* 
                     {
-                        ocorrenciaSelecionada.status !== "Pendente" && user?.tipoColaborador.id !== 3 && ocorrenciaSelecionada.aprovacao === null && (
+                        ocorrenciaSelecionada.status !== "Pendente" && user?.userType.id !== 3 && ocorrenciaSelecionada.aprovacao === null && (
                             <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
                                 <AprovacoStatus status={ocorrenciaSelecionada?.provacao} date={ocorrenciaSelecionada?.dataAprovacao} />
                             </View>
