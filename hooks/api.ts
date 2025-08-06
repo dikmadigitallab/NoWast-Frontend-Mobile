@@ -1,8 +1,9 @@
+import { PUBLIC_API_URL } from "@env";
 import axios from "axios";
 
 const api = axios.create({
-    baseURL: process.env.NEXT_PUBLIC_API_URL,
+    baseURL: PUBLIC_API_URL,
 });
 
 export default api;
-//um anova branch
+
