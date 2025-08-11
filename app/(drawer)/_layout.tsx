@@ -1,16 +1,18 @@
 import { AuthProvider } from '@/auth/authProvider';
 import StatusBarComponent from '@/components/statusBar';
-import { useAuthStore } from '@/store/storeApp';
+import { useModuleStore } from '@/store/moduleStore';
+import { Toasts } from '@backpackapp-io/react-native-toast';
 import { Stack } from 'expo-router';
 import { Drawer } from 'expo-router/drawer';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Dimensions, View } from 'react-native';
-import AuthRouter from './login';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import AuthRouter from './authRoute';
 import SelecionarStack from './selecionar-stack';
 
 export default function RootLayout() {
-  
-  const { userType } = useAuthStore();
+
+  const { moduleType } = useModuleStore();
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -18,16 +20,19 @@ export default function RootLayout() {
     setTimeout(() => {
       setLoading(false);
     }, 1000);
-  }, [userType]);
+  }, [moduleType]);
 
-  if (userType === null) {
+  if (moduleType === null) {
     return (
-      <AuthProvider>
-        <AuthRouter>
-          <StatusBarComponent />
-          <SelecionarStack />
-        </AuthRouter>
-      </AuthProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <Toasts />
+        <AuthProvider>
+          <AuthRouter>
+            <StatusBarComponent />
+            <SelecionarStack />
+          </AuthRouter>
+        </AuthProvider>
+      </GestureHandlerRootView>
     );
   }
 
@@ -35,29 +40,29 @@ export default function RootLayout() {
     <AuthProvider>
       <AuthRouter>
         {loading && (
-                <View style={{ flex: 1, position: 'absolute', zIndex: 999, width:  Dimensions.get('window').width, height: Dimensions.get('window').height, backgroundColor: "#fff", justifyContent: 'center', alignItems: 'center' }}>
-                  <ActivityIndicator size="large" color="#00A614" />
-                </View>
+          <View style={{ flex: 1, position: 'absolute', zIndex: 999, width: Dimensions.get('window').width, height: Dimensions.get('window').height, backgroundColor: "#fff", justifyContent: 'center', alignItems: 'center' }}>
+            <ActivityIndicator size="large" color="#00A614" />
+          </View>
         )}
         <StatusBarComponent />
-          <Drawer
-            drawerContent={() => <SelecionarStack />}
-            backBehavior="history"
-            screenOptions={{
-              headerShown: false,
-              drawerStyle: { width: '80%' },
-              drawerType: 'slide',
-              drawerPosition: 'left',
-            }}
-          >
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="(quedazero)" />
-              <Stack.Screen name="(coleta)" />
-              <Stack.Screen name="(residuos)" />
-              <Stack.Screen name="perfil" />
-              <Stack.Screen name="+not-found" />
-            </Stack>
-          </Drawer>
+        <Drawer
+          drawerContent={() => <SelecionarStack />}
+          backBehavior="history"
+          screenOptions={{
+            headerShown: false,
+            drawerStyle: { width: '80%' },
+            drawerType: 'slide',
+            drawerPosition: 'left',
+          }}
+        >
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="(quedazero)" />
+            <Stack.Screen name="(coleta)" />
+            <Stack.Screen name="(residuos)" />
+            <Stack.Screen name="perfil" />
+            <Stack.Screen name="+not-found" />
+          </Stack>
+        </Drawer>
       </AuthRouter>
     </AuthProvider>
   );

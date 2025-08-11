@@ -24,6 +24,7 @@
     "@react-navigation/drawer": "^7.5.2",
     "@react-navigation/elements": "^2.3.8",
     "@react-navigation/native": "^7.1.6",
+    "axios": "^1.11.0",
     "expo": "~53.0.10",
     "expo-av": "~15.1.6",
     "expo-blur": "~14.1.5",
@@ -52,6 +53,7 @@
     "react-native-gesture-handler": "~2.24.0",
     "react-native-gifted-charts": "^1.4.61",
     "react-native-maps": "1.20.1",
+    "react-native-modal-datetime-picker": "^18.0.0",
     "react-native-modalize": "^2.1.1",
     "react-native-nfc-manager": "^3.16.1",
     "react-native-paper": "^5.14.5",
@@ -70,6 +72,7 @@
     "@types/react": "~19.0.10",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~9.2.0",
+    "metro-react-native-babel-preset": "^0.77.0",
     "typescript": "~5.8.3"
   },
   "private": true

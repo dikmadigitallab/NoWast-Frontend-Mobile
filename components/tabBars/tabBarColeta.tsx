@@ -25,7 +25,7 @@ export default function TabBar({ state, navigation }: any) {
 
                     const routeName = route.name as IconKey;
 
-                    if (user?.tipoColaborador?.tipoApp === 3 && routeName === 'index') return null;
+                    if (user?.userType?.tipoApp === 3 && routeName === 'index') return null;
                     if (['_sitemap', '+not-found', 'detalharOcorrencia', 'criarOcorrencia', 'detalharAtividade', 'checklist', 'notificacoes'].includes(route.name)) return null;
 
                     const isFocused = state.index === index;

@@ -1,27 +1,17 @@
+import api from "@/hooks/api";
+import { toast } from "@backpackapp-io/react-native-toast";
 import React, { createContext, useContext, useState } from "react";
 
-interface TipoColaborador {
-  id: number;
-  nome: string;
-  tipoApp: number;
-}
-
 interface UserData {
-  id: number;
-  email: string;
-  nome: string;
-  localizacao: number;
-  createdAt: Date;
-  updatedAt: Date;
-  tipoColaborador: TipoColaborador;
+  userType: string;
 }
 
 interface AuthContextProps {
-  isAuthenticated: boolean;
-  login: () => void;
+  loading: boolean;
   logout: () => void;
   user: UserData | null;
-  loading: boolean;
+  isAuthenticated: boolean;
+  login: (document: string, password: string) => void;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -32,33 +22,48 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
 
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<UserData | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const login = () => {
-    setLoading(true);
-    setTimeout(() => {
+  const login = async (data?: string, password?: string) => {
 
-      const data = {
-        id: 1,
-        email: 'dikma@di.com.br',
-        nome: 'Dikma',
-        localizacao: 1,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        tipoColaborador: {
-          id: 3,
-          tipoApp: 1,
-          nome: 'Colaborador',
-        },
+    try {
+      const clearFormatedData = data?.replace(/[.\-]/g, '')
+      const response = await api.post('/auth', { document: clearFormatedData, password });
+      document.cookie = `authToken=${response.data.data.token}; Path=/; Max-Age=3600; SameSite=Lax`;
+
+      if (response.data.data.user.role.name === "Administrador Dikma") {
+        setUser({ userType: "ADM_DIKMA" });
+      } else if (response.data.data.user.role.name === "Diretor Dikma") {
+        setUser({ userType: "DIKMA_DIRECTOR" });
+      } else if (response.data.data.user.role.name === "Administrador Cliente") {
+        setUser({ userType: "ADM_CLIENTE" });
+      } else if (response.data.data.user.role.name === "Gestor de Contrato") {
+        setUser({ userType: "GESTAO" });
+      } else {
+        setUser({ userType: "OPERATIONAL" });
       }
 
-      setUser(data);
-      setIsAuthenticated(true);
+      toast.success('Login realizado com sucesso!', { duration: 3000 })
+
+      setTimeout(() => {
+        setIsAuthenticated(true);
+        setLoading(false);
+      }, 500);
+
+    } catch (error) {
+      toast.error('Documento ou senha inválidos!', { duration: 3000 })
+    } finally {
       setLoading(false);
-    }, 500);
+      setUser({ userType: "ADM_DIKMA" });
+      setTimeout(() => {
+        setIsAuthenticated(true);
+      }, 500);
+    }
+
   };
+
   const logout = () => {
     setIsAuthenticated(false);
     setUser(null);

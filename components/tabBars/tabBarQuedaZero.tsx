@@ -1,4 +1,3 @@
-import { useAuth } from '@/auth/authProvider';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Entypo from '@expo/vector-icons/Entypo';
 import React from 'react';
@@ -9,7 +8,6 @@ type IconKey = 'dashboard' | 'mapa' | 'index' | 'cronograma';
 
 export default function TabBar({ state, navigation }: any) {
 
-    const { user } = useAuth();
 
     const icons = {
         index: (color: string) => (<MaterialCommunityIcons name="clipboard-text-outline" size={20} color={color} />),
@@ -25,7 +23,8 @@ export default function TabBar({ state, navigation }: any) {
 
                     const routeName = route.name as IconKey;
 
-                    if (user?.tipoColaborador?.tipoApp === 3 && routeName === 'dashboard') return null;
+                    // if (user?.userType === "ADM_DIKMA") return null;
+
                     if (['_sitemap', '+not-found', 'detalharOcorrencia', 'criarOcorrencia', 'detalharAtividade', 'checklist', 'notificacoes'].includes(route.name)) return null;
 
                     const isFocused = state.index === index;

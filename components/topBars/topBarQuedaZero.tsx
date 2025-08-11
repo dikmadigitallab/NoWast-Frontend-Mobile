@@ -22,8 +22,10 @@ export function TopBar({ router, pathname }: TopBarProps) {
   if (pathname === "/cronograma") {
     return null;
   }
- 
+
   const navigation = useNavigation() as DrawerNavigationProp<any>;
+
+  const showIcons = ["/mapa", "/detalharOcorrencia", "/detalharAtividade", "/checklist", "/notificacoes", "/criarOcorrencia"]
 
   return (
     <View style={[
@@ -35,7 +37,8 @@ export function TopBar({ router, pathname }: TopBarProps) {
       }
     ]}>
       <Pressable onPress={() => navigation.openDrawer() as never} style={styles.settingsButton}>
-        {!["/mapa", "/detalharOcorrencia", "/detalharAtividade", "/checklist", "/notificacoes"].includes(pathname) && (
+
+        {!showIcons.includes(pathname) && (
           <FontAwesome6
             name="bars-staggered"
             size={28}
@@ -43,7 +46,8 @@ export function TopBar({ router, pathname }: TopBarProps) {
           />
         )}
 
-        {(pathname === "/detalharOcorrencia" || pathname === "/detalharAtividade" || pathname === "/checklist" || pathname === "/notificacoes") && (
+        {showIcons.includes(pathname) && (
+
           <TouchableOpacity onPress={handleBack}>
             <Feather name="chevron-left" size={28} color="#000" />
           </TouchableOpacity>

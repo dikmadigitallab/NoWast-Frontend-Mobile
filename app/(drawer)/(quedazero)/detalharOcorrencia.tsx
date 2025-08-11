@@ -1,5 +1,4 @@
 import { useAuth } from "@/auth/authProvider";
-import AprovacoStatus from "@/components/aprovacaoStatus";
 import CapturaImagens from "@/components/capturaImagens";
 import { AntDesign, FontAwesome, FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
 import Entypo from "@expo/vector-icons/Entypo";
@@ -58,98 +57,119 @@ export default function DetalharOcorrencia() {
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={styles.wrapper}>
           <View style={styles.container}>
-            <View style={styles.header}>
-              <Text style={styles.headerDescription}>Descrição da ocorrência, aqui vai ficar a descrição que foi digitada da ocorrência.</Text>
-            </View>
-
             <View style={styles.linha}>
-              <View style={styles.coluna}>
+              <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
                 <Entypo name="calendar" size={15} color="#43575F" />
+                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
               </View>
               <Text style={styles.text}>
                 {ocorrenciaSelecionada.data} - {ocorrenciaSelecionada.hora}
               </Text>
             </View>
-
-            <View style={[styles.linha, { height: "auto", alignItems: "flex-start", gap: 10 }]}>
-              <View style={styles.coluna}>
+            <View style={[styles.linha, { height: ocorrenciaSelecionada.justificativa ? 250 : 40, alignItems: "flex-start" }]}>
+              <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
                 <Entypo name="flag" size={15} color="#43575F" />
+                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
               </View>
-              <StatusContainer backgroundColor={getStatusColor(ocorrenciaSelecionada?.status)}>
-                <Text style={styles.statusTextWhite}>
-                  {ocorrenciaSelecionada?.status === "Concluído" ?
-                    `Concluído em ${ocorrenciaSelecionada?.dataConclusao} / ${ocorrenciaSelecionada?.horaConclusao}` :
-                    ocorrenciaSelecionada?.status}
-                </Text>
-              </StatusContainer>
+              <View style={{ width: "100%", gap: 10 }}>
+                <StatusContainer backgroundColor={getStatusColor(ocorrenciaSelecionada?.status)}>
+                  <Text style={styles.statusTextWhite}>
+                    {ocorrenciaSelecionada?.status === "Concluído" ? `Concluído em ${ocorrenciaSelecionada?.dataConclusao} / ${ocorrenciaSelecionada?.horaConclusao}` : ocorrenciaSelecionada?.status}
+                  </Text>
+                </StatusContainer>
+                {
+                  ocorrenciaSelecionada.justificativa && (
+                    <View>
+                      <View style={{ flexDirection: "row", gap: 10, height: "100%" }}>
+                        <View style={{ width: "100%", flexDirection: "column", gap: 10 }}>
+                          <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+                            <Text style={styles.text}>Motivo: {ocorrenciaSelecionada.justificativa.motivo}</Text>
+                          </ View>
+                          <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+                            <Text style={styles.text}>Descrição: {ocorrenciaSelecionada.justificativa.descricao}</Text>
+                          </ View>
+                          <View style={styles.imageContainer}>
+                            <Image source={ocorrenciaSelecionada.justificativa.imagem as any} style={styles.image} />
+                          </View>
+                        </View>
+                      </View>
+                    </View>
+                  )
+                }
+              </View>
             </View>
 
             <View style={styles.linha}>
-              <View style={styles.coluna}>
+              <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
                 <FontAwesome6 name="user-tie" size={15} color="#43575F" />
+                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
               </View>
               <Text style={styles.textBold}>Encarregado:</Text>
               <Text style={styles.text}>{ocorrenciaSelecionada.nome}</Text>
             </View>
 
-            <View style={[styles.linha, { height: 140, alignItems: "flex-start" }]}>
-              <View style={styles.coluna}>
+            <View style={[styles.linha, { height: 150, alignItems: "flex-start" }]}>
+              <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 10 }]}>
                 <AntDesign name="camera" size={15} color="#43575F" />
+                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
               </View>
               <View style={{ flexDirection: "column", gap: 10 }}>
                 <Text style={styles.text}>Fotos Registradas: {ocorrenciaSelecionada.data_fotos_registradas} - {ocorrenciaSelecionada.hora_fotos_registradas}</Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterButtonsContainer}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingRight: 50 }}>
                   {images.map((image, index) => (
-                    <View key={index} style={styles.imageContainer}>
+                    <View key={index} style={{ width: 200, height: "100%", marginRight: 10 }}>
                       <Image source={image} style={styles.image} />
                     </View>
                   ))}
                 </ScrollView>
               </View>
             </View>
-
             <View style={styles.linha}>
-              <View style={styles.coluna}>
+              <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 10 }]}>
                 <MaterialCommunityIcons name="wheel-barrow" size={15} color="#43575F" />
+                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
               </View>
               <Text style={styles.textBold}>Material:</Text>
               <Text style={styles.text}>{ocorrenciaSelecionada.material}</Text>
             </View>
 
             <View style={styles.linha}>
-              <View style={styles.coluna}>
+              <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 10 }]}>
                 <MaterialCommunityIcons name="weight" size={15} color="#43575F" />
+                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
               </View>
               <Text style={styles.text}>{ocorrenciaSelecionada.peso}</Text>
             </View>
 
             <View style={styles.linha}>
-              <View style={styles.coluna}>
+              <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 10 }]}>
                 <FontAwesome5 name="briefcase-medical" size={15} color="#43575F" />
+                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
               </View>
               <Text style={styles.textBold}>Causa da queda:</Text>
               <Text style={styles.text}>{ocorrenciaSelecionada.causa_queda}</Text>
             </View>
 
             <View style={styles.linha}>
-              <View style={styles.coluna}>
+              <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 10 }]}>
                 <FontAwesome name="exclamation-triangle" size={15} color="#43575F" />
+                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
               </View>
               <Text style={styles.text}>{ocorrenciaSelecionada.status}</Text>
             </View>
 
-            <View style={[styles.linha, { height: 320, alignItems: "flex-start" }]}>
-              <View style={styles.coluna}>
-                <FontAwesome6 name="location-dot" size={15} color="#43575F" />
+            <View style={[styles.linha, { height: 320, alignItems: "flex-start", marginTop: 5 }]}>
+              <View style={[styles.coluna, { height: "100%", justifyContent: "space-between", gap: 10 }]}>
+                <FontAwesome6 name="location-dot" color="#43575F" size={15} />
+                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
               </View>
               <View style={styles.locationDetails}>
                 <View style={styles.locationTextContainer}>
                   <View style={styles.coluna_localizacao}>
-                    <Text style={styles.textBold}>Localização</Text>
-                    <Text style={styles.text}>Local: {ocorrenciaSelecionada.localizacao.local}</Text>
-                    <Text style={styles.text}>Origem: {ocorrenciaSelecionada.localizacao.origem}</Text>
-                    <Text style={styles.text}>Origem: {ocorrenciaSelecionada.localizacao.origem_detalhado}</Text>
-                    <Text style={styles.text}>Destino: {ocorrenciaSelecionada.localizacao.destino_final}</Text>
+                    <Text style={styles.textBold}>Localização:</Text>
+                    <Text style={[styles.text, { fontWeight: "700" }]}>Prédio: <Text style={{ fontWeight: 400 }}>{ocorrenciaSelecionada.localizacao.local}</Text></Text>
+                    <Text style={[styles.text, { fontWeight: "700" }]}>Setor: <Text style={{ fontWeight: 400 }}>{ocorrenciaSelecionada.localizacao.origem}</Text></Text>
+                    <Text style={[styles.text, { fontWeight: "700" }]}>Dimensão: <Text style={{ fontWeight: 400 }}>{ocorrenciaSelecionada.localizacao.origem_detalhado}</Text></Text>
                   </View>
                 </View>
                 <View style={styles.mapContainer}>
@@ -157,18 +177,19 @@ export default function DetalharOcorrencia() {
                 </View>
               </View>
             </View>
-
             <View style={styles.linha}>
-              <View style={styles.coluna}>
+              <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 10 }]}>
                 <FontAwesome6 name="helmet-safety" size={15} color="#43575F" />
+                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
               </View>
               <Text style={styles.textBold}>EPI:</Text>
               <Text style={styles.text}>Capacete - Luva - bota</Text>
             </View>
 
             <View style={[styles.linha, { height: 100, alignItems: "flex-start" }]}>
-              <View style={styles.coluna}>
+              <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 10 }]}>
                 <FontAwesome name="microphone" size={15} color="#43575F" />
+                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
               </View>
               <View style={{ flexDirection: "column" }}>
                 <Text style={[styles.textBold, { marginBottom: 10 }]}>Descrição por audio</Text>
@@ -177,16 +198,17 @@ export default function DetalharOcorrencia() {
             </View>
 
             <View style={styles.linha}>
-              <View style={styles.coluna}>
+              <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 10 }]}>
                 <FontAwesome5 name="box-open" size={15} color="#43575F" />
+                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
               </View>
               <Text style={styles.textBold}>Produtos:</Text>
               <Text style={styles.text}>Nenhum</Text>
             </View>
           </View>
 
-          {
-            user?.tipoColaborador.id === 3 && (
+          {/* {
+            user?.userType.id === 3 && (
               <View style={styles.buttonsContainer}>
                 <TouchableOpacity onPress={() => modalizeRef.current?.open()} style={styles.justifyButton}>
                   <Text style={{ color: "#404944", fontSize: 16 }}>JUSTIFICAR</Text>
@@ -201,7 +223,7 @@ export default function DetalharOcorrencia() {
           }
 
           {
-            user?.tipoColaborador.id === 1 && (
+            user?.userType.id === 1 && (
               <View style={styles.buttonsContainer}>
                 <TouchableOpacity style={styles.justifyButton}>
                   <Text style={{ color: "#404944", fontSize: 16 }}>REPROVAR</Text>
@@ -212,10 +234,10 @@ export default function DetalharOcorrencia() {
                 </TouchableOpacity>
               </View>
             )
-          }
+          } */}
 
-          {
-            user?.tipoColaborador.id !== 3 && ocorrenciaSelecionada.aprovacao === "Aprovado" && (
+          {/* {
+            user?.userType.id !== 3 && ocorrenciaSelecionada.aprovacao === "Aprovado" && (
               <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
                 <AprovacoStatus status={ocorrenciaSelecionada?.aprovacao} date={ocorrenciaSelecionada?.dataAprovacao} />
               </View>
@@ -228,10 +250,10 @@ export default function DetalharOcorrencia() {
                 <AprovacoStatus status={ocorrenciaSelecionada?.aprovacao} date={ocorrenciaSelecionada?.dataAprovacao} />
               </View>
             )
-          }
+          } */}
 
           {/* {
-                                  ocorrenciaSelecionada.status === "Pendente" && user?.tipoColaborador.id !== 3 && (
+                                  ocorrenciaSelecionada.status === "Pendente" && user?.userType.id !== 3 && (
                                       <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
                                           <AprovacoStatus status={ocorrenciaSelecionada?.status} date={ocorrenciaSelecionada?.dataAprovacao} />
                                       </View>
@@ -240,7 +262,7 @@ export default function DetalharOcorrencia() {
 
           {/* 
                               {
-                                  ocorrenciaSelecionada.status !== "Pendente" && user?.tipoColaborador.id !== 3 && ocorrenciaSelecionada.aprovacao === null && (
+                                  ocorrenciaSelecionada.status !== "Pendente" && user?.userType.id !== 3 && ocorrenciaSelecionada.aprovacao === null && (
                                       <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
                                           <AprovacoStatus status={ocorrenciaSelecionada?.provacao} date={ocorrenciaSelecionada?.dataAprovacao} />
                                       </View>
@@ -324,14 +346,6 @@ const styles = StyleSheet.create({
     gap: 2,
     paddingBottom: 20,
   },
-  header: {
-    marginTop: 20,
-    marginBottom: 10,
-  },
-  headerDescription: {
-    color: "#43575F",
-    fontSize: 14
-  },
   text: {
     fontSize: 14,
     color: "#43575F",
@@ -347,19 +361,16 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   linha: {
-    flexDirection: "row",
-    alignItems: "center",
     gap: 5,
-    height: 40
+    height: 40,
+    alignItems: "flex-start",
+    flexDirection: "row",
   },
   coluna: {
-    height: 35,
     width: 35,
-    backgroundColor: "#EBEBEB",
-    padding: 10,
-    borderRadius: 100,
+    padding: 2,
     justifyContent: "center",
-    alignItems: "center"
+    alignItems: "center",
   },
   imageContainer: {
     width: 150,
@@ -390,9 +401,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#ccc",
     borderRadius: 20,
     overflow: "hidden"
-  },
-  filterButtonsContainer: {
-    paddingRight: 50,
   },
   buttonsContainer: {
     gap: 10,

@@ -1,28 +1,26 @@
 // Ocorrencias.tsx
 import AprovacoStatus from "@/components/aprovacaoStatus";
+import { Dados } from "@/data";
 import { getStatusColor } from "@/utils/statusColor";
-import { AntDesign, FontAwesome, MaterialCommunityIcons } from "@expo/vector-icons";
-import Ionicons from "@expo/vector-icons/Ionicons";
+import { AntDesign, FontAwesome, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import { FlatList, ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { DatePickerModal } from "react-native-paper-dates";
 import { useAuth } from "../../../auth/authProvider";
-import BotaoCriarOcorrencia from "../../../components/botaoCriarOcorrencia";
 import MapScreen from "../../../components/renderMapOcorrencias";
-import { Dados } from "../../../data";
 import { useOcorrenciasStore } from "../../../store/storeOcorrencias";
 import { StatusContainer, StyledMainContainer } from "../../../styles/StyledComponents";
 export default function Ocorrencias() {
 
     const router = useRouter();
     const { user } = useAuth();
+    const [date, setDate] = useState(undefined);
     const [showMap, setShowMap] = useState(false);
+    const [openDate, setOpenDate] = useState(false);
     const { setOcorrenciaSelecionada } = useOcorrenciasStore();
     const [atividadeSelecionada, setAtividadeSelecionada] = useState({ atividade: "", label: "" });
-    const [date, setDate] = useState(undefined);
-    const [openDate, setOpenDate] = useState(false);
 
     const onDismissSingle = useCallback(() => {
         setOpenDate(false);
@@ -49,24 +47,10 @@ export default function Ocorrencias() {
         router.push(rota as never);
     };
 
-    const dataForUser =
-        (() => {
-            if (user?.tipoColaborador.id === 1) {
-                return Dados.filter(atividade => atividade.aprovacao === null);
-            }
-            if (user?.tipoColaborador.id === 3) {
-                return Dados.filter(atividade =>
-                    atividade.tipo === 1 &&
-                    (atividade.status === "Aberto" || atividade.status === "Pendente")
-                );
-            }
-            return Dados.filter(atividade => atividade.aprovacao !== null);
-        })();
-
     return (
         <>
             <StyledMainContainer>
-                {user?.tipoColaborador.id !== 3 &&
+                {user?.userType === "ADM_DIKMA" &&
                     <View style={{ height: 50, marginBottom: 10 }}>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterButtonsContainer}>
                             <TouchableOpacity style={styles.filterButton} onPress={() => setOpenDate(true)}>
@@ -80,26 +64,15 @@ export default function Ocorrencias() {
                                 <AntDesign name="caretdown" size={10} color="black" />
                             </TouchableOpacity>
                             <TouchableOpacity style={styles.filterButton}>
-                                <Text>Siterização</Text>
-                                <AntDesign name="caretdown" size={10} color="black" />
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.filterButton}>
-                                <Text>Pessoa</Text>
-                                <AntDesign name="caretdown" size={10} color="black" />
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.filterButton}>
-                                <Text>Atividades</Text>
-                                <AntDesign name="caretdown" size={10} color="black" />
-                            </TouchableOpacity>
-                            <TouchableOpacity style={styles.filterButton}>
-                                <Text>Aprovadas</Text>
+                                <Text>Todos</Text>
                                 <AntDesign name="caretdown" size={10} color="black" />
                             </TouchableOpacity>
                         </ScrollView>
                     </View>
                 }
+
                 <FlatList
-                    data={dataForUser}
+                    data={Dados}
                     showsVerticalScrollIndicator={false}
                     keyExtractor={(item) => String(item?.id)}
                     contentContainerStyle={{ gap: 10, paddingBottom: 20 }}
@@ -150,37 +123,44 @@ export default function Ocorrencias() {
                         </TouchableOpacity>
                     )}
                 />
-                    <Picker
-                        style={{ display: "none" }}
-                        ref={pickerRef}
-                        selectedValue={atividadeSelecionada.atividade}
-                        onValueChange={(itemValue, itemIndex) =>
-                            setAtividadeSelecionada((prev) => ({
-                                ...prev,
-                                atividade: itemValue,
-                                label: atividades[itemIndex],
-                            }))
-                        }
-                    >
-                        <Picker.Item label="Atividades" value="atividades" />
-                        <Picker.Item label="Ocorrências" value="ocorrências" />
-                    </Picker>
-                    <DatePickerModal
-                        locale="pt-BR"
-                        mode="single"
-                        visible={openDate}
-                        onDismiss={onDismissSingle}
-                        date={date}
-                        onConfirm={onConfirmSingle}
-                        presentationStyle="pageSheet"
-                        label="Selecione uma data"
-                        saveLabel="Confirmar"
-                    />
+                <Picker
+                    style={{ display: "none" }}
+                    ref={pickerRef}
+                    selectedValue={atividadeSelecionada.atividade}
+                    onValueChange={(itemValue, itemIndex) => setAtividadeSelecionada((prev) => ({ ...prev, atividade: itemValue, label: atividades[itemIndex] }))}
+                >
+                    <Picker.Item label="Atividades" value="atividades" />
+                    <Picker.Item label="Ocorrências" value="ocorrências" />
+                </Picker>
+                <DatePickerModal
+                    locale="pt-BR"
+                    mode="single"
+                    visible={openDate}
+                    onDismiss={onDismissSingle}
+                    date={date}
+                    onConfirm={onConfirmSingle}
+                    presentationStyle="pageSheet"
+                    label="Selecione uma data"
+                    saveLabel="Confirmar"
+                />
             </StyledMainContainer>
-            {showMap ? (
-                <MapScreen location={location} showMap={() => setShowMap(!showMap)} />
-            ) : null}
-            <BotaoCriarOcorrencia />
+            {showMap ? (<MapScreen location={location} showMap={() => setShowMap(!showMap)} />) : null}
+
+            {
+                user?.userType !== "ADM_DIKMA" && (
+                    <TouchableOpacity
+                        onPress={() => router.push('criarOcorrencia' as never)}
+                        style={styles.containerCreate}>
+                        <AntDesign name="plus" size={24} color="#fff" />
+                    </TouchableOpacity>
+                )
+            }
+
+            <TouchableOpacity
+                onPress={() => router.push('criarOcorrencia' as never)}
+                style={styles.containerCreate}>
+                <AntDesign name="plus" size={24} color="#fff" />
+            </TouchableOpacity>
         </>
     );
 }
@@ -272,5 +252,16 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "flex-start",
     },
+    containerCreate: {
+        width: 60,
+        height: 60,
+        position: 'absolute',
+        bottom: 20,
+        right: 20,
+        borderRadius: 100,
+        backgroundColor: '#186B53',
+        alignItems: 'center',
+        justifyContent: 'center'
+    }
 });
 

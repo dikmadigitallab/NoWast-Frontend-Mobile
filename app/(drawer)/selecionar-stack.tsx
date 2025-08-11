@@ -1,5 +1,5 @@
 import { useAuth } from '@/auth/authProvider';
-import { useAuthStore } from '@/store/storeApp';
+import { useModuleStore } from '@/store/moduleStore';
 import { FontAwesome, FontAwesome5, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from 'expo-router';
 import { useState } from 'react';
@@ -9,11 +9,15 @@ import { ActivityIndicator } from 'react-native-paper';
 export default function SelecionarStack() {
 
     const { logout } = useAuth()
-    const { setUserType } = useAuthStore();
+    const { setModuleType } = useModuleStore();
     const [loading, setLoading] = useState(false);
 
     const handleSelecionarStack = (stack: 'quedazero' | 'coleta' | 'residuos') => {
+<<<<<<< HEAD
         setUserType(stack);
+=======
+        setModuleType(stack);
+>>>>>>> 5275df4540592ecb2f771bf76d5f4c7741de30be
         setTimeout(() => router.replace(`/(${stack})` as never), 500);
     };
 
@@ -21,7 +25,7 @@ export default function SelecionarStack() {
         setLoading(true);
         setTimeout(() => {
             logout();
-            setUserType(null);
+            setModuleType(null);
         }, 500);
     }
 

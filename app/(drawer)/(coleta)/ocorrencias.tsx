@@ -7,7 +7,6 @@ import { useRouter } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import { FlatList, ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { DatePickerModal } from "react-native-paper-dates";
-import BotaoCriarOcorrencia from "../../../components/botaoCriarOcorrencia";
 import MapScreen from "../../../components/renderMapOcorrencias";
 import { Dados } from "../../../data";
 import { useOcorrenciasStore } from "../../../store/storeOcorrencias";
@@ -53,33 +52,33 @@ export default function Ocorrencias() {
   return (
     <>
       <StyledMainContainer>
-          <Picker
-            style={{ display: "none" }}
-            ref={pickerRef}
-            selectedValue={atividadeSelecionada.atividade}
-            onValueChange={(itemValue, itemIndex) =>
-              setAtividadeSelecionada((prev) => ({
-                ...prev,
-                atividade: itemValue,
-                label: atividades[itemIndex],
-              }))
-            }
-          >
-            <Picker.Item label="Atividades" value="atividades" />
-            <Picker.Item label="Ocorrências" value="ocorrências" />
-          </Picker>
+        <Picker
+          style={{ display: "none" }}
+          ref={pickerRef}
+          selectedValue={atividadeSelecionada.atividade}
+          onValueChange={(itemValue, itemIndex) =>
+            setAtividadeSelecionada((prev) => ({
+              ...prev,
+              atividade: itemValue,
+              label: atividades[itemIndex],
+            }))
+          }
+        >
+          <Picker.Item label="Atividades" value="atividades" />
+          <Picker.Item label="Ocorrências" value="ocorrências" />
+        </Picker>
 
-          <DatePickerModal
-            locale="pt-BR"
-            mode="single"
-            visible={openDate}
-            onDismiss={onDismissSingle}
-            date={date}
-            onConfirm={onConfirmSingle}
-            presentationStyle="pageSheet"
-            label="Selecione uma data"
-            saveLabel="Confirmar"
-          />
+        <DatePickerModal
+          locale="pt-BR"
+          mode="single"
+          visible={openDate}
+          onDismiss={onDismissSingle}
+          date={date}
+          onConfirm={onConfirmSingle}
+          presentationStyle="pageSheet"
+          label="Selecione uma data"
+          saveLabel="Confirmar"
+        />
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -174,7 +173,6 @@ export default function Ocorrencias() {
       {showMap ? (
         <MapScreen location={location} showMap={() => setShowMap(!showMap)} />
       ) : null}
-      <BotaoCriarOcorrencia />
     </>
   );
 }

@@ -77,19 +77,19 @@ export default function Dashboard() {
               <AntDesign name="caretdown" size={10} color="black" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.filterButton}>
-              <Text>Atividades</Text>
+              <Text>Localização</Text>
               <AntDesign name="caretdown" size={10} color="black" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.filterButton}>
-              <Text>Colaborador</Text>
+              <Text>Prédios</Text>
               <AntDesign name="caretdown" size={10} color="black" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.filterButton}>
-              <Text>Pessoa</Text>
+              <Text>Setores</Text>
               <AntDesign name="caretdown" size={10} color="black" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.filterButton}>
-              <Text>Atividades</Text>
+              <Text>Ambientes</Text>
               <AntDesign name="caretdown" size={10} color="black" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.filterButton}>
@@ -98,7 +98,6 @@ export default function Dashboard() {
             </TouchableOpacity>
           </ScrollView>
         </View>
-
 
         <View style={styles.chartRow}>
           <View style={styles.pieWrapper}>
@@ -330,7 +329,7 @@ export default function Dashboard() {
       <View style={styles.contentWrapper}>
         <View style={styles.card}>
           <View style={styles.sectionHeaderWrapper}>
-            <TouchableOpacity style={[styles.sectionHeader, { borderRightColor: '#fff', borderRightWidth: 1 }]} onPress={() => scrollToIndex(0)}>
+            <TouchableOpacity style={[styles.sectionHeader, { borderRightColor: '#186b5427', borderRightWidth: 1 }]} onPress={() => scrollToIndex(0)}>
               <View />
               <Text style={styles.sectionTitle}>Atividades</Text>
               <View style={[styles.activeBar, { opacity: activeIndex === 0 ? 1 : 0 }]} />
@@ -385,7 +384,8 @@ const styles = StyleSheet.create({
   sectionHeaderWrapper: {
     width: "100%",
     flexDirection: "row",
-    backgroundColor: "#F5FBF6",
+    borderBottomColor: "#186b5427",
+    borderBottomWidth: 1,
     justifyContent: "space-between"
   },
   sectionHeader: {

@@ -14,7 +14,7 @@ export default function StatusBarComponent() {
     <StatusBar
       animated={true}
       hidden={false}
-      // backgroundColor="#fff"
+      backgroundColor="#186B53"
       barStyle={statusBarStyle}
       showHideTransition={statusBarTransition}
     />

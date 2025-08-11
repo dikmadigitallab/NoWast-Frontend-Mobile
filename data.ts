@@ -39,6 +39,7 @@ export const Dados = [
         descricao: null
       },
     ],
+    encarregado: "Roberto Nunes",
     localizacao: {
       latitude: -20.315000,
       longitude: -40.305000,
@@ -93,8 +94,9 @@ export const Dados = [
       ],
       imagem: require("./assets/images/atestado.png"),
       descricao: "Descrição não disponível",
-      motivo: "Atestado"
+      motivo: "Atestado",
     },
+    encarregado: "Roberto Nunes",
     localizacao: {
       latitude: -20.325000,
       longitude: -40.295000,
@@ -147,6 +149,7 @@ export const Dados = [
         descricao: "Descrição gerada automaticamente"
       },
     ],
+    encarregado: "Roberto Nunes",
     localizacao: {
       latitude: -20.305000,
       longitude: -40.315000,
@@ -201,8 +204,9 @@ export const Dados = [
       ],
       imagem: require("./assets/images/atestado.png"),
       descricao: "Descrição não disponível",
-      motivo: "Atestado"
+      motivo: "Atestado",
     },
+    encarregado: "Roberto Nunes",
     localizacao: {
       latitude: -20.335000,
       longitude: -40.285000,
@@ -255,6 +259,7 @@ export const Dados = [
         descricao: "Descrição gerada automaticamente"
       },
     ],
+    encarregado: "Roberto Nunes",
     localizacao: {
       latitude: -20.300000,
       longitude: -40.320000,
@@ -307,6 +312,7 @@ export const Dados = [
         descricao: "Descrição gerada automaticamente"
       },
     ],
+    encarregado: "Roberto Nunes",
     localizacao: {
       latitude: -20.340000,
       longitude: -40.280000,
@@ -329,7 +335,6 @@ export const Dados = [
     data: "05/06/2025",
     hora: "13:40",
     peso: "320 g",
-    Material: "Poeira de Sílica",
     causa_queda: "Vibração Excessiva",
     equipamento: "Tremonha Vibratória",
     descricao_audio: "Intermitente",
@@ -359,6 +364,7 @@ export const Dados = [
         descricao: null
       },
     ],
+    encarregado: "Roberto Nunes",
     localizacao: {
       latitude: -20.350000,
       longitude: -40.330000,
@@ -381,7 +387,6 @@ export const Dados = [
     data: "05/06/2025",
     hora: "13:40",
     peso: "320 g",
-    Material: "Poeira de Sílica",
     causa_queda: "Vibração Excessiva",
     equipamento: "Tremonha Vibratória",
     descricao_audio: "Intermitente",
@@ -413,8 +418,9 @@ export const Dados = [
       ],
       imagem: require("./assets/images/atestado.png"),
       descricao: "Descrição não disponível",
-      motivo: "Atestado"
+      motivo: "Atestado",
     },
+    encarregado: "Roberto Nunes",
     localizacao: {
       latitude: -20.290000,
       longitude: -40.270000,
@@ -437,7 +443,6 @@ export const Dados = [
     data: "05/07/2025",
     hora: "13:40",
     peso: "320 g",
-    Material: "Poeira de Sílica",
     causa_queda: "Vibração Excessiva",
     equipamento: "Tremonha Vibratória",
     descricao_audio: "Intermitente",
@@ -467,6 +472,7 @@ export const Dados = [
         descricao: "Descrição gerada automaticamente"
       },
     ],
+    encarregado: "Roberto Nunes",
     localizacao: {
       latitude: -20.310000,
       longitude: -40.310000,
@@ -489,7 +495,6 @@ export const Dados = [
     data: "05/07/2025",
     hora: "13:40",
     peso: "320 g",
-    Material: "Poeira de Sílica",
     causa_queda: "Vibração Excessiva",
     equipamento: "Tremonha Vibratória",
     descricao_audio: "Intermitente",
@@ -521,8 +526,9 @@ export const Dados = [
       ],
       imagem: require("./assets/images/atestado.png"),
       descricao: "Descrição não disponível",
-      motivo: "Atestado"
+      motivo: "Atestado",
     },
+    encarregado: "Roberto Nunes",
     localizacao: {
       latitude: -20.320000,
       longitude: -40.290000,
@@ -545,7 +551,6 @@ export const Dados = [
     data: "05/08/2025",
     hora: "13:40",
     peso: "320 g",
-    Material: "Poeira de Sílica",
     causa_queda: "Vibração Excessiva",
     equipamento: "Tremonha Vibratória",
     descricao_audio: "Intermitente",
@@ -575,6 +580,7 @@ export const Dados = [
         descricao: null
       },
     ],
+    encarregado: "Roberto Nunes",
     localizacao: {
       latitude: -20.300500,
       longitude: -40.315000,
@@ -597,7 +603,6 @@ export const Dados = [
     data: "05/08/2025",
     hora: "13:40",
     peso: "320 g",
-    Material: "Poeira de Sílica",
     causa_queda: "Vibração Excessiva",
     equipamento: "Tremonha Vibratória",
     descricao_audio: "Intermitente",
@@ -627,6 +632,7 @@ export const Dados = [
         descricao: "Descrição gerada automaticamente"
       },
     ],
+    encarregado: "Roberto Nunes",
     localizacao: {
       latitude: -20.330000,
       longitude: -40.295000,
