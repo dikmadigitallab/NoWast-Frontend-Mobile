@@ -37,7 +37,6 @@ export default function CadastroOcorrencia() {
     });
 
     const onSubmit = (data: any) => {
-        console.log(data);
         toast.success('Cadastro realizado com sucesso', { duration: 3000 })
     };
 

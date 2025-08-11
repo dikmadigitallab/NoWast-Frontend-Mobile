@@ -37,7 +37,6 @@ export default function DetalharOcorrencia() {
     }
   };
 
-
   const deletarAlteracoes = () => {
     closeModal();
     setModalVisible(false);
@@ -52,6 +51,7 @@ export default function DetalharOcorrencia() {
     );
   }
 
+  console.log(user)
   return (
     <StyledMainContainer>
       <ScrollView showsVerticalScrollIndicator={false}>
@@ -198,17 +198,18 @@ export default function DetalharOcorrencia() {
             </View>
 
             <View style={styles.linha}>
-              <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 10 }]}>
-                <FontAwesome5 name="box-open" size={15} color="#43575F" />
-                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+              <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
+                <FontAwesome5 name="box-open" size={12} color="#43575F" />
               </View>
-              <Text style={styles.textBold}>Produtos:</Text>
-              <Text style={styles.text}>Nenhum</Text>
+              <View style={styles.rowWithGap}>
+                <Text style={styles.textBold}>Produtos:</Text>
+                <Text style={styles.text}>Nenhum</Text>
+              </View>
             </View>
           </View>
 
           {/* {
-            user?.userType.id === 3 && (
+            user?.userType === "OPERATIONAL" && (
               <View style={styles.buttonsContainer}>
                 <TouchableOpacity onPress={() => modalizeRef.current?.open()} style={styles.justifyButton}>
                   <Text style={{ color: "#404944", fontSize: 16 }}>JUSTIFICAR</Text>
@@ -220,10 +221,11 @@ export default function DetalharOcorrencia() {
                 </TouchableOpacity>
               </View>
             )
-          }
+          } */}
+
 
           {
-            user?.userType.id === 1 && (
+            user?.userType === "ADM_DIKMA" && (
               <View style={styles.buttonsContainer}>
                 <TouchableOpacity style={styles.justifyButton}>
                   <Text style={{ color: "#404944", fontSize: 16 }}>REPROVAR</Text>
@@ -234,7 +236,7 @@ export default function DetalharOcorrencia() {
                 </TouchableOpacity>
               </View>
             )
-          } */}
+          }
 
           {/* {
             user?.userType.id !== 3 && ocorrenciaSelecionada.aprovacao === "Aprovado" && (
@@ -371,6 +373,12 @@ const styles = StyleSheet.create({
     padding: 2,
     justifyContent: "center",
     alignItems: "center",
+  },
+  rowWithGap: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    gap: 5
   },
   imageContainer: {
     width: 150,

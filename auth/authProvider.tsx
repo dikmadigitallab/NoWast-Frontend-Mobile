@@ -1,9 +1,15 @@
 import api from "@/hooks/api";
 import { toast } from "@backpackapp-io/react-native-toast";
-import React, { createContext, useContext, useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 interface UserData {
-  userType: string;
+  userType?: string;
+  email?: string | null;
+  document?: string | null;
+  name?: string | null;
+  position?: string | null;
+  contractId?: string | number | null;
 }
 
 interface AuthContextProps {
@@ -16,55 +22,77 @@ interface AuthContextProps {
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
-interface AuthProviderProps {
-  children: React.ReactNode;
-}
-
-export const AuthProvider = ({ children }: AuthProviderProps) => {
-
-  const [loading, setLoading] = useState(false);
+export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [loading, setLoading] = useState(true); // começa carregando
   const [user, setUser] = useState<UserData | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const login = async (data?: string, password?: string) => {
+  useEffect(() => {
+    const loadStoredAuth = async () => {
+      try {
+        const token = await AsyncStorage.getItem("authToken");
+        const storedUser = await AsyncStorage.getItem("user");
 
+        if (token && storedUser) {
+          setIsAuthenticated(true);
+          setUser(JSON.parse(storedUser));
+        }
+      } catch (err) {
+        console.error("Erro ao carregar dados salvos", err);
+      } finally {
+        setLoading(false); ''
+      }
+    };
+
+    loadStoredAuth();
+  }, []);
+
+  const login = async (document?: string, password?: string) => {
     try {
-      const clearFormatedData = data?.replace(/[.\-]/g, '')
-      const response = await api.post('/auth', { document: clearFormatedData, password });
-      document.cookie = `authToken=${response.data.data.token}; Path=/; Max-Age=3600; SameSite=Lax`;
+      setLoading(true);
 
-      if (response.data.data.user.role.name === "Administrador Dikma") {
-        setUser({ userType: "ADM_DIKMA" });
-      } else if (response.data.data.user.role.name === "Diretor Dikma") {
-        setUser({ userType: "DIKMA_DIRECTOR" });
-      } else if (response.data.data.user.role.name === "Administrador Cliente") {
-        setUser({ userType: "ADM_CLIENTE" });
-      } else if (response.data.data.user.role.name === "Gestor de Contrato") {
-        setUser({ userType: "GESTAO" });
+      const clearFormatedData = document?.replace(/[.\-]/g, "").trim();
+      const response = await api.post("/auth", { document: clearFormatedData, password });
+      const token = response.data.data.token;
+      await AsyncStorage.setItem("authToken", token);
+
+      const userInfo: UserData = {
+        name: response.data.data.user.person.name,
+        email: response.data.data.user.email,
+        document: response.data.data.user.person.document,
+        position: response.data.data.user.role.name,
+        contractId: response.data.data.user.contractId
+      };
+
+      const roleName = response.data.data.user.role.name;
+      if (roleName === "Administrador Dikma") {
+        userInfo.userType = "ADM_DIKMA";
+      } else if (roleName === "Diretor Dikma") {
+        userInfo.userType = "DIKMA_DIRECTOR";
+      } else if (roleName === "Administrador Cliente") {
+        userInfo.userType = "ADM_CLIENTE";
+      } else if (roleName === "Gestor de Contrato") {
+        userInfo.userType = "GESTAO";
       } else {
-        setUser({ userType: "OPERATIONAL" });
+        userInfo.userType = "OPERATIONAL";
       }
 
-      toast.success('Login realizado com sucesso!', { duration: 3000 })
+      setUser(userInfo);
+      setIsAuthenticated(true);
 
-      setTimeout(() => {
-        setIsAuthenticated(true);
-        setLoading(false);
-      }, 500);
+      await AsyncStorage.setItem("user", JSON.stringify(userInfo));
 
+      toast.success("Login realizado com sucesso!", { duration: 3000 });
     } catch (error) {
-      toast.error('Documento ou senha inválidos!', { duration: 3000 })
+      toast.error("Documento ou senha inválidos!", { duration: 3000 });
     } finally {
       setLoading(false);
-      setUser({ userType: "ADM_DIKMA" });
-      setTimeout(() => {
-        setIsAuthenticated(true);
-      }, 500);
     }
-
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await AsyncStorage.removeItem("authToken");
+    await AsyncStorage.removeItem("user");
     setIsAuthenticated(false);
     setUser(null);
   };

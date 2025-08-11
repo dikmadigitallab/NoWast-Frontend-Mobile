@@ -10,6 +10,7 @@ import { IOcorrencias } from "../../../types/IOcorrencias";
 import { getStatusImage } from "../../../utils/getStatusImage";
 
 export default function Mapa() {
+
   const [selectedLocation, setSelectedLocation] = useState<IOcorrencias | null>(null);
 
   const initialRegion: Region = {
@@ -21,6 +22,7 @@ export default function Mapa() {
 
   return (
     <View style={styles.container}>
+
       <MapView style={styles.map} initialRegion={initialRegion}>
         {Dados.map((loc) => (
           <Marker
@@ -96,9 +98,9 @@ export default function Mapa() {
             </View>
 
             <View style={styles.approvalContainer}>
-              <AprovacoStatus 
-                status={selectedLocation.aprovacao !== null ? selectedLocation.aprovacao : "Sem Aprovacao"} 
-                date={selectedLocation.dataAprovacao} 
+              <AprovacoStatus
+                status={selectedLocation.aprovacao !== null ? selectedLocation.aprovacao : "Sem Aprovacao"}
+                date={selectedLocation.dataAprovacao}
               />
             </View>
           </View>

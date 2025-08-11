@@ -92,10 +92,6 @@ export default function Dashboard() {
               <Text>Ambientes</Text>
               <AntDesign name="caretdown" size={10} color="black" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.filterButton}>
-              <Text>Aprovadas</Text>
-              <AntDesign name="caretdown" size={10} color="black" />
-            </TouchableOpacity>
           </ScrollView>
         </View>
 

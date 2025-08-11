@@ -1,6 +1,7 @@
 import { useAuth } from '@/auth/authProvider';
 import { useModuleStore } from '@/store/moduleStore';
-import { FontAwesome, FontAwesome5, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { FontAwesome, FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -11,18 +12,28 @@ export default function SelecionarStack() {
     const { logout } = useAuth()
     const { setModuleType } = useModuleStore();
     const [loading, setLoading] = useState(false);
+    const { user } = useAuth();
+
+    const userTypes: { [key: string]: string } = {
+        DEFAULT: '',
+        ADM_DIKMA: 'Administrador Dikma',
+        GESTAO: 'Gestão',
+        ADM_CLIENTE: 'Administrador(a) Cliente Dikma',
+        DIKMA_DIRECTOR: 'Diretoria Dikma',
+        OPERATIONAL: 'Operacional'
+    }
 
     const handleSelecionarStack = (stack: 'quedazero' | 'coleta' | 'residuos') => {
-<<<<<<< HEAD
-        setUserType(stack);
-=======
         setModuleType(stack);
->>>>>>> 5275df4540592ecb2f771bf76d5f4c7741de30be
-        setTimeout(() => router.replace(`/(${stack})` as never), 500);
+        setTimeout(() => {
+            router.replace(`/(${stack})` as never)
+        }, 500);
     };
 
-    const Logout = () => {
+    const Logout = async () => {
         setLoading(true);
+        await AsyncStorage.removeItem("authToken");
+
         setTimeout(() => {
             logout();
             setModuleType(null);
@@ -41,10 +52,12 @@ export default function SelecionarStack() {
                         />
                     </View>
                     <View style={styles.textContainer}>
-                        <Text style={styles.logoText}>Olá, Warllei!</Text>
+                        <Text style={styles.logoText}>Olá, {user?.name}!</Text>
                         <View style={styles.locationContainer}>
-                            <Ionicons name="location-sharp" size={24} color="#43575F" />
-                            <Text style={styles.locationText}>Prédio central</Text>
+                            <FontAwesome5 name="user-tie" size={24} color="#43575F" />
+                            <Text style={styles.locationText}>
+                                {userTypes[user?.userType ?? ""]}
+                            </Text>
                         </View>
                     </View>
                 </View>
@@ -109,7 +122,7 @@ const styles = StyleSheet.create({
         gap: 10
     },
     logoText: {
-        fontSize: 30,
+        fontSize: 25,
         fontWeight: "900",
         color: "#202020"
     },

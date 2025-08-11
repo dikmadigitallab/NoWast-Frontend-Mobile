@@ -277,7 +277,7 @@ export default function DetalharAtividade() {
                     <View style={styles.modalOverlay}>
                         <TouchableWithoutFeedback onPress={() => { }}>
                             <View style={styles.modalContent}>
-                                <Text style={{ alignSelf: "flex-start", color: "#404944", fontSize: 20 }}>Descartar Alterações?</Text>
+                                <Text style={{ alignSelf: "flex-start", color: "#404944", fontSize: 17 }}>Descartar Alterações?</Text>
                                 <Text style={{ alignSelf: "flex-start", color: "#404944", fontSize: 14, marginBottom: 20 }}>Todas as informações preenchidas serão perdidas.</Text>
                                 <View style={styles.buttonRow}>
                                     <TouchableOpacity style={styles.button} onPress={() => setModalVisible(false)}>

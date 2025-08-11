@@ -1,8 +1,10 @@
+import AprovacoStatus from "@/components/aprovacaoStatus";
 import { Pessoas } from "@/types/IOcorrencias";
 import { AntDesign, FontAwesome5 } from "@expo/vector-icons";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import Checkbox from 'expo-checkbox';
+import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import { Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import { Modalize } from 'react-native-modalize';
@@ -33,12 +35,13 @@ const images = [
 
 export default function DetalharAtividade() {
 
-    const { user } = useAuth()
-    const modalizeJustificativaRef = useRef<Modalize | null>(null);
-    const modalizeDescricaoRef = useRef<Modalize | null>(null);
+    const { user } = useAuth();
+    const router = useRouter();
     const [isChecked, setChecked] = useState(false);
     const { ocorrenciaSelecionada } = useOcorrenciasStore();
+    const modalizeDescricaoRef = useRef<Modalize | null>(null);
     const [modalVisible, setModalizeVisible] = useState(false);
+    const modalizeJustificativaRef = useRef<Modalize | null>(null);
 
     const [justificativa, setJustificativa] = useState<any>({
         justificativa: '',
@@ -81,10 +84,6 @@ export default function DetalharAtividade() {
                                 {ocorrenciaSelecionada.data} - {ocorrenciaSelecionada.hora}
                             </Text>
                         </View>
-<<<<<<< HEAD
-                        <View style={[styles.linha, { height: ocorrenciaSelecionada.justificativa ? 250 : "auto", alignItems: "flex-start", gap: 10 }]}>
-                            <View style={[styles.coluna, { width: 35, height: "100%", padding: 10, justifyContent: "flex-start" }]}>
-=======
                         <View style={styles.linha}>
                             <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
                                 <FontAwesome6 name="user-tie" size={15} color="#43575F" />
@@ -96,7 +95,6 @@ export default function DetalharAtividade() {
                         </View>
                         <View style={[styles.linha, { height: ocorrenciaSelecionada.justificativa ? 250 : 40, alignItems: "flex-start" }]}>
                             <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
->>>>>>> 5275df4540592ecb2f771bf76d5f4c7741de30be
                                 <Entypo name="flag" size={15} color="#43575F" />
                                 <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                             </View>
@@ -127,23 +125,6 @@ export default function DetalharAtividade() {
                                 }
                             </View>
                         </View>
-<<<<<<< HEAD
-                        <View style={[styles.linha, { height: "auto", alignItems: "flex-start", gap: 10 }]}>
-                            <View style={[styles.coluna, { width: 35, height: "100%", padding: 10, justifyContent: "flex-start" }]}>
-                                <FontAwesome6 name="user-tie" size={15} color="#43575F" />
-                            </View>
-                            <View style={{ flexDirection: "column", gap: 5 }}>
-                                {
-                                    ocorrenciaSelecionada?.pessoas?.map((pessoa: Pessoas, index: number) => (
-                                        <View key={index} style={{ gap: 5 }}>
-                                            <Text style={{ fontWeight: "500", color: "#43575F" }}>{pessoa.funcao}</Text>
-                                            <View style={[styles.rowWithGap, { justifyContent: "center", alignItems: "center", gap: 10 }]}>
-                                                <View style={styles.rowWithGap}>
-                                                    <Checkbox value={isChecked} onValueChange={setChecked} color={isChecked ? '#34C759' : undefined} />
-                                                    <View>
-                                                        <Text style={{ fontSize: 15, fontWeight: "500" }}>{ocorrenciaSelecionada.nome}</Text>
-                                                        {pessoa.descricao && <Text style={{ fontSize: 13 }}>{pessoa.descricao}</Text>}
-=======
                         {
                             ocorrenciaSelecionada?.pessoas && (
                                 <View style={[styles.linha, { height: "auto", alignItems: "flex-start", gap: 10 }]}>
@@ -154,7 +135,7 @@ export default function DetalharAtividade() {
                                     <View style={{ flexDirection: "column", gap: 5 }}>
                                         {
                                             ocorrenciaSelecionada?.pessoas?.map((pessoa: Pessoas, index: number) => (
-                                                <View key={index} style={{ gap: 5, marginBottom: 10 }}>
+                                                <View key={index} style={{ alignItems: "flex-start", gap: 5, marginBottom: 10 }}>
                                                     <Text style={{ fontSize: 12, fontWeight: "semibold", color: "#43575F" }}>{pessoa.funcao}</Text>
                                                     <View style={[styles.rowWithGap, { width: "auto", justifyContent: "center", alignItems: "center", gap: 10 }]}>
                                                         <View style={[styles.rowWithGap]}>
@@ -175,7 +156,6 @@ export default function DetalharAtividade() {
                                                             )
                                                         }
 
->>>>>>> 5275df4540592ecb2f771bf76d5f4c7741de30be
                                                     </View>
                                                 </View>
                                             ))
@@ -201,44 +181,9 @@ export default function DetalharAtividade() {
                                 </ScrollView>
                             </View>
                         </View>
-<<<<<<< HEAD
-                        <View style={styles.linha}>
-                            <View style={styles.coluna}>
-                                <MaterialCommunityIcons name="wheel-barrow" size={20} color="#43575F" />
-                            </View>
-                            <View style={styles.rowWithGap}>
-                                <Text style={styles.textBold}>Material:</Text>
-                                <Text style={styles.text}>{ocorrenciaSelecionada.material}</Text>
-                            </View>
-                        </View>
-                        <View style={styles.linha}>
-                            <View style={styles.coluna}>
-                                <MaterialCommunityIcons name="weight" size={20} color="#43575F" />
-                            </View>
-                            <Text style={styles.text}>{ocorrenciaSelecionada.peso}</Text>
-                        </View>
-                        <View style={styles.linha}>
-                            <View style={styles.coluna}>
-                                <FontAwesome5 name="briefcase-medical" size={15} color="#43575F" />
-                            </View>
-                            <View style={styles.rowWithGap}>
-                                <Text style={styles.textBold}>Causa da queda:</Text>
-                                <Text style={styles.text}>{ocorrenciaSelecionada.causa_queda}</Text>
-                            </View>
-                        </View>
-                        <View style={styles.linha}>
-                            <View style={styles.coluna}>
-                                <FontAwesome name="exclamation-triangle" size={15} color="#43575F" />
-                            </View>
-                            <Text style={styles.text}>{ocorrenciaSelecionada.status}</Text>
-                        </View>
-                        <View style={[styles.linha, { height: 320, alignItems: "flex-start" }]}>
-                            <View style={[styles.coluna, { width: 35, height: "100%", padding: 10, justifyContent: "flex-start" }]}>
-=======
 
                         <View style={[styles.linha, { height: 320, alignItems: "flex-start", marginTop: 5 }]}>
                             <View style={[styles.coluna, { height: "100%", justifyContent: "space-between", gap: 10 }]}>
->>>>>>> 5275df4540592ecb2f771bf76d5f4c7741de30be
                                 <FontAwesome6 name="location-dot" color="#43575F" size={15} />
                                 <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                             </View>
@@ -291,8 +236,8 @@ export default function DetalharAtividade() {
 
                     {/* {user?.userType.id === 3 && <LeitorNFC />} */}
 
-                    {/* {
-                        user?.userType.id === 3 && (
+                    {
+                        user?.userType === "OPERATIONAL" && (
                             <View style={styles.buttonsContainer}>
                                 <TouchableOpacity onPress={() => modalizeJustificativaRef.current?.open()} style={styles.justifyButton}>
                                     <Text style={{ color: "#404944", fontSize: 16 }}>JUSTIFICAR</Text>
@@ -304,10 +249,10 @@ export default function DetalharAtividade() {
                                 </TouchableOpacity>
                             </View>
                         )
-                    } */}
+                    }
 
                     {
-                        user?.userType === "ADM_DIKMA" && (
+                        user?.userType === "ADM_DIKMA" && (ocorrenciaSelecionada.aprovacao !== "Aprovado" && ocorrenciaSelecionada.aprovacao !== "Reprovado") && (
                             <View style={styles.buttonsContainer}>
                                 <TouchableOpacity style={styles.justifyButton}>
                                     <Text style={{ color: "#404944", fontSize: 16 }}>REPROVAR</Text>
@@ -319,20 +264,20 @@ export default function DetalharAtividade() {
                             </View>
                         )
                     }
-                    {/* {
-                        user?.userType.id !== 3 && ocorrenciaSelecionada.aprovacao === "Aprovado" && (
+                    {
+                        user?.userType === "ADM_DIKMA" && ocorrenciaSelecionada.aprovacao === "Aprovado" && (
                             <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
                                 <AprovacoStatus status={ocorrenciaSelecionada?.aprovacao} date={ocorrenciaSelecionada?.dataAprovacao} />
                             </View>
                         )
-                    } */}
-                    {/* {
-                        ocorrenciaSelecionada.aprovacao === "Reprovado" && (
+                    }
+                    {
+                        user?.userType === "ADM_DIKMA" && ocorrenciaSelecionada.aprovacao === "Reprovado" && (
                             <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
                                 <AprovacoStatus status={ocorrenciaSelecionada?.aprovacao} date={ocorrenciaSelecionada?.dataAprovacao} />
                             </View>
                         )
-                    }  */}
+                    }
                     {/* {
                         ocorrenciaSelecionada.status === "Pendente" && user?.userType.id !== 3 && (
                             <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
@@ -375,16 +320,6 @@ export default function DetalharAtividade() {
                     <View style={{ gap: 10 }}>
                         <Dropdown
                             mode="outlined"
-<<<<<<< HEAD
-                            label="Material"
-                            options={OPTIONS}
-                            // value={value}
-                            // onSelect={onChange}
-                            CustomMenuHeader={() => <></>}
-                            menuContentStyle={{ backgroundColor: '#fff' }}
-                        />
-                        <TextInput mode="outlined" label="Descrição" outlineColor="#707974" activeOutlineColor="#707974" style={{ backgroundColor: '#fff', height: 120 }} multiline={true} numberOfLines={4} />
-=======
                             label="Tipo de Justificativa"
                             options={[
                                 { label: 'Interna', value: 'option2' },
@@ -408,7 +343,6 @@ export default function DetalharAtividade() {
                             value={justificativa.descricao}
                             onChangeText={(value) => setJustificativa({ ...justificativa, descricao: value })}
                             mode="outlined" label="Descrição" outlineColor="#707974" activeOutlineColor="#707974" style={{ backgroundColor: '#fff', height: 120 }} multiline={true} numberOfLines={4} />
->>>>>>> 5275df4540592ecb2f771bf76d5f4c7741de30be
                     </View>
                 </View>
                 <View style={styles.fotosContainer}>
@@ -456,7 +390,7 @@ export default function DetalharAtividade() {
                     <View style={styles.modalOverlay}>
                         <TouchableWithoutFeedback onPress={() => { }}>
                             <View style={styles.modalContent}>
-                                <Text style={{ alignSelf: "flex-start", color: "#404944", fontSize: 20 }}>Descartar Alterações?</Text>
+                                <Text style={{ alignSelf: "flex-start", color: "#404944", fontSize: 17, fontWeight: "bold" }}>Descartar Alterações?</Text>
                                 <Text style={{ alignSelf: "flex-start", color: "#404944", fontSize: 14, marginBottom: 20 }}>Todas as informações preenchidas serão perdidas.</Text>
                                 <View style={styles.buttonRow}>
                                     <TouchableOpacity style={styles.button} onPress={() => setModalizeVisible(false)}>

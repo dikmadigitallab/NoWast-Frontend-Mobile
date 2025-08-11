@@ -1,10 +1,20 @@
+import AprovacoStatus from '@/components/aprovacaoStatus';
 import { Dados } from '@/data';
 import { AntDesign, Entypo, FontAwesome6 } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import moment from 'moment';
 import 'moment/locale/pt-br';
-import React, { useMemo, useRef, useState } from 'react';
-import { ImageBackground, ScrollView, SectionList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  Animated,
+  ImageBackground,
+  ScrollView,
+  SectionList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
+} from 'react-native';
 import { DatePickerModal } from 'react-native-paper-dates';
 import Calendario from '../../../components/calendario';
 import { StatusContainer, StyledMainContainer } from '../../../styles/StyledComponents';
@@ -17,21 +27,26 @@ const formatDateHeader = (dateStr: any) => {
 
 export default function Cronograma() {
 
-  const [range, setRange] = useState<{ startDate: Date | undefined; endDate: Date | undefined; }>({ startDate: undefined, endDate: undefined });
   const [open, setOpen] = useState(false);
-  const onDismiss = () => setOpen(false);
-
+  const [showCalendar, setShowCalendar] = useState(false);
+  const [range, setRange] = useState<{ startDate?: Date; endDate?: Date }>({});
   const [atividadeSelecionada, setAtividadeSelecionada] = useState({ atividade: "", label: "" });
-
-
   const pickerRef = useRef<any>(null);
+  const animatedHeight = useRef(new Animated.Value(0)).current;
 
-  const atividades = ["Atividades", "Ocorrências"];
+  useEffect(() => {
+    Animated.timing(animatedHeight, {
+      toValue: showCalendar ? 360 : 100,
+      duration: 300,
+      useNativeDriver: false
+    }).start();
+  }, [showCalendar]);
 
   function openSelect() {
     pickerRef.current?.focus();
   }
 
+  const onDismiss = () => setOpen(false);
 
   const onConfirm = ({ startDate, endDate }: any) => {
     setOpen(false);
@@ -39,19 +54,14 @@ export default function Cronograma() {
   };
 
   const sections = useMemo<any[]>(() => {
-
     const grouped: Record<string, any[]> = {};
-
     Dados.forEach((item) => {
       const key = formatDateHeader(item.data);
       if (!grouped[key]) grouped[key] = [];
       grouped[key].push(item);
     });
-
-
     return Object.entries(grouped).map(([title, data]) => ({ title, data }));
-  }, [Dados]);
-
+  }, []);
 
   return (
     <>
@@ -75,7 +85,20 @@ export default function Cronograma() {
         <Picker.Item label="Atividades" value="atividades" />
         <Picker.Item label="Ocorrências" value="ocorrências" />
       </Picker>
-      <Calendario />
+
+
+      <Animated.View style={{ overflow: "hidden", height: animatedHeight, backgroundColor: "#186B53" }}>
+        <Calendario />
+      </Animated.View>
+
+      <TouchableOpacity onPress={() => setShowCalendar(!showCalendar)} style={[styles.toggleButton, { backgroundColor: showCalendar ? "#166f56" : "#186B53" }]}>
+        <AntDesign
+          name={showCalendar ? "up" : "down"}
+          size={20}
+          color={showCalendar ? "#00ab7b" : "#fff"}
+        />
+      </TouchableOpacity>
+
       <StyledMainContainer>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingVertical: 10 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 5 }}>
@@ -101,6 +124,7 @@ export default function Cronograma() {
             </TouchableOpacity>
           </View>
         </ScrollView>
+
         <SectionList
           sections={sections}
           keyExtractor={(item) => item.id}
@@ -117,35 +141,42 @@ export default function Cronograma() {
               <Text style={styles.horaText}>{item.hora}</Text>
               <View style={styles.mainOccurrenceItem}>
                 <View style={styles.occurrenceItem}>
-                  <View style={styles.photoContainer}>
-                    {item?.foto?.[0] && (
-                      <ImageBackground
-                        source={item.foto[0]}
-                        style={{ width: "100%", height: "100%" }}
-                        resizeMode="cover"
-                        imageStyle={styles.imageStyle}
-                      />
-                    )}
+
+                  <View style={styles.contentInfoConteiner}>
+                    <View style={styles.photoContainer}>
+                      {item?.foto?.[0] && (
+                        <ImageBackground
+                          source={item.foto[0]}
+                          style={{ width: "100%", height: "100%" }}
+                          resizeMode="cover"
+                          imageStyle={styles.imageStyle}
+                        />
+                      )}
+                    </View>
+                    <View style={styles.detailsSection}>
+                      <View style={styles.dateSection}>
+                        <Text style={styles.dateTimeText}>{item?.data} / {item?.hora}</Text>
+                      </View>
+                      <View style={styles.locationSection}>
+                        <Text style={styles.locationText}>
+                          {item?.localizacao?.local} -  {item?.localizacao?.origem}
+                        </Text>
+                      </View>
+                      <View style={styles.locationSection}>
+                        <Text style={styles.locationText}>{item?.nome}</Text>
+                      </View>
+                      <StatusContainer backgroundColor={getStatusColor(item?.status)}>
+                        <Text style={[styles.statusText, { color: "#fff" }]}>
+                          {item?.status === "Concluído" ? `Concluído em ${item?.dataConclusao} / ${item?.horaConclusao}` : item?.status}
+                        </Text>
+                      </StatusContainer>
+                    </View>
                   </View>
-                  <View style={styles.detailsSection}>
-                    <View style={styles.dateSection}>
-                      <Text style={styles.dateTimeText}>{item?.data} / {item?.hora}</Text>
-                    </View>
-                    <View style={styles.locationSection}>
-                      <Text style={styles.locationText}>
-                        {item?.localizacao?.local} -  {item?.localizacao?.origem}
-                      </Text>
-                    </View>
-                    <View style={styles.locationSection}>
-                      <Text style={styles.locationText}>{item?.nome}</Text>
-                    </View>
-                    <StatusContainer backgroundColor={getStatusColor(item?.status)}>
-                      <Text style=
-                        {[styles.statusText, { color: "#fff" }]}>
-                        {item?.status === "Concluído" ? `Concluído em ${item?.dataConclusao} / ${item?.horaConclusao}` : item?.status}
-                      </Text>
-                    </StatusContainer>
+
+                  <View style={{ width: "100%", height: 40 }}>
+                    <AprovacoStatus status={item.aprovacao !== null ? item.aprovacao : "Sem Aprovacao"} date={item.dataAprovacao} />
                   </View>
+
                 </View>
               </View>
             </View>
@@ -154,10 +185,19 @@ export default function Cronograma() {
       </StyledMainContainer>
     </>
   );
-};
-
+}
 
 const styles = StyleSheet.create({
+  toggleButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 15,
+  },
+  toggleButtonText: {
+    fontWeight: "bold",
+    color: "#333"
+  },
   filterButton: {
     height: 40,
     width: 160,
@@ -183,7 +223,7 @@ const styles = StyleSheet.create({
   },
   mainOccurrenceItem: {
     width: "100%",
-    height: 120,
+    height: 180,
     flexDirection: "column",
     backgroundColor: "#FFFFFF",
     justifyContent: "space-between",
@@ -195,8 +235,14 @@ const styles = StyleSheet.create({
   occurrenceItem: {
     width: "100%",
     height: "100%",
+    flexDirection: "column",
+    justifyContent: "space-between",
+  },
+  contentInfoConteiner: {
     padding: 7,
-    flexDirection: "row",
+    height: "75%",
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 10
   },
   imageStyle: {
@@ -235,5 +281,3 @@ const styles = StyleSheet.create({
     alignItems: "flex-start",
   },
 });
-
-
