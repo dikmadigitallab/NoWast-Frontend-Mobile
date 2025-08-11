@@ -77,8 +77,8 @@ export default function Cronograma() {
       </Picker>
       <Calendario />
       <StyledMainContainer>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 10, marginVertical: 7, gap: 5 }}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingVertical: 10 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 5 }}>
             <TouchableOpacity style={styles.filterButton} onPress={openSelect} >
               <FontAwesome6 name="location-dot" size={15} color="#43575F" />
               <Text>Sinterização</Text>

@@ -396,7 +396,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 15,
-    fontWeight: "semibold",
+    fontWeight: "500",
     color: "#000"
   },
   activeBar: {

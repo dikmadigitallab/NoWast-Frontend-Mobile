@@ -1,11 +1,11 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
-import NfcManager from 'react-native-nfc-manager';
+import NfcManager, { NfcTech } from 'react-native-nfc-manager';
 
-export default function CadastroNFC() {
-
+export default function LeituraNFC() {
     const [isLoading, setIsLoading] = useState(false);
+    const [tagId, setTagId] = useState<null | number>(null);
 
     useEffect(() => {
         NfcManager.start()
@@ -17,19 +17,50 @@ export default function CadastroNFC() {
         };
     }, []);
 
+    useEffect(() => {
+        const readTag = async () => {
+            console.log('Lendo tag NFC...');
+            setIsLoading(true);
+            try {
+                await NfcManager.requestTechnology(NfcTech.Ndef);
+                console.log('Tag lida com sucesso');
+                const tag = await NfcManager.getTag();
+                console.log('Tag encontrada:', tag);
+
+                if (tag && tag.id) {
+                    setTagId(parseInt(tag.id, 16) as number);
+                }
+
+            } catch (err) {
+                console.warn('Erro na leitura NFC:', err);
+            } finally {
+                NfcManager.cancelTechnologyRequest();
+                setIsLoading(false);
+            }
+        };
+
+        readTag();
+    }, []);
+
     return (
         <View style={styles.container}>
             {isLoading ? (
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color="#186B53" />
-                    <Text style={styles.loadingText}>Cadastrando ID...</Text>
+                    <Text style={styles.loadingText}>Lendo tag NFC...</Text>
                 </View>
             ) : (
-                <View style={styles.nfc} >
+                <View style={styles.nfc}>
                     <MaterialCommunityIcons name="cellphone-nfc" size={40} color="#186B53" />
-                    <Text style={styles.nfcText}>
-                        Aproxime a tag ou cartão para começar a atividade.
-                    </Text>
+                    {tagId ? (
+                        <Text style={styles.nfcText}>
+                            ID da tag: {tagId}
+                        </Text>
+                    ) : (
+                        <Text style={styles.nfcText}>
+                            Aproxime a tag NFC para leitura.
+                        </Text>
+                    )}
                 </View>
             )}
         </View>

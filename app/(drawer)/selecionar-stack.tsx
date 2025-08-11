@@ -3,7 +3,7 @@ import { useAuthStore } from '@/store/storeApp';
 import { FontAwesome, FontAwesome5, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ActivityIndicator } from 'react-native-paper';
 
 export default function SelecionarStack() {
@@ -13,7 +13,7 @@ export default function SelecionarStack() {
     const [loading, setLoading] = useState(false);
 
     const handleSelecionarStack = (stack: 'quedazero' | 'coleta' | 'residuos') => {
-        setUserType(stack);        
+        setUserType(stack);
         setTimeout(() => router.replace(`/(${stack})` as never), 500);
     };
 
@@ -45,24 +45,24 @@ export default function SelecionarStack() {
                     </View>
                 </View>
                 <View style={styles.lineNav}>
-                    <Pressable onPress={() => router.push("/perfil")} style={styles.navItem}>
+                    <TouchableOpacity onPress={() => router.push("/perfil")} style={styles.navItem}>
                         <FontAwesome name="user-circle-o" size={30} color="#404944" style={{ width: 30 }} />
                         <Text style={styles.text}>Meu Perfil</Text>
-                    </Pressable>
-                    <Pressable onPress={() => { handleSelecionarStack('residuos') }} style={styles.navItem}>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => { handleSelecionarStack('residuos') }} style={styles.navItem}>
                         <FontAwesome name="trash" size={30} color="#404944" style={{ width: 30 }} />
                         <Text style={styles.text}>Gestão de Resíduios</Text>
-                    </Pressable>
-                    <Pressable onPress={() => { handleSelecionarStack('coleta') }} style={styles.navItem}>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => { handleSelecionarStack('coleta') }} style={styles.navItem}>
                         <FontAwesome5 name="truck-moving" size={25} color="#404944" style={{ width: 30 }} />
                         <Text style={styles.text}>Coleta Seletiva</Text>
-                    </Pressable>
-                    <Pressable onPress={() => { handleSelecionarStack('quedazero') }} style={styles.navItem}>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => { handleSelecionarStack('quedazero') }} style={styles.navItem}>
                         <MaterialCommunityIcons name="excavator" size={30} color="#404944" style={{ width: 30 }} />
                         <Text style={styles.text}>Queda zero</Text>
-                    </Pressable>
+                    </TouchableOpacity>
                 </View>
-                <Pressable style={styles.logoutcontainer} onPress={Logout}>
+                <TouchableOpacity style={styles.logoutcontainer} onPress={Logout}>
 
                     {loading ? <ActivityIndicator size="small" color="#00A614" /> :
                         <>
@@ -70,7 +70,7 @@ export default function SelecionarStack() {
                             <Text style={{ color: "#404944", fontSize: 16 }}>Sair</Text>
                         </>
                     }
-                </Pressable>
+                </TouchableOpacity>
             </View>
         </>
     );
