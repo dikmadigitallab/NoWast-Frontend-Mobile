@@ -81,7 +81,7 @@ export default function SelecionarStack() {
             <TouchableOpacity style={styles.logoutcontainer} onPress={handleLogout}>
 
                 {loading ? <ActivityIndicator size="small" color="#00A614" /> :
-                    <View>
+                    <View style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 5 }}>
                         <MaterialCommunityIcons name="logout" size={25} color="black" />
                         <Text style={{ color: "#404944", fontSize: 16 }}>Sair</Text>
                     </View>
