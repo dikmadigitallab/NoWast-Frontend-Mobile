@@ -1,4 +1,5 @@
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import NfcManager, { NfcTech } from 'react-native-nfc-manager';
@@ -6,6 +7,7 @@ import NfcManager, { NfcTech } from 'react-native-nfc-manager';
 export default function LeituraNFC() {
     const [isLoading, setIsLoading] = useState(false);
     const [tagId, setTagId] = useState<null | number>(null);
+    const router = useRouter();
 
     useEffect(() => {
         NfcManager.start()
@@ -19,13 +21,11 @@ export default function LeituraNFC() {
 
     useEffect(() => {
         const readTag = async () => {
-            console.log('Lendo tag NFC...');
             setIsLoading(true);
             try {
                 await NfcManager.requestTechnology(NfcTech.Ndef);
-                console.log('Tag lida com sucesso');
                 const tag = await NfcManager.getTag();
-                console.log('Tag encontrada:', tag);
+                router.push(`/detalharAtividade/${tag?.id}` as never);
 
                 if (tag && tag.id) {
                     setTagId(parseInt(tag.id, 16) as number);
@@ -58,7 +58,7 @@ export default function LeituraNFC() {
                         </Text>
                     ) : (
                         <Text style={styles.nfcText}>
-                            Aproxime a tag NFC para leitura.
+                            Aproxime a tag ou cartão para iniciar a atividade.
                         </Text>
                     )}
                 </View>
@@ -77,12 +77,21 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         width: '100%',
-        height: 182,
+        height: 200,
         borderRadius: 12,
-        backgroundColor: '#f6f6f6',
+        backgroundColor: '#fff',
         padding: 20,
         borderWidth: 1,
         borderColor: '#d9d9d9',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 0,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 100,
+        elevation: 2,
+        marginBottom: 10,
     },
     nfcText: {
         fontSize: 20,

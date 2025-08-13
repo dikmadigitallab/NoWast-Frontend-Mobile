@@ -1,9 +1,9 @@
-import { useAuth } from '@/auth/authProvider';
+import { useAuth } from '@/contexts/authProvider';
 import { useModuleStore } from '@/store/moduleStore';
 import { FontAwesome, FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { ActivityIndicator } from 'react-native-paper';
 
@@ -26,11 +26,11 @@ export default function SelecionarStack() {
     const handleSelecionarStack = (stack: 'quedazero' | 'coleta' | 'residuos') => {
         setModuleType(stack);
         setTimeout(() => {
-            router.replace(`/(${stack})` as never)
+            router.push(`/(${stack})` as never)
         }, 500);
     };
 
-    const Logout = async () => {
+    const handleLogout = async () => {
         setLoading(true);
         await AsyncStorage.removeItem("authToken");
 
@@ -41,58 +41,55 @@ export default function SelecionarStack() {
     }
 
     return (
-        <>
-            <View style={styles.container}>
-                <View style={styles.logoContainer}>
-                    <View style={styles.logoWrapper}>
-                        <Image
-                            style={styles.logo}
-                            source={require("../../assets/logos/logo.png")}
-                            resizeMode="contain"
-                        />
-                    </View>
-                    <View style={styles.textContainer}>
-                        <Text style={styles.logoText}>Olá, {user?.name}!</Text>
-                        <View style={styles.locationContainer}>
-                            <FontAwesome5 name="user-tie" size={24} color="#43575F" />
-                            <Text style={styles.locationText}>
-                                {userTypes[user?.userType ?? ""]}
-                            </Text>
-                        </View>
+        <View style={styles.container}>
+            <View style={styles.logoContainer}>
+                <View style={styles.logoWrapper}>
+                    <Image
+                        style={styles.logo}
+                        source={require("../../assets/logos/logo.png")}
+                        resizeMode="contain"
+                    />
+                </View>
+                <View style={styles.textContainer}>
+                    <Text style={styles.logoText}>Olá, {user?.name}!</Text>
+                    <View style={styles.locationContainer}>
+                        <FontAwesome5 name="user-tie" size={24} color="#43575F" />
+                        <Text style={styles.locationText}>
+                            {userTypes[user?.userType ?? ""]}
+                        </Text>
                     </View>
                 </View>
-                <View style={styles.lineNav}>
-                    <TouchableOpacity onPress={() => router.push("/perfil")} style={styles.navItem}>
-                        <FontAwesome name="user-circle-o" size={30} color="#404944" style={{ width: 30 }} />
-                        <Text style={styles.text}>Meu Perfil</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => { handleSelecionarStack('residuos') }} style={styles.navItem}>
-                        <FontAwesome name="trash" size={30} color="#404944" style={{ width: 30 }} />
-                        <Text style={styles.text}>Gestão de Resíduios</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => { handleSelecionarStack('coleta') }} style={styles.navItem}>
-                        <FontAwesome5 name="truck-moving" size={25} color="#404944" style={{ width: 30 }} />
-                        <Text style={styles.text}>Coleta Seletiva</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => { handleSelecionarStack('quedazero') }} style={styles.navItem}>
-                        <MaterialCommunityIcons name="excavator" size={30} color="#404944" style={{ width: 30 }} />
-                        <Text style={styles.text}>Queda zero</Text>
-                    </TouchableOpacity>
-                </View>
-                <TouchableOpacity style={styles.logoutcontainer} onPress={Logout}>
-
-                    {loading ? <ActivityIndicator size="small" color="#00A614" /> :
-                        <>
-                            <MaterialCommunityIcons name="logout" size={25} color="black" />
-                            <Text style={{ color: "#404944", fontSize: 16 }}>Sair</Text>
-                        </>
-                    }
+            </View>
+            <View style={styles.lineNav}>
+                <TouchableOpacity onPress={() => router.push("/perfil")} style={styles.navItem}>
+                    <FontAwesome name="user-circle-o" size={30} color="#404944" style={{ width: 30 }} />
+                    <Text style={styles.text}>Meu Perfil</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => { handleSelecionarStack('residuos') }} style={styles.navItem}>
+                    <FontAwesome name="trash" size={30} color="#404944" style={{ width: 30 }} />
+                    <Text style={styles.text}>Gestão de Resíduios</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => { handleSelecionarStack('coleta') }} style={styles.navItem}>
+                    <FontAwesome5 name="truck-moving" size={25} color="#404944" style={{ width: 30 }} />
+                    <Text style={styles.text}>Coleta Seletiva</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => { handleSelecionarStack('quedazero') }} style={styles.navItem}>
+                    <MaterialCommunityIcons name="excavator" size={30} color="#404944" style={{ width: 30 }} />
+                    <Text style={styles.text}>Queda zero</Text>
                 </TouchableOpacity>
             </View>
-        </>
+            <TouchableOpacity style={styles.logoutcontainer} onPress={handleLogout}>
+
+                {loading ? <ActivityIndicator size="small" color="#00A614" /> :
+                    <View>
+                        <MaterialCommunityIcons name="logout" size={25} color="black" />
+                        <Text style={{ color: "#404944", fontSize: 16 }}>Sair</Text>
+                    </View>
+                }
+            </TouchableOpacity>
+        </View>
     );
 }
-
 
 const styles = StyleSheet.create({
     container: {

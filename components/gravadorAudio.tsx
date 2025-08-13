@@ -1,4 +1,4 @@
-import { AntDesign, Entypo, MaterialIcons } from '@expo/vector-icons';
+import { AntDesign, Entypo, FontAwesome, MaterialIcons } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
 import { Audio, AVPlaybackStatus, AVPlaybackStatusSuccess } from 'expo-av';
 import * as FileSystem from 'expo-file-system';
@@ -159,68 +159,77 @@ export default function AudioRecorderPlayer({ onRecordingComplete, onRemove }: A
   };
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity
-        style={[styles.button, isRecording ? styles.buttonRecording : styles.buttonRecord]}
-        onPress={toggleRecording}
-      >
-        <MaterialIcons
-          name={isRecording ? "stop" : "mic"}
-          size={24}
-          color={isRecording ? "#FF3B30" : "#fff"}
-        />
-      </TouchableOpacity>
+    <View style={styles.containerFile}>
 
-      {
-        !isRecording && !recordedUri &&(
-          <Text style={{ color: "#404944", fontSize: 14, fontWeight: 'bold' }}>Clique aqui para iniciar a gravação</Text>
-        )
-      }
+      <View style={styles.headerFoto}>
+        <FontAwesome name="microphone" size={24} color="#43575F" />
+        <Text style={styles.textFoto}>Adicionar Gravação</Text>
+      </View>
 
-      {
-        isRecording && (
-          <Text style={{ color: "#404944", fontSize: 14, fontWeight: 'bold' }}>Gravando...</Text>
-        )
-      }
+      <View style={styles.container}>
 
-      {recordedUri && (
-        <>
-          <TouchableOpacity
-            style={[styles.button, isPlaying ? styles.buttonPlaying : styles.buttonPaused]}
-            onPress={handlePlayStop}
-          >
-            {isPlaying ? (
-              <Entypo name="controller-stop" size={24} color="#186B53" />
-            ) : (
-              <AntDesign name="play" size={24} color="#fff" />
-            )}
-          </TouchableOpacity>
-
-          <Slider
-            style={styles.slider}
-            minimumValue={0}
-            maximumValue={duration}
-            value={position}
-            onSlidingStart={handleSlidingStart}
-            onSlidingComplete={handleSlidingComplete}
-            minimumTrackTintColor="#186B53"
-            maximumTrackTintColor="#ccc"
-            thumbTintColor="#186B53"
-            disabled={!recordedUri}
+        <TouchableOpacity
+          style={[styles.button, isRecording ? styles.buttonRecording : styles.buttonRecord]}
+          onPress={toggleRecording}
+        >
+          <MaterialIcons
+            name={isRecording ? "stop" : "mic"}
+            size={24}
+            color={isRecording ? "#FF3B30" : "#fff"}
           />
+        </TouchableOpacity>
 
-          <Text style={styles.timeText}>
-            {formatTime(position)} / {formatTime(duration)}
-          </Text>
+        {
+          !isRecording && !recordedUri && (
+            <Text style={{ color: "#404944", fontSize: 14, fontWeight: 'bold' }}>Clique aqui para iniciar a gravação</Text>
+          )
+        }
 
-          <TouchableOpacity
-            style={styles.removeButton}
-            onPress={handleRemove}
-          >
-            <MaterialIcons name="delete" size={24} color="#FF3B30" />
-          </TouchableOpacity>
-        </>
-      )}
+        {
+          isRecording && (
+            <Text style={{ color: "#404944", fontSize: 14, fontWeight: 'bold' }}>Gravando...</Text>
+          )
+        }
+
+        {recordedUri && (
+          <View>
+            <TouchableOpacity
+              style={[styles.button, isPlaying ? styles.buttonPlaying : styles.buttonPaused]}
+              onPress={handlePlayStop}
+            >
+              {isPlaying ? (
+                <Entypo name="controller-stop" size={24} color="#186B53" />
+              ) : (
+                <AntDesign name="play" size={24} color="#fff" />
+              )}
+            </TouchableOpacity>
+
+            <Slider
+              style={styles.slider}
+              minimumValue={0}
+              maximumValue={duration}
+              value={position}
+              onSlidingStart={handleSlidingStart}
+              onSlidingComplete={handleSlidingComplete}
+              minimumTrackTintColor="#186B53"
+              maximumTrackTintColor="#ccc"
+              thumbTintColor="#186B53"
+              disabled={!recordedUri}
+            />
+
+            <Text style={styles.timeText}>
+              {formatTime(position)} / {formatTime(duration)}
+            </Text>
+
+            <TouchableOpacity
+              style={styles.removeButton}
+              onPress={handleRemove}
+            >
+              <MaterialIcons name="delete" size={24} color="#FF3B30" />
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
     </View>
   );
 };
@@ -234,6 +243,22 @@ const styles = StyleSheet.create({
     gap: 10,
     backgroundColor: "#F2F3F5",
     borderRadius: 100
+  },
+  containerFile: {
+    gap: 10,
+    width: "100%",
+    marginVertical: 10,
+    flexDirection: "column"
+  },
+  headerFoto: {
+    gap: 10,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  textFoto: {
+    fontSize: 14,
+    color: "#43575F",
+    fontWeight: "600"
   },
   button: {
     padding: 15,

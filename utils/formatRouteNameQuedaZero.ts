@@ -4,15 +4,15 @@ export function formatRouteNameQuedaZero(path: string) {
             return "Detalhar Ocorrência";
         case "/ocorrencias":
         case "/":
-            return "Queda Zero";
+            return "Dashboard";
         case "/selecionar-stack":
             return "Queda Zero";
         case "/mapa":
             return "Mapa";
         case "perfil":
             return "Perfil";
-        case "/dashboard":
-            return "Dashboard";
+        case "/main":
+            return "Queda Zero";
         case "/criarOcorrencia":
             return "Nova Ocorrência";
         case "/detalharAtividade":

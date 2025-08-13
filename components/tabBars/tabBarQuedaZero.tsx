@@ -1,29 +1,30 @@
+import { useAuth } from '@/contexts/authProvider';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Entypo from '@expo/vector-icons/Entypo';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
-type IconKey = 'dashboard' | 'mapa' | 'index' | 'cronograma';
+type IconKey = 'main' | 'mapa' | 'index' | 'cronograma';
 
 export default function TabBar({ state, navigation }: any) {
 
+    const { user } = useAuth();
 
     const icons = {
-        index: (color: string) => (<MaterialCommunityIcons name="clipboard-text-outline" size={20} color={color} />),
-        dashboard: (color: string) => (<Entypo name="bar-graph" size={20} color={color} />),
-        mapa: (color: string) => (<Entypo name="map" size={20} color={color} />),
+        index: (color: string) => (<Entypo name="bar-graph" size={20} color={color} />),
+        main: (color: string) => (<MaterialCommunityIcons name="clipboard-text-outline" size={20} color={color} />),
+        mapa: (color: string) => (<MaterialCommunityIcons name="map-marker-radius" size={20} color={color} />),
         cronograma: (color: string) => (<MaterialCommunityIcons name="chart-timeline" size={20} color={color} />),
     };
 
+
     return (
-        <SafeAreaView edges={['bottom']} style={styles.tabBarContainer}>
+        <View style={[styles.tabBarContainer, { display: user?.userType === "GESTAO" || user?.userType === "DIKMA_DIRECTOR" ? 'none' : 'flex' }]}>
             <View style={styles.tabBar}>
                 {state.routes.map((route: any, index: number) => {
 
                     const routeName = route.name as IconKey;
 
-                    // if (user?.userType === "ADM_DIKMA") return null;
 
                     if (['_sitemap', '+not-found', 'detalharOcorrencia', 'criarOcorrencia', 'detalharAtividade', 'checklist', 'notificacoes'].includes(route.name)) return null;
 
@@ -40,13 +41,13 @@ export default function TabBar({ state, navigation }: any) {
                     const onLongPress = () => navigation.emit({ type: 'tabLongPress', target: route.key });
 
                     const routeTitles: Record<IconKey, string> = {
-                        dashboard: 'Dashboard',
+                        main: 'Listagem',
                         mapa: 'Mapa',
                         cronograma: 'Cronograma',
-                        index: 'Listagem',
+                        index: 'Dashboard',
                     };
 
-                    const title = routeTitles[routeName] || 'Listagem';
+                    const title = routeTitles[routeName] || 'Dashboard';
                     return (
                         <TouchableOpacity
                             key={route.key}
@@ -62,12 +63,17 @@ export default function TabBar({ state, navigation }: any) {
                     );
                 })}
             </View>
-        </SafeAreaView>
+        </View>
     );
 }
 
 const styles = StyleSheet.create({
     tabBarContainer: {
+        left: 0,
+        right: 0,
+        bottom: 0,
+        width: '100%',
+        position: 'absolute',
         backgroundColor: '#fff',
     },
     tabBar: {

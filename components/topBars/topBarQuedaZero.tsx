@@ -1,3 +1,4 @@
+import { useAuth } from "@/contexts/authProvider";
 import { formatRouteNameQuedaZero } from "@/utils/formatRouteNameQuedaZero";
 import { Feather, FontAwesome6, MaterialCommunityIcons } from "@expo/vector-icons";
 import type { DrawerNavigationProp } from '@react-navigation/drawer';
@@ -7,25 +8,27 @@ import { Dimensions, Pressable, StyleSheet, Text, TouchableOpacity, View } from 
 interface TopBarProps {
   router: any;
   pathname: string;
+  customBack?: () => void
 }
 
-export function TopBar({ router, pathname }: TopBarProps) {
+export function TopBar({ customBack, router, pathname }: TopBarProps) {
 
   const title = formatRouteNameQuedaZero(pathname);
 
   const handleBack = () => {
-    router.back();
+    customBack ? customBack() : router.back();
   };
 
-  const isHomeOrDashboard = pathname === "/dashboard";
+  const isHomeOrDashboard = pathname === "/";
 
   if (pathname === "/cronograma") {
     return null;
   }
 
+  const { user } = useAuth();
   const navigation = useNavigation() as DrawerNavigationProp<any>;
-
   const showIcons = ["/mapa", "/detalharOcorrencia", "/detalharAtividade", "/checklist", "/notificacoes", "/criarOcorrencia"]
+
 
   return (
     <View style={[
@@ -54,18 +57,20 @@ export function TopBar({ router, pathname }: TopBarProps) {
         )}
 
         {isHomeOrDashboard && (
-          <Text style={styles.textName}>Olá, Warllei</Text>
+          <Text style={styles.textName}>Olá, {user?.name}!</Text>
         )}
       </Pressable>
 
       {!isHomeOrDashboard && (
         <View style={styles.containerLogo}>
-          {pathname === "/" && (
+          {pathname === "/main" && (
             <MaterialCommunityIcons name="excavator" size={24} color="black" />
           )}
           <Text style={styles.title}>{title}</Text>
         </View>
       )}
+
+
 
       {isHomeOrDashboard ? (
         <View style={{ flexDirection: "row", alignItems: "center", gap: 20 }}>
@@ -79,19 +84,28 @@ export function TopBar({ router, pathname }: TopBarProps) {
           </TouchableOpacity>
         </View>
       ) : (
-        <View style={{ backgroundColor: "red", width: 40 }} />
-      )}
+        null)}
+
+      {
+        !isHomeOrDashboard && (
+          <TouchableOpacity style={{ position: "relative", justifyContent: "center", alignItems: "center", width: 30 }} onPress={() => router.push("/notificacoes" as never)}>
+            <View style={{ position: "absolute", top: 0, right: 0, width: 8, height: 8, zIndex: 1, backgroundColor: "#FF0000", borderRadius: 50 }} />
+            <Feather name="bell" size={24} color="#000" />
+          </TouchableOpacity>
+        )
+      }
+
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    height: "100%",
     width: Dimensions.get("window").width,
     alignSelf: "center",
     paddingHorizontal: 5,
     flexDirection: "row",
+    height: "100%",
     zIndex: 1,
     alignItems: "center",
     justifyContent: "space-between",
@@ -121,7 +135,7 @@ const styles = StyleSheet.create({
     gap: 14
   },
   textName: {
-    fontSize: 26,
+    fontSize: 20,
     color: "#fff",
     fontWeight: "600",
   },

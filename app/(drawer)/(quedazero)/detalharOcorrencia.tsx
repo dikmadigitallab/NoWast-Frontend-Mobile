@@ -1,11 +1,11 @@
-import { useAuth } from "@/auth/authProvider";
+import AprovacoStatus from "@/components/aprovacaoStatus";
 import CapturaImagens from "@/components/capturaImagens";
+import { useAuth } from "@/contexts/authProvider";
 import { AntDesign, FontAwesome, FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
-import { Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
+import { Dimensions, Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import { Modalize } from "react-native-modalize";
 import { TextInput } from "react-native-paper";
 import MapScreen from "../../../components/renderMapOcorrencias";
@@ -26,7 +26,6 @@ const images = [
 export default function DetalharOcorrencia() {
 
   const { user } = useAuth();
-  const router = useRouter();
   const modalizeRef = useRef<Modalize | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const { ocorrenciaSelecionada } = useOcorrenciasStore();
@@ -51,11 +50,10 @@ export default function DetalharOcorrencia() {
     );
   }
 
-  console.log(user)
   return (
     <StyledMainContainer>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.wrapper}>
+        <View style={[styles.wrapper, { paddingBottom: Dimensions.get('window').height - 750 }]}>
           <View style={styles.container}>
             <View style={styles.linha}>
               <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
@@ -208,24 +206,11 @@ export default function DetalharOcorrencia() {
             </View>
           </View>
 
-          {/* {
-            user?.userType === "OPERATIONAL" && (
-              <View style={styles.buttonsContainer}>
-                <TouchableOpacity onPress={() => modalizeRef.current?.open()} style={styles.justifyButton}>
-                  <Text style={{ color: "#404944", fontSize: 16 }}>JUSTIFICAR</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => router.push("/checklist" as any)}
-                  style={styles.doneButton}>
-                  <Text style={styles.doneButtonText}>REALIZADA</Text>
-                </TouchableOpacity>
-              </View>
-            )
-          } */}
+
 
 
           {
-            user?.userType === "ADM_DIKMA" && (
+            (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE") && ocorrenciaSelecionada.aprovacao === null && (
               <View style={styles.buttonsContainer}>
                 <TouchableOpacity style={styles.justifyButton}>
                   <Text style={{ color: "#404944", fontSize: 16 }}>REPROVAR</Text>
@@ -238,8 +223,22 @@ export default function DetalharOcorrencia() {
             )
           }
 
-          {/* {
-            user?.userType.id !== 3 && ocorrenciaSelecionada.aprovacao === "Aprovado" && (
+          {
+            (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE") && ocorrenciaSelecionada.aprovacao === null && (
+              <View style={styles.buttonsContainer}>
+                <TouchableOpacity style={styles.justifyButton}>
+                  <Text style={{ color: "#404944", fontSize: 16 }}>REPROVAR</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.doneButton}>
+                  <Text style={styles.doneButtonText}>APROVAR</Text>
+                </TouchableOpacity>
+              </View>
+            )
+          }
+
+          {
+            (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE") && ocorrenciaSelecionada.aprovacao === "Aprovado" && (
               <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
                 <AprovacoStatus status={ocorrenciaSelecionada?.aprovacao} date={ocorrenciaSelecionada?.dataAprovacao} />
               </View>
@@ -247,29 +246,12 @@ export default function DetalharOcorrencia() {
           }
 
           {
-            ocorrenciaSelecionada.aprovacao === "Reprovado" && (
+            (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE") && ocorrenciaSelecionada.aprovacao === "Reprovado" && (
               <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
                 <AprovacoStatus status={ocorrenciaSelecionada?.aprovacao} date={ocorrenciaSelecionada?.dataAprovacao} />
               </View>
             )
-          } */}
-
-          {/* {
-                                  ocorrenciaSelecionada.status === "Pendente" && user?.userType.id !== 3 && (
-                                      <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
-                                          <AprovacoStatus status={ocorrenciaSelecionada?.status} date={ocorrenciaSelecionada?.dataAprovacao} />
-                                      </View>
-                                  )
-                              } */}
-
-          {/* 
-                              {
-                                  ocorrenciaSelecionada.status !== "Pendente" && user?.userType.id !== 3 && ocorrenciaSelecionada.aprovacao === null && (
-                                      <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
-                                          <AprovacoStatus status={ocorrenciaSelecionada?.provacao} date={ocorrenciaSelecionada?.dataAprovacao} />
-                                      </View>
-                                  )
-                              } */}
+          }
 
         </View>
       </ScrollView>

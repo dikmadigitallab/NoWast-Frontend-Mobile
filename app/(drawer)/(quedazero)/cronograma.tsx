@@ -7,6 +7,7 @@ import 'moment/locale/pt-br';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
+  Dimensions,
   ImageBackground,
   ScrollView,
   SectionList,
@@ -64,7 +65,7 @@ export default function Cronograma() {
   }, []);
 
   return (
-    <>
+    <View>
       <DatePickerModal
         locale="pt-BR"
         mode="range"
@@ -129,7 +130,7 @@ export default function Cronograma() {
           sections={sections}
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 20, gap: 10 }}
+          contentContainerStyle={{ gap: 10, paddingBottom: Dimensions.get('window').height - 750 }}
           renderSectionHeader={({ section: { title } }) => (
             <View style={{ flexDirection: "row", alignItems: "center" }}>
               <Text style={styles.sectionHeader}>{title}</Text>
@@ -183,7 +184,7 @@ export default function Cronograma() {
           )}
         />
       </StyledMainContainer>
-    </>
+    </View>
   );
 }
 

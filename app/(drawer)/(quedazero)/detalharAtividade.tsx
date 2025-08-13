@@ -1,18 +1,19 @@
 import AprovacoStatus from "@/components/aprovacaoStatus";
+import LeituraNFC from "@/components/leitorNFC";
 import { Pessoas } from "@/types/IOcorrencias";
 import { AntDesign, FontAwesome5 } from "@expo/vector-icons";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import Checkbox from 'expo-checkbox';
 import { useRouter } from "expo-router";
-import { useRef, useState } from "react";
-import { Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
+import React, { useRef, useState } from "react";
+import { Dimensions, Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import { Modalize } from 'react-native-modalize';
 import { TextInput } from "react-native-paper";
 import { Dropdown } from "react-native-paper-dropdown";
-import { useAuth } from "../../../auth/authProvider";
 import CapturaImagens from "../../../components/capturaImagens";
 import MapScreen from "../../../components/renderMapOcorrencias";
+import { useAuth } from "../../../contexts/authProvider";
 import { useOcorrenciasStore } from "../../../store/storeOcorrencias";
 import { StatusContainer, StyledMainContainer } from "../../../styles/StyledComponents";
 import { getStatusColor } from "../../../utils/statusColor";
@@ -73,7 +74,7 @@ export default function DetalharAtividade() {
     return (
         <StyledMainContainer>
             <ScrollView showsVerticalScrollIndicator={false}>
-                <View style={styles.wrapper}>
+                <View style={[styles.wrapper, { paddingBottom: Dimensions.get('window').height - 750 }]}>
                     <View style={styles.container}>
                         <View style={styles.linha}>
                             <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
@@ -137,7 +138,7 @@ export default function DetalharAtividade() {
                                             ocorrenciaSelecionada?.pessoas?.map((pessoa: Pessoas, index: number) => (
                                                 <View key={index} style={{ alignItems: "flex-start", gap: 5, marginBottom: 10 }}>
                                                     <Text style={{ fontSize: 12, fontWeight: "semibold", color: "#43575F" }}>{pessoa.funcao}</Text>
-                                                    <View style={[styles.rowWithGap, { width: "auto", justifyContent: "center", alignItems: "center", gap: 10 }]}>
+                                                    <View style={[styles.rowWithGap, { width: "90%", justifyContent: "space-between", alignItems: "center", gap: 10 }]}>
                                                         <View style={[styles.rowWithGap]}>
                                                             <Checkbox value={isChecked} onValueChange={setChecked} color={isChecked ? '#34C759' : undefined} />
                                                             <View>
@@ -234,10 +235,10 @@ export default function DetalharAtividade() {
                         </View>
                     </View>
 
-                    {/* {user?.userType.id === 3 && <LeitorNFC />} */}
+                    {user?.userType === "OPERATIONAL" && ocorrenciaSelecionada.aprovacao === null && <LeituraNFC />}
 
                     {
-                        user?.userType === "OPERATIONAL" && (
+                        user?.userType === "OPERATIONAL" && ocorrenciaSelecionada.aprovacao === null && (
                             <View style={styles.buttonsContainer}>
                                 <TouchableOpacity onPress={() => modalizeJustificativaRef.current?.open()} style={styles.justifyButton}>
                                     <Text style={{ color: "#404944", fontSize: 16 }}>JUSTIFICAR</Text>
@@ -252,7 +253,7 @@ export default function DetalharAtividade() {
                     }
 
                     {
-                        user?.userType === "ADM_DIKMA" && (ocorrenciaSelecionada.aprovacao !== "Aprovado" && ocorrenciaSelecionada.aprovacao !== "Reprovado") && (
+                        (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE") && ocorrenciaSelecionada.aprovacao === null && (
                             <View style={styles.buttonsContainer}>
                                 <TouchableOpacity style={styles.justifyButton}>
                                     <Text style={{ color: "#404944", fontSize: 16 }}>REPROVAR</Text>
@@ -264,35 +265,23 @@ export default function DetalharAtividade() {
                             </View>
                         )
                     }
+
                     {
-                        user?.userType === "ADM_DIKMA" && ocorrenciaSelecionada.aprovacao === "Aprovado" && (
+                        (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE" || user?.userType === "OPERATIONAL") && ocorrenciaSelecionada.aprovacao === "Aprovado" && (
                             <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
                                 <AprovacoStatus status={ocorrenciaSelecionada?.aprovacao} date={ocorrenciaSelecionada?.dataAprovacao} />
                             </View>
                         )
                     }
+
                     {
-                        user?.userType === "ADM_DIKMA" && ocorrenciaSelecionada.aprovacao === "Reprovado" && (
+                        (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE" || user?.userType === "OPERATIONAL") && ocorrenciaSelecionada.aprovacao === "Reprovado" && (
                             <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
                                 <AprovacoStatus status={ocorrenciaSelecionada?.aprovacao} date={ocorrenciaSelecionada?.dataAprovacao} />
                             </View>
                         )
                     }
-                    {/* {
-                        ocorrenciaSelecionada.status === "Pendente" && user?.userType.id !== 3 && (
-                            <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
-                                <AprovacoStatus status={ocorrenciaSelecionada?.status} date={ocorrenciaSelecionada?.dataAprovacao} />
-                            </View>
-                        )
-                    } */}
-                    {/* 
-                    {
-                        ocorrenciaSelecionada.status !== "Pendente" && user?.userType.id !== 3 && ocorrenciaSelecionada.aprovacao === null && (
-                            <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
-                                <AprovacoStatus status={ocorrenciaSelecionada?.provacao} date={ocorrenciaSelecionada?.dataAprovacao} />
-                            </View>
-                        )
-                    } */}
+
 
                 </View>
             </ScrollView>
@@ -327,7 +316,7 @@ export default function DetalharAtividade() {
                             ]}
                             value={justificativa.justificativa}
                             onSelect={(value) => setJustificativa({ ...justificativa, justificativa: value })}
-                            CustomMenuHeader={() => <></>}
+                            CustomMenuHeader={() => <View></View>}
                             menuContentStyle={{ backgroundColor: '#fff' }}
                         />
                         <Dropdown
@@ -336,7 +325,7 @@ export default function DetalharAtividade() {
                             options={OPTIONS}
                             value={justificativa.material}
                             onSelect={(value) => setJustificativa({ ...justificativa, material: value })}
-                            CustomMenuHeader={() => <></>}
+                            CustomMenuHeader={() => <View></View>}
                             menuContentStyle={{ backgroundColor: '#fff' }}
                         />
                         <TextInput

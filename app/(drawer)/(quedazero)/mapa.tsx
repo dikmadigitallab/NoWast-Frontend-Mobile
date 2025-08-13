@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
   infoBox: {
     position: "absolute",
     overflow: "hidden",
-    bottom: 10,
+    bottom: Dimensions.get("window").height * 0.1,
     width: "95%",
     borderRadius: 12,
     flexDirection: "row",

@@ -1,10 +1,9 @@
 import CapturaImagens from "@/components/capturaImagens";
 import AudioRecorderPlayer from "@/components/gravadorAudio";
 import { toast } from "@backpackapp-io/react-native-toast";
-import { FontAwesome } from "@expo/vector-icons";
 import React from "react";
 import { Controller, useForm } from "react-hook-form";
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { TextInput } from "react-native-paper";
 import { DatePickerInput } from 'react-native-paper-dates';
 import { Dropdown } from 'react-native-paper-dropdown';
@@ -19,31 +18,20 @@ const OPTIONS = [
 export default function CadastroOcorrencia() {
 
     const { control, handleSubmit, formState: { errors } } = useForm({
-        defaultValues: {
-            data: "",
-            hora: "",
-            colaborador: "",
-            material: "",
-            status: "",
-            peso: "",
-            origem: "",
-            origem_detalhada: "",
-            destino_final: "",
-            causa_queda: "",
-            trans_ult_para_recolhimento: "",
-            fotos: [""],
-            audio: ""
-        },
+        defaultValues: { data: "", hora: "", colaborador: "", material: "", status: "", peso: "", origem: "", origem_detalhada: "", destino_final: "", causa_queda: "", trans_ult_para_recolhimento: "", fotos: [""], audio: "" },
     });
+
+    // const { data: usuarios } = useGetUsuario({})
 
     const onSubmit = (data: any) => {
         toast.success('Cadastro realizado com sucesso', { duration: 3000 })
     };
 
+
     return (
         <StyledMainContainer>
             <ScrollView>
-                <View style={{ flex: 1, justifyContent: "space-between" }}>
+                <View style={{ flex: 1, justifyContent: "space-between", paddingBottom: Dimensions.get('window').height - 750 }}>
                     <View style={{ gap: 5 }}>
 
                         <Controller
@@ -51,7 +39,7 @@ export default function CadastroOcorrencia() {
                             name="data"
                             rules={{ required: 'Digite a data' }}
                             render={({ field: { onChange, value }, fieldState: { error } }) => (
-                                <>
+                                <View>
                                     <DatePickerInput
                                         locale="pt-BR"
                                         mode="outlined"
@@ -67,7 +55,7 @@ export default function CadastroOcorrencia() {
                                         error={!!error}
                                     />
                                     {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
-                                </>
+                                </View>
                             )}
                         />
 
@@ -76,7 +64,7 @@ export default function CadastroOcorrencia() {
                             name="hora"
                             rules={{ required: 'Digite a hora' }}
                             render={({ field: { onChange, value }, fieldState: { error } }) => (
-                                <>
+                                <View>
                                     <TextInput
                                         mode="outlined"
                                         label="Hora"
@@ -91,48 +79,48 @@ export default function CadastroOcorrencia() {
                                         maxLength={5}
                                     />
                                     {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
-                                </>
+                                </View>
                             )}
                         />
 
-                        <Controller
+                        {/* <Controller
                             control={control}
                             name="colaborador"
-                            rules={{ required: 'Digite nome do colaborador' }}
+                            rules={{ required: 'Selecione o colaborador' }}
                             render={({ field: { onChange, value }, fieldState: { error } }) => (
-                                <>
-                                    <TextInput
+                                <View>
+                                    <Dropdown
                                         mode="outlined"
                                         label="Colaborador"
+                                        options={usuarios?.map((user: any) => ({ value: user.id, label: user.name }))}
                                         value={value}
-                                        onChangeText={onChange}
-                                        outlineColor="#707974"
-                                        activeOutlineColor="#707974"
-                                        style={{ backgroundColor: '#fff', height: 56 }}
+                                        onSelect={onChange}
+                                        CustomMenuHeader={() => <View></View>}
+                                        menuContentStyle={{ backgroundColor: '#fff' }}
                                         error={!!error}
                                     />
                                     {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
-                                </>
+                                </View>
                             )}
-                        />
+                        /> */}
 
                         <Controller
                             control={control}
                             name="material"
                             rules={{ required: 'Selecione o Material' }}
                             render={({ field: { onChange, value }, fieldState: { error } }) => (
-                                <>
+                                <View>
                                     <Dropdown
                                         mode="outlined"
                                         label="Material"
                                         options={OPTIONS}
                                         value={value}
                                         onSelect={onChange}
-                                        CustomMenuHeader={() => <></>}
+                                        CustomMenuHeader={() => <View></View>}
                                         menuContentStyle={{ backgroundColor: '#fff' }}
                                     />
                                     {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
-                                </>
+                                </View>
                             )}
                         />
 
@@ -141,18 +129,18 @@ export default function CadastroOcorrencia() {
                             name="status"
                             rules={{ required: 'Selecione o Status' }}
                             render={({ field: { onChange, value }, fieldState: { error } }) => (
-                                <>
+                                <View>
                                     <Dropdown
                                         mode="outlined"
                                         label="Status"
                                         options={OPTIONS}
                                         value={value}
                                         onSelect={onChange}
-                                        CustomMenuHeader={() => <></>}
+                                        CustomMenuHeader={() => <View></View>}
                                         menuContentStyle={{ backgroundColor: '#fff' }}
                                     />
                                     {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
-                                </>
+                                </View>
                             )}
                         />
 
@@ -161,7 +149,7 @@ export default function CadastroOcorrencia() {
                             name="peso"
                             rules={{ required: 'Digite o peso' }}
                             render={({ field: { onChange, value }, fieldState: { error } }) => (
-                                <>
+                                <View>
                                     <TextInput
                                         mode="outlined"
                                         label="Peso"
@@ -173,7 +161,7 @@ export default function CadastroOcorrencia() {
                                         error={!!error}
                                     />
                                     {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
-                                </>
+                                </View>
                             )}
                         />
 
@@ -182,18 +170,18 @@ export default function CadastroOcorrencia() {
                             name="origem"
                             rules={{ required: 'Selecione o Origem' }}
                             render={({ field: { onChange, value }, fieldState: { error } }) => (
-                                <>
+                                <View>
                                     <Dropdown
                                         mode="outlined"
                                         label="Origem"
                                         options={OPTIONS}
                                         value={value}
                                         onSelect={onChange}
-                                        CustomMenuHeader={() => <></>}
+                                        CustomMenuHeader={() => <View></View>}
                                         menuContentStyle={{ backgroundColor: '#fff' }}
                                     />
                                     {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
-                                </>
+                                </View>
                             )}
                         />
 
@@ -202,18 +190,18 @@ export default function CadastroOcorrencia() {
                             name="origem_detalhada"
                             rules={{ required: 'Selecione o origem detalhada' }}
                             render={({ field: { onChange, value }, fieldState: { error } }) => (
-                                <>
+                                <View>
                                     <Dropdown
                                         mode="outlined"
                                         label="Origem detalhada"
                                         options={OPTIONS}
                                         value={value}
                                         onSelect={onChange}
-                                        CustomMenuHeader={() => <></>}
+                                        CustomMenuHeader={() => <View></View>}
                                         menuContentStyle={{ backgroundColor: '#fff' }}
                                     />
                                     {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
-                                </>
+                                </View>
                             )}
                         />
 
@@ -222,18 +210,18 @@ export default function CadastroOcorrencia() {
                             name="destino_final"
                             rules={{ required: 'Selecione o destino final' }}
                             render={({ field: { onChange, value }, fieldState: { error } }) => (
-                                <>
+                                <View>
                                     <Dropdown
                                         mode="outlined"
                                         label="Destino final"
                                         options={OPTIONS}
                                         value={value}
                                         onSelect={onChange}
-                                        CustomMenuHeader={() => <></>}
+                                        CustomMenuHeader={() => <View></View>}
                                         menuContentStyle={{ backgroundColor: '#fff' }}
                                     />
                                     {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
-                                </>
+                                </View>
                             )}
                         />
 
@@ -242,7 +230,7 @@ export default function CadastroOcorrencia() {
                             name="causa_queda"
                             rules={{ required: 'Digite o causa da queda' }}
                             render={({ field: { onChange, value }, fieldState: { error } }) => (
-                                <>
+                                <View>
                                     <TextInput
                                         mode="outlined"
                                         label="Causa da queda"
@@ -254,7 +242,7 @@ export default function CadastroOcorrencia() {
                                         error={!!error}
                                     />
                                     {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
-                                </>
+                                </View>
                             )}
                         />
 
@@ -263,39 +251,27 @@ export default function CadastroOcorrencia() {
                             name="trans_ult_para_recolhimento"
                             rules={{ required: 'Selecione o Trans. Ult. p/ Recolhimento' }}
                             render={({ field: { onChange, value }, fieldState: { error } }) => (
-                                <>
+                                <View>
                                     <Dropdown
                                         mode="outlined"
                                         label="Trans. Ult. p/ Recolhimento"
                                         options={OPTIONS}
                                         value={value}
                                         onSelect={onChange}
-                                        CustomMenuHeader={() => <></>}
+                                        CustomMenuHeader={() => <View></View>}
                                         menuContentStyle={{ backgroundColor: '#fff' }}
                                     />
                                     {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
-                                </>
+                                </View>
                             )}
                         />
 
                     </View>
 
                     <CapturaImagens texto="Adicionar fotos" qtsImagens={3} />
+                    <AudioRecorderPlayer />
 
-                    <View style={[styles.containerFile, { gap: 10 }]}>
-                        <View style={styles.headerFoto}>
-                            <FontAwesome name="microphone" size={24} color="#43575F" />
-                            <Text style={styles.textFoto}>Descrição por áudio</Text>
-                        </View>
-                        <View>
-                            <AudioRecorderPlayer />
-                        </View>
-                    </View>
-
-                    <TouchableOpacity
-                        style={styles.buttons}
-                        onPress={handleSubmit(onSubmit)}
-                    >
+                    <TouchableOpacity style={styles.buttons} onPress={handleSubmit(onSubmit)}>
                         <Text style={{ color: "#fff", fontSize: 16 }}>Cadastrar</Text>
                     </TouchableOpacity>
                 </View>
@@ -316,7 +292,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         borderColor: "#186B53",
         justifyContent: "center",
-        backgroundColor: "#186B53"
+        backgroundColor: "#186B53",
     },
     containerFile: {
         width: "100%",

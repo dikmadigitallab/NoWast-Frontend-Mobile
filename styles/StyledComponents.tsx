@@ -1,7 +1,6 @@
 import styled from "styled-components/native";
 
 export const StyledMainContainer = styled.View`
-  flex: 1;
   width: 100%;
   align-self: center;
   padding: 10px 10px 0 10px;

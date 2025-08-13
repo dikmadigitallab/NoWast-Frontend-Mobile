@@ -22,33 +22,33 @@ export default function AprovacoStatus({ status, date }: AprovacoStatusProps) {
             ]}
         >
             {isApproved ? (
-                <>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                     <AntDesign name="checkcircle" size={20} color="#fff" />
                     <Text style={[styles.statusText, { color: "#fff", fontSize: 14 }]}>
                         Aprovado dia {date ? date : ""}
                     </Text>
-                </>
+                </View>
             ) : isDisapproved ? (
-                <>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                     <MaterialIcons name="close" size={20} color="#fff" />
                     <Text style={[styles.statusText, { color: "#fff", fontSize: 14 }]}>
                         Reprovada dia {date ? date : ""}
                     </Text>
-                </>
+                </View>
             ) : isPending ? (
-                <>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                     <MaterialIcons name="hourglass-bottom" size={20} color="#fff" />
                     <Text style={[styles.statusText, { color: "#fff", fontSize: 14 }]}>
                         Pendente e sem justificativa
                     </Text>
-                </>
+                </View>
             ) : (
-                <>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                     <MaterialIcons name="remove-done" size={20} color="#fff" />
                     <Text style={[styles.statusText, { color: "#fff", fontSize: 14 }]}>
                         Aprovação Pendente
                     </Text>
-                </>
+                </View>
             )}
         </View>
     );

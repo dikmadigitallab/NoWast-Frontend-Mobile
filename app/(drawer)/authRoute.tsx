@@ -1,4 +1,4 @@
-import { useAuth } from "@/auth/authProvider";
+import { useAuth } from "@/contexts/authProvider";
 import { Bangers_400Regular, useFonts } from "@expo-google-fonts/bangers";
 import Feather from "@expo/vector-icons/Feather";
 import React, { useState } from "react";
@@ -130,7 +130,7 @@ export default function AuthRouter({ children }: ProtectRouteProps) {
     );
   }
 
-  return <>{children}</>;
+  return <View>{children}</View>;
 }
 
 const styles = StyleSheet.create({

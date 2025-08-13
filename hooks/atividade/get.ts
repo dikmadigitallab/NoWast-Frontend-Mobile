@@ -1,6 +1,6 @@
 'use client';
 
-import { useAuth } from "@/auth/authProvider";
+import { useAuth } from "@/contexts/authProvider";
 import { filterStatusActivity } from "@/utils/statusActivity";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
@@ -39,9 +39,7 @@ export const useGetActivity = ({
         setError(null);
         setLoading(true);
 
-        // Agora aguardamos o valor
         const authToken = await AsyncStorage.getItem("authToken");
-        console.log("Token obtido:", authToken);
 
         if (!authToken) {
             setError("Token de autenticação não encontrado");
