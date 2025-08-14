@@ -5,6 +5,11 @@ export default {
     owner: "warlleimartins",
     android: {
       package: "com.yourcompany.nowast",
+      usesCleartextTraffic: true,
+      adaptiveIcon: {
+        foregroundImage: "./assets/images/adaptive-icon.png",
+        backgroundColor: "#FFFFFF"
+      }
     },
     extra: {
       eas: {

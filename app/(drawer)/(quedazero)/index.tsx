@@ -1,4 +1,5 @@
 import { AntDesign, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { FlatList, ScrollView } from "react-native-gesture-handler";
@@ -6,9 +7,10 @@ import { PieChart } from "react-native-gifted-charts";
 
 export default function Dashboard() {
 
-  const [activeIndex, setActiveIndex] = useState(0);
+  const router = useRouter();
   const { width } = Dimensions.get('window');
   const flatListRef = useRef<FlatList<any>>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
 
   const scrollToIndex = (index: number) => {
     setActiveIndex(index);
@@ -321,6 +323,18 @@ export default function Dashboard() {
 
   return (
     <View style={styles.container}>
+
+      <View style={styles.containerButtons}>
+        <TouchableOpacity style={styles.buttons} onPress={() => router.push("/tag")}>
+          <MaterialCommunityIcons name="cellphone-nfc" size={20} color="#fff" />
+          <Text style={{ color: "#fff", fontSize: 16 }}>Tag</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.buttons}>
+          <AntDesign name="plus" size={20} color="#fff" />
+          <Text style={{ color: "#fff", fontSize: 16 }}>Ocorrência</Text>
+        </TouchableOpacity>
+      </View>
+
       <View style={styles.headerBackground} />
       <View style={styles.contentWrapper}>
         <View style={styles.card}>
@@ -512,5 +526,27 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 8
-  }
+  },
+  containerButtons: {
+    zIndex: 999,
+    width: "100%",
+    flexDirection: "row",
+    position: "absolute",
+    paddingHorizontal: 10,
+    justifyContent: "space-between",
+    bottom: Dimensions.get("window").height - 780,
+  },
+  buttons: {
+    gap: 5,
+    width: "49%",
+    borderWidth: 1,
+    borderRadius: 12,
+    marginVertical: 20,
+    paddingVertical: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    borderColor: "#186B53",
+    justifyContent: "center",
+    backgroundColor: "#186B53"
+  },
 });

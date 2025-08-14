@@ -27,7 +27,7 @@ export function TopBar({ customBack, router, pathname }: TopBarProps) {
 
   const { user } = useAuth();
   const navigation = useNavigation() as DrawerNavigationProp<any>;
-  const showIcons = ["/mapa", "/detalharOcorrencia", "/detalharAtividade", "/checklist", "/notificacoes", "/criarOcorrencia"]
+  const showIcons = ["/mapa", "/detalharOcorrencia", "/detalharAtividade", "/checklist", "/notificacoes", "/criarOcorrencia", "/tag"]
 
 
   return (
@@ -69,8 +69,6 @@ export function TopBar({ customBack, router, pathname }: TopBarProps) {
           <Text style={styles.title}>{title}</Text>
         </View>
       )}
-
-
 
       {isHomeOrDashboard ? (
         <View style={{ flexDirection: "row", alignItems: "center", gap: 20 }}>

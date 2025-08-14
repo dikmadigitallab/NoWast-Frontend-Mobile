@@ -23,6 +23,8 @@ export function formatRouteNameQuedaZero(path: string) {
             return "Checklist";
         case "/notificacoes":
             return "Notificação";
+        case "/tag":
+            return "Tag";
         default:
             return path;
     }

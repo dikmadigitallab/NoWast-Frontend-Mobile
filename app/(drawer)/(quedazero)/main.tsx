@@ -48,8 +48,8 @@ export default function Mainpage() {
     };
 
     return (
-        <View>
-            <StyledMainContainer>
+        <StyledMainContainer>
+            <View>
                 {user?.userType === "ADM_DIKMA" &&
                     <View style={{ height: 50, marginBottom: 10 }}>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterButtonsContainer}>
@@ -75,7 +75,7 @@ export default function Mainpage() {
                     data={Dados}
                     showsVerticalScrollIndicator={false}
                     keyExtractor={(item) => String(item?.id)}
-                    contentContainerStyle={{ gap: 10, paddingBottom: Dimensions.get('window').height - 750 }}
+                    contentContainerStyle={{ gap: 10, paddingBottom: Dimensions.get('window').height - 600 }}
                     renderItem={({ item, index }: any) => (
                         <TouchableOpacity onPress={() => onSelected(item, item.tipo === 1 ? "detalharAtividade" : "detalharOcorrencia")} style={styles.mainOccurrenceItem}>
                             <View style={styles.occurrenceItem}>
@@ -143,25 +143,25 @@ export default function Mainpage() {
                     label="Selecione uma data"
                     saveLabel="Confirmar"
                 />
-            </StyledMainContainer>
-            {showMap ? (<MapScreen location={location} showMap={() => setShowMap(!showMap)} />) : null}
+                {showMap ? (<MapScreen location={location} showMap={() => setShowMap(!showMap)} />) : null}
 
-            {
-                user?.userType !== "ADM_DIKMA" && (
-                    <TouchableOpacity
-                        onPress={() => router.push('criarOcorrencia' as never)}
-                        style={styles.containerCreate}>
-                        <AntDesign name="plus" size={24} color="#fff" />
-                    </TouchableOpacity>
-                )
-            }
+                {
+                    user?.userType !== "ADM_DIKMA" && (
+                        <TouchableOpacity
+                            onPress={() => router.push('criarOcorrencia' as never)}
+                            style={styles.containerCreate}>
+                            <AntDesign name="plus" size={24} color="#fff" />
+                        </TouchableOpacity>
+                    )
+                }
 
-            <TouchableOpacity
-                onPress={() => router.push('criarOcorrencia' as never)}
-                style={styles.containerCreate}>
-                <AntDesign name="plus" size={24} color="#fff" />
-            </TouchableOpacity>
-        </View>
+                <TouchableOpacity
+                    onPress={() => router.push('criarOcorrencia' as never)}
+                    style={styles.containerCreate}>
+                    <AntDesign name="plus" size={24} color="#fff" />
+                </TouchableOpacity>
+            </View>
+        </StyledMainContainer>
     );
 }
 
