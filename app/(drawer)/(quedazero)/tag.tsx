@@ -134,7 +134,6 @@ export default function Tag() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        padding: 16,
     },
     card: {
         elevation: 2,
@@ -148,6 +147,7 @@ const styles = StyleSheet.create({
     },
     headerContent: {
         gap: 5,
+        width: "80%",
         alignItems: "center",
         flexDirection: "row",
     },

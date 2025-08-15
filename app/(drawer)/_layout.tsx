@@ -4,7 +4,7 @@ import { Toasts } from '@backpackapp-io/react-native-toast';
 import { Stack } from 'expo-router';
 import { Drawer } from 'expo-router/drawer';
 import React, { useEffect, useState } from 'react';
-import { Dimensions, StatusBar, View } from 'react-native';
+import { Dimensions, LogBox, StatusBar, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { ActivityIndicator } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -15,6 +15,10 @@ export default function RootLayout() {
 
   const { moduleType } = useModuleStore();
   const [loading, setLoading] = useState(false);
+
+  LogBox.ignoreLogs([
+    'Warning: Invalid prop `style` supplied to `React.Fragment`'
+  ]);
 
   useEffect(() => {
     setLoading(true);

@@ -22,7 +22,7 @@ export function TopBar({ router, pathname }: TopBarProps) {
   if (pathname === "/cronograma") {
     return null;
   }
- 
+
   const navigation = useNavigation() as DrawerNavigationProp<any>;
 
   return (
@@ -130,5 +130,5 @@ const styles = StyleSheet.create({
     borderColor: "#fff",
     padding: 8,
     borderRadius: 5,
-  },
+  }
 });

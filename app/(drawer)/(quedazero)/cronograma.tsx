@@ -65,7 +65,7 @@ export default function Cronograma() {
   }, []);
 
   return (
-    <View>
+    <View style={{ flex: 1 }}>
       <DatePickerModal
         locale="pt-BR"
         mode="range"
@@ -91,16 +91,13 @@ export default function Cronograma() {
       <Animated.View style={{ overflow: "hidden", height: animatedHeight, backgroundColor: "#186B53" }}>
         <Calendario />
       </Animated.View>
-
       <TouchableOpacity onPress={() => setShowCalendar(!showCalendar)} style={[styles.toggleButton, { backgroundColor: showCalendar ? "#166f56" : "#186B53" }]}>
-        <AntDesign
-          name={showCalendar ? "up" : "down"}
-          size={20}
-          color={showCalendar ? "#00ab7b" : "#fff"}
-        />
+        <AntDesign name={showCalendar ? "up" : "down"} size={20} color={showCalendar ? "#00ab7b" : "#fff"} />
       </TouchableOpacity>
-
       <StyledMainContainer>
+
+
+
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingVertical: 10 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 5 }}>
             <TouchableOpacity style={styles.filterButton} onPress={openSelect} >
@@ -193,7 +190,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 15,
+    paddingVertical: 5
   },
   toggleButtonText: {
     fontWeight: "bold",

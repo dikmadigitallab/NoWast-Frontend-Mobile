@@ -1,3 +1,4 @@
+import { useAuth } from "@/contexts/authProvider";
 import { AntDesign, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
@@ -7,6 +8,7 @@ import { PieChart } from "react-native-gifted-charts";
 
 export default function Dashboard() {
 
+  const { user } = useAuth();
   const router = useRouter();
   const { width } = Dimensions.get('window');
   const flatListRef = useRef<FlatList<any>>(null);
@@ -324,16 +326,20 @@ export default function Dashboard() {
   return (
     <View style={styles.container}>
 
-      <View style={styles.containerButtons}>
-        <TouchableOpacity style={styles.buttons} onPress={() => router.push("/tag")}>
-          <MaterialCommunityIcons name="cellphone-nfc" size={20} color="#fff" />
-          <Text style={{ color: "#fff", fontSize: 16 }}>Tag</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.buttons}>
-          <AntDesign name="plus" size={20} color="#fff" />
-          <Text style={{ color: "#fff", fontSize: 16 }}>Ocorrência</Text>
-        </TouchableOpacity>
-      </View>
+      {
+        user?.userType === "ADM_DIKMA" || user?.userType === "OPERATIONAL" && (
+          <View style={styles.containerButtons}>
+            <TouchableOpacity style={styles.buttons} onPress={() => router.push("/tag")}>
+              <MaterialCommunityIcons name="cellphone-nfc" size={20} color="#fff" />
+              <Text style={{ color: "#fff", fontSize: 16 }}>Tag</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.buttons}>
+              <AntDesign name="plus" size={20} color="#fff" />
+              <Text style={{ color: "#fff", fontSize: 16 }}>Ocorrência</Text>
+            </TouchableOpacity>
+          </View>
+        )
+      }
 
       <View style={styles.headerBackground} />
       <View style={styles.contentWrapper}>

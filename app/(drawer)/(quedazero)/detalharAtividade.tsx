@@ -117,7 +117,7 @@ export default function DetalharAtividade() {
                                                         <Text style={styles.text}>Descrição: {ocorrenciaSelecionada.justificativa.descricao}</Text>
                                                     </ View>
                                                     <View style={styles.imageContainer}>
-                                                        <Image source={ocorrenciaSelecionada.justificativa.imagem as any} style={styles.image} />
+                                                        <Image source={ocorrenciaSelecionada.justificativa.imagem as any} style={[styles.image, { objectFit: "contain" }]} />
                                                     </View>
                                                 </View>
                                             </View>
@@ -147,7 +147,7 @@ export default function DetalharAtividade() {
                                                             </View>
                                                         </View>
                                                         {
-                                                            !pessoa.descricao && (
+                                                            !pessoa.descricao && ocorrenciaSelecionada.aprovacao === null && (
                                                                 <TouchableOpacity
                                                                     style={{ flexDirection: "row", gap: 2, justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: "#43575F", padding: 5, borderRadius: 10 }}
                                                                     onPress={() => modalizeDescricaoRef.current?.open()}>
@@ -335,7 +335,7 @@ export default function DetalharAtividade() {
                     </View>
                 </View>
                 <View style={styles.fotosContainer}>
-                    <CapturaImagens texto="Anexe a foto abaixo (obrigatório)" qtsImagens={1} />
+                    <CapturaImagens texto="Anexe a foto abaixo (obrigatório)" qtsImagens={3} />
                     <TouchableOpacity style={styles.sendButton}>
                         <Text style={{ color: "#fff", fontSize: 16 }}>ENVIAR</Text>
                     </TouchableOpacity>
@@ -475,6 +475,7 @@ const styles = StyleSheet.create({
         width: "100%",
         height: "100%",
         borderRadius: 5,
+        objectFit: "cover",
     },
     coluna_localizacao: {
         flexDirection: "column",
@@ -579,7 +580,8 @@ const styles = StyleSheet.create({
     fotosContainer: {
         width: "100%",
         flexDirection: "column",
-        marginVertical: 10
+        marginVertical: 10,
+        marginBottom: Dimensions.get('window').height - 750
     },
     headerFoto: {
         gap: 10,

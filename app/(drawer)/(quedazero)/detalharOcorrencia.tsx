@@ -206,23 +206,6 @@ export default function DetalharOcorrencia() {
             </View>
           </View>
 
-
-
-
-          {
-            (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE") && ocorrenciaSelecionada.aprovacao === null && (
-              <View style={styles.buttonsContainer}>
-                <TouchableOpacity style={styles.justifyButton}>
-                  <Text style={{ color: "#404944", fontSize: 16 }}>REPROVAR</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.doneButton}>
-                  <Text style={styles.doneButtonText}>APROVAR</Text>
-                </TouchableOpacity>
-              </View>
-            )
-          }
-
           {
             (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE") && ocorrenciaSelecionada.aprovacao === null && (
               <View style={styles.buttonsContainer}>

@@ -92,7 +92,7 @@ export const Dados = [
           descricao: "Descrição gerada automaticamente"
         },
       ],
-      imagem: "https://i.pinimg.com/736x/f9/a4/d5/f9a4d5c701976ebff392b9426f332581.jpg",
+      imagem: require('./assets/images/atestado.jpg'),
       descricao: "Descrição não disponível",
       motivo: "Atestado",
     },
@@ -202,7 +202,7 @@ export const Dados = [
           descricao: null
         },
       ],
-      imagem: "https://i.pinimg.com/736x/f9/a4/d5/f9a4d5c701976ebff392b9426f332581.jpg",
+      imagem: require('./assets/images/atestado.jpg'),
       descricao: "Descrição não disponível",
       motivo: "Atestado",
     },
@@ -416,7 +416,7 @@ export const Dados = [
           descricao: null
         },
       ],
-      imagem: "https://i.pinimg.com/736x/f9/a4/d5/f9a4d5c701976ebff392b9426f332581.jpg",
+      imagem: require('./assets/images/atestado.jpg'),
       descricao: "Descrição não disponível",
       motivo: "Atestado",
     },
@@ -524,7 +524,7 @@ export const Dados = [
           descricao: "Descrição gerada automaticamente"
         },
       ],
-      imagem: "https://i.pinimg.com/736x/f9/a4/d5/f9a4d5c701976ebff392b9426f332581.jpg",
+      imagem: require('./assets/images/atestado.jpg'),
       descricao: "Descrição não disponível",
       motivo: "Atestado",
     },

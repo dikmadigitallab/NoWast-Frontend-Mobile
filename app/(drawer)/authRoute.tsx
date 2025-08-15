@@ -40,7 +40,7 @@ export default function AuthRouter({ children }: ProtectRouteProps) {
               />
             </View>
 
-            <View>
+            <View >
               <Controller
                 control={control}
                 render={({ field: { onChange, onBlur, value } }) => (
@@ -63,7 +63,7 @@ export default function AuthRouter({ children }: ProtectRouteProps) {
               </Text>
             </View>
 
-            <View>
+            <View >
               <Controller
                 control={control}
                 render={({ field: { onChange, onBlur, value } }) => (
@@ -130,7 +130,7 @@ export default function AuthRouter({ children }: ProtectRouteProps) {
     );
   }
 
-  return <View>{children}</View>;
+  return <View >{children}</View>;
 }
 
 const styles = StyleSheet.create({
