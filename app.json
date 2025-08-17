@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "nowaste",
-    "slug": "nowaste",
+    "name": "Nowast",
+    "slug": "dikmaapp",
     "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -17,7 +17,6 @@
       "bundleIdentifier": "br.com.dikmadigital.nowaste"
     },
     "android": {
-      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -48,19 +47,6 @@
           "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone",
           "recordAudioAndroid": true
         }
-      ],
-      "expo-secure-store",
-      [
-        "expo-location",
-        {
-          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
-        }
-      ],
-      [
-        "expo-av",
-        {
-          "microphonePermission": "Allow $(PRODUCT_NAME) to access your microphone."
-        }
       ]
     ],
     "experiments": {
@@ -71,8 +57,9 @@
         "origin": false
       },
       "eas": {
-        "projectId": "d3e4fe39-8d60-42ab-9c56-6fc6f7fbf2c2"
+        "projectId": "0cb420c4-1a9b-448a-ae14-867f2e2eabcf"
       }
-    }
+    },
+    "owner": "warlleimartins"
   }
 }

@@ -327,7 +327,7 @@ export default function Dashboard() {
     <View style={styles.container}>
 
       {
-        user?.userType === "ADM_DIKMA" || user?.userType === "OPERATIONAL" && (
+        (user?.userType === "ADM_DIKMA" || user?.userType === "OPERATIONAL") && (
           <View style={styles.containerButtons}>
             <TouchableOpacity style={styles.buttons} onPress={() => router.push("/tag")}>
               <MaterialCommunityIcons name="cellphone-nfc" size={20} color="#fff" />

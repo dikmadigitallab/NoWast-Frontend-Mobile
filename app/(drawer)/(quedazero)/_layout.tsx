@@ -1,12 +1,13 @@
 import TabBar from '@/components/tabBars/tabBarQuedaZero';
 import { TopBar } from '@/components/topBars/topBarQuedaZero';
 import { customTheme } from '@/config/inputsTheme';
+import { useFocusEffect } from '@react-navigation/native';
 import { RelativePathString, Tabs, usePathname, useRouter } from 'expo-router';
-import { useEffect, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
+import { BackHandler } from 'react-native';
 import { PaperProvider } from 'react-native-paper';
 
 export default function TabLayout() {
-
     const router = useRouter();
     const pathname = usePathname();
     const history = useRef<string[]>([]);
@@ -17,14 +18,28 @@ export default function TabLayout() {
         }
     }, [pathname]);
 
-    const customBack = () => {
+    const customBack = useCallback(() => {
         if (history.current.length > 1) {
             history.current.pop();
-            router.navigate(history.current[history.current.length - 1] as RelativePathString);
+            const previousRoute = history.current[history.current.length - 1];
+            router.navigate(previousRoute as RelativePathString);
+            return true;
         } else {
             router.navigate('/');
+            return true;
         }
-    };
+    }, [router]);
+
+    useFocusEffect(
+        useCallback(() => {
+            const backHandler = BackHandler.addEventListener(
+                'hardwareBackPress',
+                customBack
+            );
+
+            return () => backHandler.remove();
+        }, [customBack])
+    );
 
     return (
         <PaperProvider theme={customTheme}>
