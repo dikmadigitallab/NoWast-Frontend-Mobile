@@ -36,6 +36,7 @@ export const useGetActivity = ({
     const { logout } = useAuth();
 
     const get = async () => {
+
         setError(null);
         setLoading(true);
 
@@ -85,6 +86,7 @@ export const useGetActivity = ({
                 tools: item?.tools,
                 products: item?.products,
                 transports: item?.transports,
+                activityFiles: item?.activityFiles.map((fileObj: any) => fileObj.file.url),
                 dateTime: new Date(item.dateTime).toLocaleString('pt-BR', {
                     year: 'numeric',
                     month: '2-digit',

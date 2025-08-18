@@ -1,22 +1,24 @@
 // Ocorrencias.tsx
 import AprovacoStatus from "@/components/aprovacaoStatus";
-import { Dados } from "@/data";
+import { useGetActivity } from "@/hooks/atividade/get";
 import { getStatusColor } from "@/utils/statusColor";
 import { AntDesign, FontAwesome, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
 import React, { useCallback, useRef, useState } from "react";
-import { Dimensions, FlatList, ImageBackground, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Dimensions, FlatList, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { DatePickerModal } from "react-native-paper-dates";
 import MapScreen from "../../../components/renderMapOcorrencias";
 import { useAuth } from "../../../contexts/authProvider";
 import { useOcorrenciasStore } from "../../../store/storeOcorrencias";
 import { StatusContainer, StyledMainContainer } from "../../../styles/StyledComponents";
+
 export default function Mainpage() {
 
     const router = useRouter();
     const { user } = useAuth();
-    const [date, setDate] = useState(undefined);
+    const { data } = useGetActivity({});
+    const [date, setDate] = useState<Date | undefined>(undefined);
     const [showMap, setShowMap] = useState(false);
     const [openDate, setOpenDate] = useState(false);
     const { setOcorrenciaSelecionada } = useOcorrenciasStore();
@@ -27,15 +29,14 @@ export default function Mainpage() {
     }, [setOpenDate]);
 
     const onConfirmSingle = useCallback(
-        (params: any) => {
+        (params: { date: Date }) => {
             setOpenDate(false);
             setDate(params.date);
         },
         [setOpenDate, setDate]
     );
 
-    const pickerRef = useRef<any>(null);
-
+    const pickerRef = useRef<Picker<string> | null>(null);
     const atividades = ["Atividades", "Ocorrências"];
 
     function open() {
@@ -47,19 +48,92 @@ export default function Mainpage() {
         router.push(rota as never);
     };
 
+
+    const renderAtividadeItem = ({ item }: { item: any }) => {
+        const [date, time] = item.dateTime.split(' ');
+
+        return (
+            <TouchableOpacity
+                onPress={() => onSelected(item, "detalharAtividade")}
+                style={styles.mainOccurrenceItem}
+            >
+                <View style={styles.occurrenceItem}>
+                    <View style={styles.photoContainer}>
+                        <View style={{
+                            flex: 1,
+                            backgroundColor: '#f0f0f0',
+                            borderRadius: 10,
+                            justifyContent: 'center',
+                            alignItems: 'center'
+                        }}>
+                            {item?.activityFiles.length > 1 ? (
+                                <Image
+                                    source={{ uri: item.activityFiles[0] }}
+                                    style={{ width: "100%", height: "100%", borderRadius: 10 }}
+                                />
+                            ) :
+                                <MaterialCommunityIcons name="image-off-outline" size={40} color="#385866" />
+                            }
+                        </View>
+                    </View>
+                    <View style={styles.detailsSection}>
+                        <View style={styles.dateSection}>
+                            <Text style={styles.dateTimeText}>{date} / {time}</Text>
+                        </View>
+                        <View style={styles.locationSection}>
+                            <Ionicons name="location" size={15} color="#385866" />
+                            <Text style={styles.locationText}>
+                                {item.environment}
+                            </Text>
+                        </View>
+                        <View style={styles.locationSection}>
+                            <MaterialCommunityIcons name="ruler-square" size={15} color="black" />
+                            <Text style={styles.locationText}>
+                                Dimensão: {item.dimension}
+                            </Text>
+                        </View>
+                        <View style={styles.locationSection}>
+                            <FontAwesome name="user" size={15} color="#385866" />
+                            <Text style={styles.locationText}>Responsável: {item.supervisor}</Text>
+                        </View>
+                        <StatusContainer backgroundColor={getStatusColor(item.approvalStatus)}>
+                            <Text style={[styles.statusText, { color: "#fff" }]}>
+                                {item.approvalStatus}
+                            </Text>
+                        </StatusContainer>
+                    </View>
+                </View>
+                <View style={{ width: "100%", height: 40 }}>
+                    <AprovacoStatus status={item.approvalStatus} date={date} />
+                </View>
+            </TouchableOpacity>
+        );
+    };
+
     return (
         <StyledMainContainer>
-            <View>
-                {user?.userType === "ADM_DIKMA" &&
+            <View style={{ flex: 1 }}>
+                {user?.userType === "ADM_DIKMA" && (
                     <View style={{ height: 50, marginBottom: 10 }}>
-                        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterButtonsContainer}>
-                            <TouchableOpacity style={styles.filterButton} onPress={() => setOpenDate(true)}>
+                        <ScrollView
+                            horizontal
+                            showsHorizontalScrollIndicator={false}
+                            contentContainerStyle={styles.filterButtonsContainer}
+                        >
+                            <TouchableOpacity
+                                style={styles.filterButton}
+                                onPress={() => setOpenDate(true)}
+                            >
                                 <MaterialCommunityIcons name="calendar" size={24} color="black" />
                                 <Text>Data</Text>
                                 <AntDesign name="caretdown" size={10} color="black" />
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => open()} style={styles.filterButton}>
-                                <Text>{atividadeSelecionada.label ? atividadeSelecionada.label : "Atividades"}
+                            <TouchableOpacity
+                                onPress={() => open()}
+                                style={styles.filterButton}
+                            >
+                                <Text>
+                                    {atividadeSelecionada.label ? atividadeSelecionada.label : "Atividades"}
                                 </Text>
                                 <AntDesign name="caretdown" size={10} color="black" />
                             </TouchableOpacity>
@@ -69,97 +143,63 @@ export default function Mainpage() {
                             </TouchableOpacity>
                         </ScrollView>
                     </View>
-                }
+                )}
 
                 <FlatList
-                    data={Dados}
+                    data={data || []}
                     showsVerticalScrollIndicator={false}
                     keyExtractor={(item) => String(item?.id)}
-                    contentContainerStyle={{ gap: 10, paddingBottom: Dimensions.get('window').height - 600 }}
-                    renderItem={({ item, index }: any) => (
-                        <TouchableOpacity onPress={() => onSelected(item, item.tipo === 1 ? "detalharAtividade" : "detalharOcorrencia")} style={styles.mainOccurrenceItem}>
-                            <View style={styles.occurrenceItem}>
-                                <View style={styles.photoContainer}>
-                                    {item?.foto?.[0] && (
-                                        <ImageBackground
-                                            source={item.foto[0]}
-                                            style={{ width: "100%", height: "100%" }}
-                                            resizeMode="cover"
-                                            imageStyle={styles.imageStyle}
-                                        />
-                                    )}
-                                </View>
-                                <View style={styles.detailsSection}>
-                                    <View style={styles.dateSection}>
-                                        <Text style={styles.dateTimeText}>{item?.data} / {item?.hora}</Text>
-                                    </View>
-                                    <View style={styles.locationSection}>
-                                        <Ionicons name="location" size={15} color="#385866" />
-                                        <Text style={styles.locationText}>
-                                            {item?.localizacao?.local} -  {item?.localizacao?.origem}
-                                        </Text>
-                                    </View>
-                                    <View style={styles.locationSection}>
-                                        <MaterialCommunityIcons name="weight" size={15} color="black" />
-                                        <Text style={styles.locationText}>
-                                            {item?.peso}
-                                        </Text>
-                                    </View>
-                                    <View style={styles.locationSection}>
-                                        <FontAwesome name="user" size={15} color="#385866" />
-                                        <Text style={styles.locationText}>{item?.nome}</Text>
-                                    </View>
-                                    <StatusContainer backgroundColor={getStatusColor(item?.status)}>
-                                        <Text style=
-                                            {[styles.statusText, { color: "#fff" }]}>
-                                            {item?.status === "Concluído" ? `Concluído em ${item?.dataConclusao} / ${item?.horaConclusao}` : item?.status}
-                                        </Text>
-                                    </StatusContainer>
-                                </View>
-                            </View>
-                            <View style={{ width: "100%", height: 40 }}>
-                                <AprovacoStatus status={item.aprovacao !== null ? item.aprovacao : "Sem Aprovacao"} date={item.dataAprovacao} />
-                            </View>
-                        </TouchableOpacity>
-                    )}
+                    contentContainerStyle={{
+                        gap: 10,
+                        paddingBottom: Dimensions.get('window').height - 600,
+                        paddingHorizontal: 10
+                    }}
+                    renderItem={renderAtividadeItem}
                 />
+
                 <Picker
                     style={{ display: "none" }}
                     ref={pickerRef}
                     selectedValue={atividadeSelecionada.atividade}
-                    onValueChange={(itemValue, itemIndex) => setAtividadeSelecionada((prev) => ({ ...prev, atividade: itemValue, label: atividades[itemIndex] }))}
+                    onValueChange={(itemValue, itemIndex) =>
+                        setAtividadeSelecionada((prev) => ({
+                            ...prev,
+                            atividade: itemValue,
+                            label: atividades[itemIndex]
+                        }))
+                    }
                 >
                     <Picker.Item label="Atividades" value="atividades" />
                     <Picker.Item label="Ocorrências" value="ocorrências" />
                 </Picker>
+
                 <DatePickerModal
                     locale="pt-BR"
                     mode="single"
                     visible={openDate}
                     onDismiss={onDismissSingle}
                     date={date}
-                    onConfirm={onConfirmSingle}
+                    onConfirm={() => onConfirmSingle}
                     presentationStyle="pageSheet"
                     label="Selecione uma data"
                     saveLabel="Confirmar"
                 />
-                {showMap ? (<MapScreen location={location} showMap={() => setShowMap(!showMap)} />) : null}
 
-                {
-                    user?.userType !== "ADM_DIKMA" && (
-                        <TouchableOpacity
-                            onPress={() => router.push('criarOcorrencia' as never)}
-                            style={styles.containerCreate}>
-                            <AntDesign name="plus" size={24} color="#fff" />
-                        </TouchableOpacity>
-                    )
-                }
+                {showMap && (
+                    <MapScreen
+                        location={undefined}
+                        showMap={() => setShowMap(!showMap)}
+                    />
+                )}
 
-                <TouchableOpacity
-                    onPress={() => router.push('criarOcorrencia' as never)}
-                    style={styles.containerCreate}>
-                    <AntDesign name="plus" size={24} color="#fff" />
-                </TouchableOpacity>
+                {user?.userType !== "ADM_DIKMA" && (
+                    <TouchableOpacity
+                        onPress={() => router.push('criarOcorrencia' as never)}
+                        style={styles.containerCreate}
+                    >
+                        <AntDesign name="plus" size={24} color="#fff" />
+                    </TouchableOpacity>
+                )}
             </View>
         </StyledMainContainer>
     );
@@ -264,4 +304,3 @@ const styles = StyleSheet.create({
         justifyContent: 'center'
     }
 });
-

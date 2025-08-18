@@ -1,10 +1,8 @@
 import AprovacoStatus from "@/components/aprovacaoStatus";
 import LeituraNFC from "@/components/leitorNFC";
-import { Pessoas } from "@/types/IOcorrencias";
-import { AntDesign, FontAwesome5 } from "@expo/vector-icons";
+import { AntDesign, FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-import Checkbox from 'expo-checkbox';
 import { useRouter } from "expo-router";
 import React, { useRef, useState } from "react";
 import { Dimensions, Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
@@ -12,7 +10,6 @@ import { Modalize } from 'react-native-modalize';
 import { TextInput } from "react-native-paper";
 import { Dropdown } from "react-native-paper-dropdown";
 import CapturaImagens from "../../../components/capturaImagens";
-import MapScreen from "../../../components/renderMapOcorrencias";
 import { useAuth } from "../../../contexts/authProvider";
 import { useOcorrenciasStore } from "../../../store/storeOcorrencias";
 import { StatusContainer, StyledMainContainer } from "../../../styles/StyledComponents";
@@ -24,18 +21,8 @@ const OPTIONS = [
     { label: 'Outro', value: 'outro' },
 ];
 
-const images = [
-    require("../../../assets/images/ocorrencias.png"),
-    require("../../../assets/images/ocorrencias.png"),
-    require("../../../assets/images/ocorrencias.png"),
-    require("../../../assets/images/ocorrencias.png"),
-    require("../../../assets/images/ocorrencias.png"),
-    require("../../../assets/images/ocorrencias.png"),
-];
-
 
 export default function DetalharAtividade() {
-
     const { user } = useAuth();
     const router = useRouter();
     const [isChecked, setChecked] = useState(false);
@@ -71,9 +58,14 @@ export default function DetalharAtividade() {
         );
     }
 
+    console.log(ocorrenciaSelecionada)
+
     return (
         <StyledMainContainer>
             <ScrollView showsVerticalScrollIndicator={false}>
+                <View style={{ padding: 10, marginBottom: 10 }}>
+                    <Text style={{ fontSize: 15 }}>Descrição da atividade, aqui vai ficar a descrição que foi digitada da atividade.</Text>
+                </View>
                 <View style={[styles.wrapper, { paddingBottom: Dimensions.get('window').height - 750 }]}>
                     <View style={styles.container}>
                         <View style={styles.linha}>
@@ -81,90 +73,8 @@ export default function DetalharAtividade() {
                                 <Entypo name="calendar" size={15} color="#43575F" />
                                 <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                             </View>
-                            <Text style={styles.text}>
-                                {ocorrenciaSelecionada.data} - {ocorrenciaSelecionada.hora}
-                            </Text>
+                            <Text style={styles.text}>{ocorrenciaSelecionada?.dateTime}</Text>
                         </View>
-                        <View style={styles.linha}>
-                            <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
-                                <FontAwesome6 name="user-tie" size={15} color="#43575F" />
-                                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
-                            </View>
-                            <Text style={styles.text}>
-                                Encarregado: {ocorrenciaSelecionada?.encarregado}
-                            </Text>
-                        </View>
-                        <View style={[styles.linha, { height: ocorrenciaSelecionada.justificativa ? 250 : 40, alignItems: "flex-start" }]}>
-                            <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
-                                <Entypo name="flag" size={15} color="#43575F" />
-                                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
-                            </View>
-                            <View style={{ width: "100%", gap: 10 }}>
-                                <StatusContainer backgroundColor={getStatusColor(ocorrenciaSelecionada?.status)}>
-                                    <Text style={styles.statusTextWhite}>
-                                        {ocorrenciaSelecionada?.status === "Concluído" ? `Concluído em ${ocorrenciaSelecionada?.dataConclusao} / ${ocorrenciaSelecionada?.horaConclusao}` : ocorrenciaSelecionada?.status}
-                                    </Text>
-                                </StatusContainer>
-                                {
-                                    ocorrenciaSelecionada.justificativa && (
-                                        <View>
-                                            <View style={{ flexDirection: "row", gap: 10, height: "100%" }}>
-                                                <View style={{ width: "100%", flexDirection: "column", gap: 10 }}>
-                                                    <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-                                                        <Text style={styles.text}>Motivo: {ocorrenciaSelecionada.justificativa.motivo}</Text>
-                                                    </ View>
-                                                    <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-                                                        <Text style={styles.text}>Descrição: {ocorrenciaSelecionada.justificativa.descricao}</Text>
-                                                    </ View>
-                                                    <View style={styles.imageContainer}>
-                                                        <Image source={ocorrenciaSelecionada.justificativa.imagem as any} style={[styles.image, { objectFit: "contain" }]} />
-                                                    </View>
-                                                </View>
-                                            </View>
-                                        </View>
-                                    )
-                                }
-                            </View>
-                        </View>
-                        {
-                            ocorrenciaSelecionada?.pessoas && (
-                                <View style={[styles.linha, { height: "auto", alignItems: "flex-start", gap: 10 }]}>
-                                    <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 10 }]}>
-                                        <FontAwesome6 name="user-tie" size={15} color="#43575F" />
-                                        <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
-                                    </View>
-                                    <View style={{ flexDirection: "column", gap: 5 }}>
-                                        {
-                                            ocorrenciaSelecionada?.pessoas?.map((pessoa: Pessoas, index: number) => (
-                                                <View key={index} style={{ alignItems: "flex-start", gap: 5, marginBottom: 10 }}>
-                                                    <Text style={{ fontSize: 12, fontWeight: "semibold", color: "#43575F" }}>{pessoa.funcao}</Text>
-                                                    <View style={[styles.rowWithGap, { width: "90%", justifyContent: "space-between", alignItems: "center", gap: 10 }]}>
-                                                        <View style={[styles.rowWithGap]}>
-                                                            <Checkbox value={isChecked} onValueChange={setChecked} color={isChecked ? '#34C759' : undefined} />
-                                                            <View>
-                                                                <Text style={{ fontSize: 13 }}>{ocorrenciaSelecionada.nome}</Text>
-                                                                {pessoa.descricao && <Text style={{ fontSize: 10 }}>{pessoa.descricao}</Text>}
-                                                            </View>
-                                                        </View>
-                                                        {
-                                                            !pessoa.descricao && ocorrenciaSelecionada.aprovacao === null && (
-                                                                <TouchableOpacity
-                                                                    style={{ flexDirection: "row", gap: 2, justifyContent: "center", alignItems: "center", borderWidth: 1, borderColor: "#43575F", padding: 5, borderRadius: 10 }}
-                                                                    onPress={() => modalizeDescricaoRef.current?.open()}>
-                                                                    <AntDesign name="plus" size={15} color="#43575F" />
-                                                                    <Text style={{ fontWeight: "bold", color: "#43575F", fontSize: 12 }}>Descrição</Text>
-                                                                </TouchableOpacity>
-                                                            )
-                                                        }
-
-                                                    </View>
-                                                </View>
-                                            ))
-                                        }
-                                    </View>
-                                </View>
-                            )
-                        }
 
                         <View style={[styles.linha, { height: 150, alignItems: "flex-start" }]}>
                             <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 10 }]}>
@@ -172,73 +82,140 @@ export default function DetalharAtividade() {
                                 <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                             </View>
                             <View style={{ flexDirection: "column", gap: 10 }}>
-                                <Text style={styles.text}>Fotos Registradas: {ocorrenciaSelecionada.data_fotos_registradas} - {ocorrenciaSelecionada.hora_fotos_registradas}</Text>
-                                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingRight: 50 }}>
-                                    {images.map((image, index) => (
-                                        <View key={index} style={{ width: 200, height: "100%", marginRight: 10 }}>
-                                            <Image source={image} style={styles.image} />
-                                        </View>
-                                    ))}
-                                </ScrollView>
-                            </View>
-                        </View>
-
-                        <View style={[styles.linha, { height: 320, alignItems: "flex-start", marginTop: 5 }]}>
-                            <View style={[styles.coluna, { height: "100%", justifyContent: "space-between", gap: 10 }]}>
-                                <FontAwesome6 name="location-dot" color="#43575F" size={15} />
-                                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
-                            </View>
-                            <View style={styles.locationDetails}>
-                                <View style={styles.locationTextContainer}>
-                                    <View style={styles.coluna_localizacao}>
-                                        <Text style={styles.textBold}>Localização:</Text>
-                                        <Text style={[styles.text, { fontWeight: "700" }]}>Prédio: <Text style={{ fontWeight: 400 }}>{ocorrenciaSelecionada.localizacao.local}</Text></Text>
-                                        <Text style={[styles.text, { fontWeight: "700" }]}>Setor: <Text style={{ fontWeight: 400 }}>{ocorrenciaSelecionada.localizacao.origem}</Text></Text>
-                                        <Text style={[styles.text, { fontWeight: "700" }]}>Dimensão: <Text style={{ fontWeight: 400 }}>{ocorrenciaSelecionada.localizacao.origem_detalhado}</Text></Text>
+                                {ocorrenciaSelecionada?.activityFiles?.length === 0 ? (
+                                    <View style={{ width: 200, height: "100%", marginRight: 10, justifyContent: "center", alignItems: "center" }}>
+                                        <MaterialCommunityIcons name="image-off-outline" size={120} color="#385866" />
                                     </View>
-                                </View>
-                                <View style={styles.mapContainer}>
-                                    <MapScreen location={ocorrenciaSelecionada.localizacao} showMap={() => true} />
-                                </View>
+                                ) : (
+                                    <ScrollView
+                                        horizontal
+                                        showsHorizontalScrollIndicator={false}
+                                        contentContainerStyle={{ paddingRight: 50 }}
+                                    >
+                                        {ocorrenciaSelecionada?.activityFiles?.map((url: string, index: number) => (
+                                            <View key={index} style={{ width: 200, height: "100%", marginRight: 10 }}>
+                                                <Image
+                                                    source={{ uri: url }}
+                                                    style={styles.image}
+                                                    resizeMode="cover"
+                                                />
+                                            </View>
+                                        ))}
+                                    </ScrollView>
+                                )}
+
                             </View>
                         </View>
+
                         <View style={styles.linha}>
                             <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
-                                <FontAwesome6 name="helmet-safety" size={15} color="#43575F" />
+                                <FontAwesome6 name="user-tie" size={15} color="#43575F" />
                                 <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                             </View>
-                            <View style={styles.rowWithGap}>
+                            <Text style={styles.textBold}>Encarregado:</Text>
+                            <Text style={styles.text}>{ocorrenciaSelecionada?.manager}</Text>
+                        </View>
+
+                        <View style={styles.linha}>
+                            <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
+                                <FontAwesome6 name="user-check" size={15} color="#43575F" />
+                                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+                            </View>
+                            <Text style={styles.textBold}>Supervisor:</Text>
+                            <Text style={styles.text}>{ocorrenciaSelecionada?.supervisor}</Text>
+                        </View>
+
+                        <View style={[styles.linha, { alignItems: "flex-start" }]}>
+                            <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
+                                <Entypo name="flag" size={15} color="#43575F" />
+                                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+                            </View>
+                            <StatusContainer backgroundColor={getStatusColor(ocorrenciaSelecionada?.approvalStatus)}>
+                                <Text style={styles.statusTextWhite}>{ocorrenciaSelecionada?.approvalStatus}</Text>
+                            </StatusContainer>
+                        </View>
+
+                        <View style={styles.linha}>
+                            <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
+                                <FontAwesome5 name="building" size={15} color="#43575F" />
+                                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+                            </View>
+                            <Text style={styles.textBold}>Ambiente:</Text>
+                            <Text style={styles.text}>{ocorrenciaSelecionada?.environment}</Text>
+                        </View>
+
+                        <View style={styles.linha}>
+                            <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
+                                <Entypo name="resize-full-screen" size={15} color="#43575F" />
+                                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+                            </View>
+                            <Text style={styles.textBold}>Dimensão:</Text>
+                            <Text style={styles.text}>{ocorrenciaSelecionada?.dimension}</Text>
+                        </View>
+
+                        {ocorrenciaSelecionada?.ppe && (
+                            <View style={styles.linha}>
+                                <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
+                                    <FontAwesome6 name="helmet-safety" size={15} color="#43575F" />
+                                    <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+                                </View>
                                 <Text style={styles.textBold}>EPI:</Text>
-                                <Text style={styles.text}>Capacete - Luva - bota</Text>
+                                <Text style={styles.text}>{ocorrenciaSelecionada?.ppe ?? "Nenhum"}</Text>
                             </View>
-                        </View>
+                        )}
 
-                        <View style={styles.linha}>
-                            <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
-                                <Entypo name="tools" size={18} color="#43575F" />
-                                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+                        {ocorrenciaSelecionada?.tools.length > 0 && (
+                            <View style={styles.linha}>
+                                <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
+                                    <Entypo name="tools" size={15} color="#43575F" />
+                                    <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+                                </View>
+                                <Text style={styles.textBold}>Ferramentas:</Text>
+                                <View style={{ flexDirection: "row" }}>
+                                    {ocorrenciaSelecionada?.tools.map((tool) => (
+                                        <Text key={tool.id} style={styles.text}> - {tool.name}</Text>
+                                    ))}
+                                </View>
                             </View>
-                            <View style={styles.rowWithGap}>
-                                <Text style={styles.textBold}>Equipamento:</Text>
-                                <Text style={styles.text}>Pá - Carrinho de mão</Text>
-                            </View>
-                        </View>
+                        )}
 
-                        <View style={styles.linha}>
-                            <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
-                                <FontAwesome5 name="box-open" size={12} color="#43575F" />
-                            </View>
-                            <View style={styles.rowWithGap}>
+                        {ocorrenciaSelecionada?.products.length > 0 && (
+                            <View style={styles.linha}>
+                                <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
+                                    <FontAwesome5 name="box-open" size={12} color="#43575F" />
+                                    <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+                                </View>
                                 <Text style={styles.textBold}>Produtos:</Text>
-                                <Text style={styles.text}>Nenhum</Text>
+                                <View style={{ flexDirection: "row" }}>
+                                    {ocorrenciaSelecionada?.products.map((prod) => (
+                                        <Text key={prod.id} style={styles.text}> - {prod.name}</Text>
+                                    ))}
+                                </View>
                             </View>
-                        </View>
+                        )
+                        }
+
+                        {ocorrenciaSelecionada?.transports.length > 0 && (
+                            <View style={styles.linha}>
+                                <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
+                                    <FontAwesome6 name="truck" size={15} color="#43575F" />
+                                    {/* <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} /> */}
+                                </View>
+                                <Text style={styles.textBold}>Transportes:</Text>
+                                <View style={{ flexDirection: "row" }}>
+                                    {ocorrenciaSelecionada?.transports.map((t) => (
+                                        <Text key={t.id} style={styles.text}> - {t.name}</Text>
+                                    ))}
+                                </View>
+                            </View>
+                        )
+                        }
                     </View>
 
-                    {user?.userType === "OPERATIONAL" && ocorrenciaSelecionada.aprovacao === null && <LeituraNFC />}
+                    {user?.userType === "OPERATIONAL" && ocorrenciaSelecionada.approvalStatus === null && <LeituraNFC />}
 
                     {
-                        user?.userType === "OPERATIONAL" && ocorrenciaSelecionada.aprovacao === null && (
+                        user?.userType === "OPERATIONAL" && ocorrenciaSelecionada.approvalStatus === null && (
                             <View style={styles.buttonsContainer}>
                                 <TouchableOpacity onPress={() => modalizeJustificativaRef.current?.open()} style={styles.justifyButton}>
                                     <Text style={{ color: "#404944", fontSize: 16 }}>JUSTIFICAR</Text>
@@ -253,7 +230,7 @@ export default function DetalharAtividade() {
                     }
 
                     {
-                        (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE") && ocorrenciaSelecionada.aprovacao === null && (
+                        (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE") && ocorrenciaSelecionada.approvalStatus === null && (
                             <View style={styles.buttonsContainer}>
                                 <TouchableOpacity style={styles.justifyButton}>
                                     <Text style={{ color: "#404944", fontSize: 16 }}>REPROVAR</Text>
@@ -267,22 +244,20 @@ export default function DetalharAtividade() {
                     }
 
                     {
-                        (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE" || user?.userType === "OPERATIONAL") && ocorrenciaSelecionada.aprovacao === "Aprovado" && (
+                        (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE" || user?.userType === "OPERATIONAL") && ocorrenciaSelecionada.approvalStatus === "Aprovado" && (
                             <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
-                                <AprovacoStatus status={ocorrenciaSelecionada?.aprovacao} date={ocorrenciaSelecionada?.dataAprovacao} />
+                                <AprovacoStatus status={ocorrenciaSelecionada?.approvalStatus} date={ocorrenciaSelecionada?.approvalStatus} />
                             </View>
                         )
                     }
 
                     {
-                        (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE" || user?.userType === "OPERATIONAL") && ocorrenciaSelecionada.aprovacao === "Reprovado" && (
+                        (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE" || user?.userType === "OPERATIONAL") && ocorrenciaSelecionada.approvalStatus === "Reprovado" && (
                             <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
-                                <AprovacoStatus status={ocorrenciaSelecionada?.aprovacao} date={ocorrenciaSelecionada?.dataAprovacao} />
+                                <AprovacoStatus status={ocorrenciaSelecionada?.approvalStatus} date={ocorrenciaSelecionada?.approvalStatus} />
                             </View>
                         )
                     }
-
-
                 </View>
             </ScrollView>
 
@@ -361,7 +336,7 @@ export default function DetalharAtividade() {
                             <AntDesign name="close" size={26} color="#43575F" />
                         </TouchableOpacity>
                     </View>
-                    <Text style={styles.modalSubtitle}>Insira uma descrição do motivo pelo qual não participou da realização da atividade.</Text>
+                    <Text style={styles.modalSubtitle}>Insira uma descrição do motivo pelo qual não participou da realização da ocorrenciaSelecionada?.</Text>
                     <View style={{ gap: 10 }}>
                         <TextInput mode="outlined" label="Pessoa" outlineColor="#707974" activeOutlineColor="#707974" />
                         <TextInput mode="outlined" label="Descrição" outlineColor="#707974" activeOutlineColor="#707974" style={{ height: 120 }} multiline={true} numberOfLines={4} />
@@ -394,7 +369,6 @@ export default function DetalharAtividade() {
                     </View>
                 </TouchableWithoutFeedback>
             </Modal>
-
         </StyledMainContainer>
     );
 }
@@ -407,14 +381,13 @@ const styles = StyleSheet.create({
     },
     wrapper: {
         flex: 1,
+        gap: 20,
         flexDirection: "column",
     },
     container: {
         flexDirection: "column",
-    },
-    header: {
-        marginTop: 20,
-        marginBottom: 10,
+        gap: 2,
+        paddingBottom: 20,
     },
     text: {
         fontSize: 14,
@@ -440,7 +413,7 @@ const styles = StyleSheet.create({
         width: 35,
         padding: 2,
         justifyContent: "center",
-        alignItems: "center"
+        alignItems: "center",
     },
     rowWithGap: {
         flexDirection: "row",
@@ -448,43 +421,18 @@ const styles = StyleSheet.create({
         alignItems: "center",
         gap: 5
     },
-    iconesContainer:
-    {
-        height: "100%",
-        width: 20,
-        backgroundColor: "#EBEBEB",
-        alignItems: "center",
-        justifyContent: "space-between"
-    },
-    divisaoIcones: {
-        width: 2,
-        backgroundColor: "#ccc"
-    },
-    divisaoVertical: {
-        width: 2,
-        marginLeft: 8,
-        height: "92%",
-        backgroundColor: "#ccc"
-    },
     imageContainer: {
-        width: "85%",
-        height: 150,
+        width: 150,
+        height: 100,
         marginRight: 10,
     },
     image: {
         width: "100%",
         height: "100%",
         borderRadius: 5,
-        objectFit: "cover",
     },
     coluna_localizacao: {
-        flexDirection: "column",
-        gap: 5
-    },
-    locationContainer: {
-        flexDirection: "row",
-        gap: 10,
-        height: 320,
+        flexDirection: "column"
     },
     locationDetails: {
         flexDirection: "column",
@@ -506,6 +454,7 @@ const styles = StyleSheet.create({
     buttonsContainer: {
         gap: 10,
         padding: 10,
+        marginBottom: 20,
         borderRadius: 20,
         flexDirection: "row",
         justifyContent: "space-between",
@@ -538,7 +487,6 @@ const styles = StyleSheet.create({
         color: "#fff",
         fontSize: 16
     },
-
     modal: {
         backgroundColor: '#fff',
         borderTopLeftRadius: 16,
@@ -558,6 +506,7 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
+        marginBottom: 20
     },
     modalTitle: {
         fontSize: 26,
@@ -576,12 +525,14 @@ const styles = StyleSheet.create({
         height: 40,
         justifyContent: 'center',
         alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#43575F',
+        borderRadius: 50
     },
     fotosContainer: {
         width: "100%",
         flexDirection: "column",
-        marginVertical: 10,
-        marginBottom: Dimensions.get('window').height - 750
+        marginVertical: 10
     },
     headerFoto: {
         gap: 10,
@@ -678,6 +629,6 @@ const styles = StyleSheet.create({
     buttonText: {
         color: '#186B53',
         fontWeight: '500',
-        fontSize: 15
+        fontSize: 20
     },
 });

@@ -1,48 +1,25 @@
-export interface IJustificativa {
-  imagem: number[];
-  descricao: string;
-  motivo: string;
-}
-
-export interface ILocalizacao {
-  latitude: number;
-  longitude: number;
-  local: string;
-  origem: string;
-  origem_detalhado: string;
-  destino_final: string;
-}
-
-export interface Pessoas {
+// Produto, Ferramenta, Transporte têm a mesma estrutura
+export interface IItem {
   id: number;
-  nome: string;
-  funcao: string;
-  cpf: string;
-  descricao: string
+  name: string;
+  description: string;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  responsibleManagerId: number;
 }
 
-export interface IOcorrencias {
-  id: string;
-  tipo: number;
-  nome: string;
-  data: string;
-  status: string;
-  aprovacao: string;
-  dataAprovacao: string;
-  hora: string;
-  peso: string;
-  material: string;
-  causa_queda: string;
-  equipamento: string;
-  descricao_audio: string;
-  localizacao: ILocalizacao;
-  foto: number[];
-  dataConclusao: string;
-  horaConclusao: string;
-  data_fotos_registradas: string;
-  hora_fotos_registradas: string;
-  justificativa: IJustificativa;
-  pessoas: Pessoas[]
-  encarregado: string
+export interface IAtividade {
+  id: number;
+  approvalStatus: "Pendente" | "Aprovado" | "Reprovado";
+  dateTime: string;
+  dimension: number;
+  environment: string;
+  manager: string;
+  supervisor: string;
+  ppe?: string;
+  products: IItem[];
+  tools: IItem[];
+  transports: IItem[];
+  activityFiles: string[];
 }
-

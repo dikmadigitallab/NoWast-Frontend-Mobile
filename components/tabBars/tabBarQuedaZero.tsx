@@ -68,11 +68,7 @@ export default function TabBar({ state, navigation }: any) {
 
 const styles = StyleSheet.create({
     tabBarContainer: {
-        left: 0,
-        right: 0,
-        bottom: 0,
         width: '100%',
-        position: 'absolute',
         backgroundColor: '#fff',
     },
     tabBar: {

@@ -329,7 +329,7 @@ export default function Dashboard() {
       {
         (user?.userType === "ADM_DIKMA" || user?.userType === "OPERATIONAL") && (
           <View style={styles.containerButtons}>
-            <TouchableOpacity style={styles.buttons} onPress={() => router.push("/tag")}>
+            <TouchableOpacity style={styles.buttons} onPress={() => router.push("/tag" as never)}>
               <MaterialCommunityIcons name="cellphone-nfc" size={20} color="#fff" />
               <Text style={{ color: "#fff", fontSize: 16 }}>Tag</Text>
             </TouchableOpacity>
@@ -540,7 +540,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     paddingHorizontal: 10,
     justifyContent: "space-between",
-    bottom: Dimensions.get("window").height - 780,
+    bottom: 10,
   },
   buttons: {
     gap: 5,
