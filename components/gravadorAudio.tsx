@@ -8,9 +8,10 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 interface AudioRecorderPlayerProps {
   onRecordingComplete?: (uri: string) => void;
   onRemove?: () => void;
+  setForm?: (uri: any) => void;
 }
 
-export default function AudioRecorderPlayer({ onRecordingComplete, onRemove }: AudioRecorderPlayerProps) {
+export default function AudioRecorderPlayer({ onRecordingComplete, onRemove, setForm }: AudioRecorderPlayerProps) {
 
   const [recording, setRecording] = useState<Audio.Recording | null>(null);
   const [sound, setSound] = useState<Audio.Sound | null>(null);
@@ -63,6 +64,8 @@ export default function AudioRecorderPlayer({ onRecordingComplete, onRemove }: A
       const uri = recording.getURI();
       if (uri) {
         setRecordedUri(uri);
+        setForm && setForm(uri);
+
         if (onRecordingComplete) {
           onRecordingComplete(uri);
         }
@@ -192,7 +195,7 @@ export default function AudioRecorderPlayer({ onRecordingComplete, onRemove }: A
         }
 
         {recordedUri && (
-          <View>
+          <View style={styles.playerContainer}>
             <TouchableOpacity
               style={[styles.button, isPlaying ? styles.buttonPlaying : styles.buttonPaused]}
               onPress={handlePlayStop}
@@ -229,6 +232,7 @@ export default function AudioRecorderPlayer({ onRecordingComplete, onRemove }: A
             </TouchableOpacity>
           </View>
         )}
+
       </View>
     </View>
   );
@@ -240,9 +244,13 @@ const styles = StyleSheet.create({
     padding: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 5,
     backgroundColor: "#F2F3F5",
     borderRadius: 100
+  },
+  playerContainer: {
+    flexDirection: "row",
+    alignItems: "center",
   },
   containerFile: {
     gap: 10,
@@ -285,7 +293,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   slider: {
-    flex: 1,
+    width: 100,
     height: 40,
   },
   removeButton: {

@@ -1,93 +1,254 @@
 import CapturaImagens from '@/components/capturaImagens';
+import { useCloseActivity } from '@/hooks/atividade/update';
+import { useDataStore } from '@/store/dataStore';
 import { AntDesign } from '@expo/vector-icons';
 import { useState } from 'react';
-import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { Checkbox } from 'react-native-paper';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Checkbox, TextInput } from 'react-native-paper';
 import AudioRecorderPlayer from '../../../components/gravadorAudio';
 import { StyledMainContainer } from '../../../styles/StyledComponents';
 
 export default function Checklist() {
 
-    const [checked, setChecked] = useState({
-        limparPiso: false,
-        limparParede: false,
-        limparCorreia: false,
+    const { data } = useDataStore();
+
+    const [form, setForm] = useState({
+        id: data?.[0]?.id,
+        status: "COMPLETED",
+        observation: "",
+        completedChecklistIds: [] as number[],
+        pendingChecklistIds: [] as number[],
+        audio: "",
+        images: []
     });
+
+    const { close } = useCloseActivity();
+
+
+    const handleCheckboxChange = (id: number) => {
+        setForm(prev => {
+            const isChecked = prev.completedChecklistIds.includes(id);
+            return {
+                ...prev,
+                completedChecklistIds: isChecked
+                    ? prev.completedChecklistIds.filter(itemId => itemId !== id)
+                    : [...prev.completedChecklistIds, id]
+            };
+        });
+    };
+
+    const handleSubmit = () => {
+        const allIds = data?.[0]?.checklist?.map((item: any) => item.id) || [];
+
+        const pendingChecklistIds = allIds.filter(
+            (id: number) => !form.completedChecklistIds.includes(id)
+        );
+
+        const finalForm = {
+            ...form,
+            pendingChecklistIds,
+        };
+
+        close(finalForm);
+    };
 
     return (
         <StyledMainContainer>
-            <View style={[styles.container, { paddingBottom: Dimensions.get('window').height - 1300 }]}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                    <AntDesign name="check" size={20} color="#43575F" />
-                    <Text style={{ color: "#43575F", fontSize: 14, fontWeight: 'bold' }}>Checklist</Text>
+            <ScrollView
+                style={styles.container}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.scrollContent}
+            >
+                <View style={styles.header}>
+                    <View style={styles.headerTitle}>
+                        <AntDesign name="check" size={24} color="#186B53" />
+                        <Text style={styles.headerText}>Checklist de Limpeza</Text>
+                    </View>
+                    <Text style={styles.subtitle}>Marque as tarefas concluídas</Text>
                 </View>
-                <TouchableOpacity style={{
-                    backgroundColor: checked.limparPiso ? '#186B53' : '#fff',
-                    padding: 15, borderRadius: 4, borderWidth: 1, borderColor: '#DCE2E2', flexDirection: 'row', alignItems: 'center'
-                }}
-                    onPress={() => {
-                        setChecked({ ...checked, limparPiso: !checked.limparPiso });
-                    }}
-                >
-                    <Checkbox
-                        status={checked.limparPiso ? 'checked' : 'unchecked'}
-                        color={checked.limparPiso ? '#fff' : '#fff'}
+
+                <View style={styles.checklistContainer}>
+                    {data?.[0]?.checklist?.map((item: any) => {
+                        const isChecked = form.completedChecklistIds.includes(item.id);
+                        return (
+                            <TouchableOpacity
+                                key={item.id}
+                                style={[
+                                    styles.checklistItem,
+                                    isChecked && styles.checklistItemSelected
+                                ]}
+                                onPress={() => handleCheckboxChange(item.id)}
+                                activeOpacity={0.7}
+                            >
+                                <View style={styles.checkboxContainer}>
+                                    <Checkbox
+                                        status={isChecked ? 'checked' : 'unchecked'}
+                                        color={isChecked ? '#fff' : '#186B53'}
+                                    />
+                                    <Text style={[
+                                        styles.checklistText,
+                                        isChecked && styles.checklistTextSelected
+                                    ]}>
+                                        {item.name}
+                                    </Text>
+                                </View>
+                                {isChecked && (
+                                    <AntDesign name="checkcircle" size={20} color="#fff" />
+                                )}
+                            </TouchableOpacity>
+                        );
+                    })}
+                </View>
+
+                <View style={styles.mediaSection}>
+                    <View style={styles.mediaContainer}>
+                        <CapturaImagens
+                            texto="Adicionar fotos"
+                            qtsImagens={3}
+                            setForm={(uris) => setForm(prev => ({ ...prev, images: uris }))}
+                        />
+                        <AudioRecorderPlayer
+                            setForm={(uri) => setForm(prev => ({ ...prev, audio: uri }))}
+                        />
+                    </View>
+                </View>
+
+                <View style={styles.observationsSection}>
+                    <Text style={styles.sectionTitle}>Observações</Text>
+                    <TextInput
+                        value={form.observation}
+                        onChangeText={(value) => setForm({ ...form, observation: value })}
+                        mode="outlined"
+                        placeholder="Digite suas observações aqui..."
+                        outlineColor="#E8EDEC"
+                        activeOutlineColor="#186B53"
+                        style={styles.textInput}
+                        multiline={true}
+                        numberOfLines={4}
+                        theme={{
+                            colors: {
+                                primary: '#186B53',
+                                background: '#fff',
+                                placeholder: '#9CA3A2',
+                                text: '#404944'
+                            }
+                        }}
                     />
-                    <Text style={{ color: checked.limparPiso ? '#fff' : "#404944", fontSize: 16 }}>Limpar o piso</Text>
-                </TouchableOpacity>
+                </View>
 
                 <TouchableOpacity
-                    style={{ backgroundColor: checked.limparParede ? '#186B53' : '#fff', padding: 15, borderRadius: 4, borderWidth: 1, borderColor: '#DCE2E2', flexDirection: 'row', alignItems: 'center' }}
-                    onPress={() => { setChecked({ ...checked, limparParede: !checked.limparParede }); }}
+                    style={styles.submitButton}
+                    onPress={handleSubmit}
+                    activeOpacity={0.8}
                 >
-                    <Checkbox
-                        status={checked.limparParede ? 'checked' : 'unchecked'}
-                        color={checked.limparParede ? '#fff' : '#fff'}
-
-                    />
-                    <Text style={{ color: checked.limparParede ? '#fff' : "#404944", fontSize: 16 }}>Limpar a parede</Text>
+                    <Text style={styles.submitButtonText}>Finalizar Atividade</Text>
+                    <AntDesign name="arrowright" size={20} color="#fff" />
                 </TouchableOpacity>
-
-                <TouchableOpacity style={{
-                    backgroundColor: checked.limparCorreia ? '#186B53' : '#fff',
-                    padding: 15, borderRadius: 4, borderWidth: 1, borderColor: '#DCE2E2', flexDirection: 'row', alignItems: 'center'
-                }}
-                    onPress={() => {
-                        setChecked({ ...checked, limparCorreia: !checked.limparCorreia });
-                    }}
-                >
-                    <Checkbox
-                        status={checked.limparCorreia ? 'checked' : 'unchecked'}
-                        color={checked.limparCorreia ? '#fff' : '#fff'}
-                    />
-                    <Text style={{ color: checked.limparCorreia ? '#fff' : "#404944", fontSize: 16 }}>Limpar atrás da correia</Text>
-                </TouchableOpacity>
-
-                <CapturaImagens texto="Adicionar fotos" qtsImagens={3} />
-                <AudioRecorderPlayer />
-
-                <TouchableOpacity style={styles.Button}>
-                    <Text style={{ color: "#fff", fontSize: 16 }}>Confirmar</Text>
-                </TouchableOpacity>
-            </View>
+            </ScrollView>
         </StyledMainContainer>
-    )
+    );
 }
 
 const styles = StyleSheet.create({
     container: {
-        gap: 10,
-        width: '100%',
+        flex: 1,
+        backgroundColor: '#F8FAF9',
+    },
+    scrollContent: {
+        gap: 24,
+        paddingBottom: 40,
+    },
+    header: {
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    headerTitle: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+        marginBottom: 4,
+    },
+    headerText: {
+        color: '#186B53',
+        fontSize: 20,
+        fontWeight: 'bold',
+    },
+    subtitle: {
+        color: '#707974',
+        fontSize: 14,
+    },
+    checklistContainer: {
+        gap: 12
+    },
+    checklistItem: {
+        backgroundColor: '#fff',
+        padding: 16,
+        borderRadius: 12,
+        borderWidth: 2,
+        borderColor: '#E8EDEC',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    checklistItemSelected: {
+        backgroundColor: '#186B53',
+        borderColor: '#186B53',
+    },
+    checkboxContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
         flex: 1,
     },
-    Button: {
-        width: '100%',
+    checklistText: {
+        color: '#404944',
+        fontSize: 16,
+        fontWeight: '500',
+        marginLeft: 8,
+        flex: 1,
+    },
+    checklistTextSelected: {
+        color: '#fff',
+    },
+    mediaSection: {
+        gap: 16,
+    },
+    sectionTitle: {
+        color: '#43575F',
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    mediaContainer: {
+        gap: 16,
+    },
+    observationsSection: {
+        gap: 16,
+    },
+    textInput: {
+        backgroundColor: '#fff',
         borderRadius: 12,
-        paddingVertical: 20,
-        flexDirection: "row",
-        alignItems: "center",
-        borderColor: "#186B53",
-        justifyContent: "center",
-        backgroundColor: "#186B53"
-    }
+        fontSize: 16,
+        height: 70,
+    },
+    submitButton: {
+        backgroundColor: '#186B53',
+        borderRadius: 12,
+        padding: 20,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 12,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.1,
+        shadowRadius: 4,
+        elevation: 3,
+    },
+    submitButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
 });

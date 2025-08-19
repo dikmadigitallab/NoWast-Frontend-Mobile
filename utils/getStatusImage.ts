@@ -16,7 +16,7 @@ export function getStatusImage(status?: string) {
       return images[1];
     case "nenhum":
       return images[0];
-    case "pendente":
+    case "PENDING":
       return images[3];
     case "concluído":
       return images[4];

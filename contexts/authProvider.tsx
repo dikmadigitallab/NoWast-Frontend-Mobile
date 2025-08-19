@@ -1,16 +1,8 @@
 import api from "@/hooks/api";
+import UserData from "@/types/user";
 import { toast } from "@backpackapp-io/react-native-toast";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useEffect, useState } from "react";
-
-interface UserData {
-  userType?: string;
-  email?: string | null;
-  document?: string | null;
-  name?: string | null;
-  position?: string | null;
-  contractId?: string | number | null;
-}
 
 interface AuthContextProps {
   loading: boolean;
@@ -62,7 +54,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         email: response.data.data.user.email,
         document: response.data.data.user.person.document,
         position: response.data.data.user.role.name,
-        contractId: response.data.data.user.contractId
+        contractId: response.data.data.user.contractId,
+        id: response.data.data.user.id
       };
 
       const roleName = response.data.data.user.role.name;

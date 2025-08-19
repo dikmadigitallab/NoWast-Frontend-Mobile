@@ -3,7 +3,7 @@
 import { useAuth } from "@/contexts/authProvider";
 import { filterStatusActivity } from "@/utils/statusActivity";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import api from "../api";
 
 export interface UseGetParams {
@@ -35,8 +35,8 @@ export const useGetActivity = ({
     const [data, setData] = useState<any>(null);
     const { logout } = useAuth();
 
-    const get = async () => {
-
+    // Mova a lógica do get para uma função useCallback
+    const get = useCallback(async () => {
         setError(null);
         setLoading(true);
 
@@ -81,6 +81,11 @@ export const useGetActivity = ({
                 dimension: item.environment?.areaM2,
                 supervisor: item?.supervisor?.person?.name,
                 manager: item?.manager?.person?.name,
+                approvalDate: item?.approvalDate,
+                checklist: item?.checklists.map((checklist: any) => ({
+                    id: checklist.serviceItem.id,
+                    name: checklist.serviceItem.name
+                })),
                 approvalStatus: filterStatusActivity(item?.approvalStatus),
                 ppe: item?.ppe,
                 tools: item?.tools,
@@ -107,7 +112,12 @@ export const useGetActivity = ({
         } finally {
             setLoading(false);
         }
-    };
+    }, [page, pageSize, query, supervisorId, positionId, managerId, responsibleManagerId, buildingId, environmentId, logout]);
+
+    // Função refetch que pode ser chamada externamente
+    const refetch = useCallback(() => {
+        get();
+    }, [get]);
 
     useEffect(() => {
         setLoading(true);
@@ -117,11 +127,12 @@ export const useGetActivity = ({
         }, 1000);
 
         return () => clearTimeout(delayDebounce);
-    }, [query, supervisorId, positionId, managerId, page, pageSize, responsibleManagerId, buildingId, environmentId]);
+    }, [get]);
 
     return {
         loading,
         error,
-        data
+        data,
+        refetch
     };
 };

@@ -16,7 +16,7 @@ export function formatRouteNameQuedaZero(path: string) {
         case "/criarOcorrencia":
             return "Nova Ocorrência";
         case "/detalharAtividade":
-            return "Detalhar Atividade";
+            return "Atividade";
         case "/cronograma":
             return "Cronograma";
         case "/checklist":

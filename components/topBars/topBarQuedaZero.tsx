@@ -45,14 +45,14 @@ export function TopBar({ customBack, router, pathname }: TopBarProps) {
           <FontAwesome6
             name="bars-staggered"
             size={28}
-            color={isHomeOrDashboard ? "#fff" : "#000"}
+            color={isHomeOrDashboard ? "#fff" : "#186b53"}
           />
         )}
 
         {showIcons.includes(pathname) && (
 
           <TouchableOpacity onPress={handleBack}>
-            <Feather name="chevron-left" size={28} color="#000" />
+            <Feather name="chevron-left" size={28} color="#186b53" />
           </TouchableOpacity>
         )}
 
@@ -64,7 +64,7 @@ export function TopBar({ customBack, router, pathname }: TopBarProps) {
       {!isHomeOrDashboard && (
         <View style={styles.containerLogo}>
           {pathname === "/main" && (
-            <MaterialCommunityIcons name="excavator" size={24} color="black" />
+            <MaterialCommunityIcons name="excavator" size={24} color="#43575f" />
           )}
           <Text style={styles.title}>{title}</Text>
         </View>
@@ -88,7 +88,7 @@ export function TopBar({ customBack, router, pathname }: TopBarProps) {
         !isHomeOrDashboard && (
           <TouchableOpacity style={{ position: "relative", justifyContent: "center", alignItems: "center", width: 30 }} onPress={() => router.push("/notificacoes" as never)}>
             <View style={{ position: "absolute", top: 0, right: 0, width: 8, height: 8, zIndex: 1, backgroundColor: "#FF0000", borderRadius: 50 }} />
-            <Feather name="bell" size={24} color="#000" />
+            <Feather name="bell" size={24} color="#43575f" />
           </TouchableOpacity>
         )
       }
@@ -107,6 +107,14 @@ const styles = StyleSheet.create({
     zIndex: 1,
     alignItems: "center",
     justifyContent: "space-between",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   containerLogo: {
     flexDirection: "row",
@@ -123,7 +131,7 @@ const styles = StyleSheet.create({
   title: {
     textAlign: "center",
     fontSize: 18,
-    color: "#000",
+    color: "#43575f",
     fontWeight: "600",
     marginLeft: 4,
   },

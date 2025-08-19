@@ -4,9 +4,9 @@ export const StyledMainContainer = styled.View`
   flex: 1;
   width: 100%;
   align-self: center;
-  padding: 10px 10px 0 10px;
+  padding: 10px 5px 0 5px;
   box-sizing: border-box;
-  background-color: #fff;
+  background-color: #f7f9fb;
 `;
 
 export const StatusContainer = styled.View<{ backgroundColor: string }>`

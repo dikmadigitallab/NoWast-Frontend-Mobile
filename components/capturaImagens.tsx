@@ -3,7 +3,7 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import React, { useRef, useState } from "react";
 import { Alert, Image, Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-export default function CapturaImagens({ texto, qtsImagens }: { texto: string, qtsImagens: number }) {
+export default function CapturaImagens({ texto, qtsImagens, setForm }: { texto: string, qtsImagens: number, setForm?: (uri: any) => void }) {
 
     const [images, setImages] = useState<string[]>([]);
     const [permission, requestPermission] = useCameraPermissions();
@@ -30,7 +30,9 @@ export default function CapturaImagens({ texto, qtsImagens }: { texto: string, q
     const takePicture = async () => {
         if (cameraRef.current) {
             const photo = await cameraRef.current.takePictureAsync({ quality: 0.7 });
-            setImages(prev => [...prev, photo.uri]);
+            const newImages = [...images, photo.uri];
+            setImages(newImages);
+            setForm && setForm(newImages);
             setTakenCount(prev => prev + 1);
 
             if (takenCount + 1 >= qtsImagens || images.length + 1 >= qtsImagens) {
@@ -39,8 +41,11 @@ export default function CapturaImagens({ texto, qtsImagens }: { texto: string, q
         }
     };
 
+    // Função para remover imagem
     const removeImage = (index: number) => {
-        setImages(prev => prev.filter((_, i) => i !== index));
+        const newImages = images.filter((_, i) => i !== index);
+        setImages(newImages);
+        setForm && setForm(newImages);
     };
 
     return (

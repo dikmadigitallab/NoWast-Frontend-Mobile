@@ -1,11 +1,12 @@
 import AprovacoStatus from "@/components/aprovacaoStatus";
-import LeituraNFC from "@/components/leitorNFC";
+import { useUpdateActivityStatus } from "@/hooks/atividade/aprove";
+import { useDataStore } from "@/store/dataStore";
 import { AntDesign, FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { useRouter } from "expo-router";
 import React, { useRef, useState } from "react";
-import { Dimensions, Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
+import { Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import { Modalize } from 'react-native-modalize';
 import { TextInput } from "react-native-paper";
 import { Dropdown } from "react-native-paper-dropdown";
@@ -21,15 +22,16 @@ const OPTIONS = [
     { label: 'Outro', value: 'outro' },
 ];
 
-
 export default function DetalharAtividade() {
+
     const { user } = useAuth();
     const router = useRouter();
-    const [isChecked, setChecked] = useState(false);
     const { ocorrenciaSelecionada } = useOcorrenciasStore();
+    const { setData } = useDataStore()
     const modalizeDescricaoRef = useRef<Modalize | null>(null);
     const [modalVisible, setModalizeVisible] = useState(false);
     const modalizeJustificativaRef = useRef<Modalize | null>(null);
+    const { updateStatus } = useUpdateActivityStatus()
 
     const [justificativa, setJustificativa] = useState<any>({
         justificativa: '',
@@ -44,7 +46,7 @@ export default function DetalharAtividade() {
         }
     };
 
-    const deletarAlteracoes = () => {
+    const deleteChanges = () => {
         closeModal();
         setModalizeVisible(false);
     };
@@ -58,322 +60,353 @@ export default function DetalharAtividade() {
         );
     }
 
-    console.log(ocorrenciaSelecionada)
+    const handleFinalizeActivity = () => {
+        updateStatus({
+            id: String(ocorrenciaSelecionada.id),
+            approvalStatus: "APPROVED",
+            approvalUpdatedByUserId: String(user?.id),
+        });
+    };
+
 
     return (
-        <StyledMainContainer>
-            <ScrollView showsVerticalScrollIndicator={false}>
-                <View style={{ padding: 10, marginBottom: 10 }}>
-                    <Text style={{ fontSize: 15 }}>Descrição da atividade, aqui vai ficar a descrição que foi digitada da atividade.</Text>
-                </View>
-                <View style={[styles.wrapper, { paddingBottom: Dimensions.get('window').height - 750 }]}>
-                    <View style={styles.container}>
-                        <View style={styles.linha}>
-                            <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
-                                <Entypo name="calendar" size={15} color="#43575F" />
-                                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+        <View style={styles.mainContainer}>
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} >
+                <StyledMainContainer>
+                    <View style={{ padding: 10, marginBottom: 10, }}>
+                        <Text style={{ fontSize: 15 }}>Descrição da atividade, aqui vai ficar a descrição que foi digitada da atividade.</Text>
+                    </View>
+                    <View style={styles.wrapper}>
+                        <View style={styles.container}>
+                            <View style={styles.linha}>
+                                <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
+                                    <Entypo name="calendar" size={15} color="#43575F" />
+                                    <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+                                </View>
+                                <Text style={styles.text}>{ocorrenciaSelecionada?.dateTime}</Text>
                             </View>
-                            <Text style={styles.text}>{ocorrenciaSelecionada?.dateTime}</Text>
-                        </View>
 
-                        <View style={[styles.linha, { height: 150, alignItems: "flex-start" }]}>
-                            <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 10 }]}>
-                                <AntDesign name="camera" size={15} color="#43575F" />
-                                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+                            <View style={[styles.linha, { height: 150, alignItems: "flex-start" }]}>
+                                <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 10 }]}>
+                                    <AntDesign name="camera" size={15} color="#43575F" />
+                                    <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+                                </View>
+                                <View style={{ flexDirection: "column", gap: 10 }}>
+                                    {ocorrenciaSelecionada?.activityFiles?.length === 0 ? (
+                                        <View style={{ width: 200, height: "100%", marginRight: 10, justifyContent: "center", alignItems: "center" }}>
+                                            <MaterialCommunityIcons name="image-off-outline" size={120} color="#385866" />
+                                        </View>
+                                    ) : (
+                                        <ScrollView
+                                            horizontal
+                                            showsHorizontalScrollIndicator={false}
+                                            contentContainerStyle={{ paddingRight: 50 }}
+                                        >
+                                            {ocorrenciaSelecionada?.activityFiles?.map((url: string, index: number) => (
+                                                <View key={index} style={{ width: 200, height: "100%", marginRight: 10 }}>
+                                                    <Image
+                                                        source={{ uri: url }}
+                                                        style={styles.image}
+                                                        resizeMode="cover"
+                                                    />
+                                                </View>
+                                            ))}
+                                        </ScrollView>
+                                    )}
+
+                                </View>
                             </View>
-                            <View style={{ flexDirection: "column", gap: 10 }}>
-                                {ocorrenciaSelecionada?.activityFiles?.length === 0 ? (
-                                    <View style={{ width: 200, height: "100%", marginRight: 10, justifyContent: "center", alignItems: "center" }}>
-                                        <MaterialCommunityIcons name="image-off-outline" size={120} color="#385866" />
+
+                            <View style={styles.linha}>
+                                <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
+                                    <FontAwesome6 name="user-tie" size={15} color="#43575F" />
+                                    <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+                                </View>
+                                <Text style={styles.textBold}>Encarregado:</Text>
+                                <Text style={styles.text}>{ocorrenciaSelecionada?.manager}</Text>
+                            </View>
+
+                            <View style={styles.linha}>
+                                <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
+                                    <FontAwesome6 name="user-check" size={15} color="#43575F" />
+                                    <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+                                </View>
+                                <Text style={styles.textBold}>Supervisor:</Text>
+                                <Text style={styles.text}>{ocorrenciaSelecionada?.supervisor}</Text>
+                            </View>
+
+                            <View style={[styles.linha, { alignItems: "flex-start" }]}>
+                                <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
+                                    <Entypo name="flag" size={15} color="#43575F" />
+                                    <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+                                </View>
+                                <StatusContainer backgroundColor={getStatusColor(ocorrenciaSelecionada?.approvalStatus)}>
+                                    <Text style={styles.statusTextWhite}>{ocorrenciaSelecionada?.approvalStatus}</Text>
+                                </StatusContainer>
+                            </View>
+
+                            <View style={styles.linha}>
+                                <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
+                                    <FontAwesome5 name="building" size={15} color="#43575F" />
+                                    <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+                                </View>
+                                <Text style={styles.textBold}>Ambiente:</Text>
+                                <Text style={styles.text}>{ocorrenciaSelecionada?.environment}</Text>
+                            </View>
+
+                            <View style={styles.linha}>
+                                <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
+                                    <Entypo name="resize-full-screen" size={15} color="#43575F" />
+                                    <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+                                </View>
+                                <Text style={styles.textBold}>Dimensão:</Text>
+                                <Text style={styles.text}>{ocorrenciaSelecionada?.dimension}</Text>
+                            </View>
+
+                            {ocorrenciaSelecionada?.ppe && (
+                                <View style={styles.linha}>
+                                    <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
+                                        <FontAwesome6 name="helmet-safety" size={15} color="#43575F" />
+                                        <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                                     </View>
-                                ) : (
-                                    <ScrollView
-                                        horizontal
-                                        showsHorizontalScrollIndicator={false}
-                                        contentContainerStyle={{ paddingRight: 50 }}
-                                    >
-                                        {ocorrenciaSelecionada?.activityFiles?.map((url: string, index: number) => (
-                                            <View key={index} style={{ width: 200, height: "100%", marginRight: 10 }}>
-                                                <Image
-                                                    source={{ uri: url }}
-                                                    style={styles.image}
-                                                    resizeMode="cover"
-                                                />
-                                            </View>
+                                    <Text style={styles.textBold}>EPI:</Text>
+                                    <Text style={styles.text}>{ocorrenciaSelecionada?.ppe ?? "Nenhum"}</Text>
+                                </View>
+                            )}
+
+                            {ocorrenciaSelecionada?.tools.length > 0 && (
+                                <View style={styles.linha}>
+                                    <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
+                                        <Entypo name="tools" size={15} color="#43575F" />
+                                        <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+                                    </View>
+                                    <Text style={styles.textBold}>Ferramentas:</Text>
+                                    <View style={{ flexDirection: "row" }}>
+                                        {ocorrenciaSelecionada?.tools.map((tool) => (
+                                            <Text key={tool.id} style={styles.text}> - {tool.name}</Text>
                                         ))}
-                                    </ScrollView>
-                                )}
+                                    </View>
+                                </View>
+                            )}
 
-                            </View>
+                            {ocorrenciaSelecionada?.products.length > 0 && (
+                                <View style={styles.linha}>
+                                    <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
+                                        <FontAwesome5 name="box-open" size={12} color="#43575F" />
+                                        <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+                                    </View>
+                                    <Text style={styles.textBold}>Produtos:</Text>
+                                    <View style={{ flexDirection: "row" }}>
+                                        {ocorrenciaSelecionada?.products.map((prod) => (
+                                            <Text key={prod.id} style={styles.text}> - {prod.name}</Text>
+                                        ))}
+                                    </View>
+                                </View>
+                            )
+                            }
+
+                            {ocorrenciaSelecionada?.transports.length > 0 && (
+                                <View style={styles.linha}>
+                                    <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
+                                        <FontAwesome6 name="truck" size={15} color="#43575F" />
+                                    </View>
+                                    <Text style={styles.textBold}>Transportes:</Text>
+                                    <View style={{ flexDirection: "row" }}>
+                                        {ocorrenciaSelecionada?.transports.map((t) => (
+                                            <Text key={t.id} style={styles.text}> - {t.name}</Text>
+                                        ))}
+                                    </View>
+                                </View>
+                            )
+                            }
                         </View>
-
-                        <View style={styles.linha}>
-                            <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
-                                <FontAwesome6 name="user-tie" size={15} color="#43575F" />
-                                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
-                            </View>
-                            <Text style={styles.textBold}>Encarregado:</Text>
-                            <Text style={styles.text}>{ocorrenciaSelecionada?.manager}</Text>
-                        </View>
-
-                        <View style={styles.linha}>
-                            <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
-                                <FontAwesome6 name="user-check" size={15} color="#43575F" />
-                                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
-                            </View>
-                            <Text style={styles.textBold}>Supervisor:</Text>
-                            <Text style={styles.text}>{ocorrenciaSelecionada?.supervisor}</Text>
-                        </View>
-
-                        <View style={[styles.linha, { alignItems: "flex-start" }]}>
-                            <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
-                                <Entypo name="flag" size={15} color="#43575F" />
-                                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
-                            </View>
-                            <StatusContainer backgroundColor={getStatusColor(ocorrenciaSelecionada?.approvalStatus)}>
-                                <Text style={styles.statusTextWhite}>{ocorrenciaSelecionada?.approvalStatus}</Text>
-                            </StatusContainer>
-                        </View>
-
-                        <View style={styles.linha}>
-                            <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
-                                <FontAwesome5 name="building" size={15} color="#43575F" />
-                                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
-                            </View>
-                            <Text style={styles.textBold}>Ambiente:</Text>
-                            <Text style={styles.text}>{ocorrenciaSelecionada?.environment}</Text>
-                        </View>
-
-                        <View style={styles.linha}>
-                            <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
-                                <Entypo name="resize-full-screen" size={15} color="#43575F" />
-                                <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
-                            </View>
-                            <Text style={styles.textBold}>Dimensão:</Text>
-                            <Text style={styles.text}>{ocorrenciaSelecionada?.dimension}</Text>
-                        </View>
-
-                        {ocorrenciaSelecionada?.ppe && (
-                            <View style={styles.linha}>
-                                <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
-                                    <FontAwesome6 name="helmet-safety" size={15} color="#43575F" />
-                                    <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
-                                </View>
-                                <Text style={styles.textBold}>EPI:</Text>
-                                <Text style={styles.text}>{ocorrenciaSelecionada?.ppe ?? "Nenhum"}</Text>
-                            </View>
-                        )}
-
-                        {ocorrenciaSelecionada?.tools.length > 0 && (
-                            <View style={styles.linha}>
-                                <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
-                                    <Entypo name="tools" size={15} color="#43575F" />
-                                    <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
-                                </View>
-                                <Text style={styles.textBold}>Ferramentas:</Text>
-                                <View style={{ flexDirection: "row" }}>
-                                    {ocorrenciaSelecionada?.tools.map((tool) => (
-                                        <Text key={tool.id} style={styles.text}> - {tool.name}</Text>
-                                    ))}
-                                </View>
-                            </View>
-                        )}
-
-                        {ocorrenciaSelecionada?.products.length > 0 && (
-                            <View style={styles.linha}>
-                                <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
-                                    <FontAwesome5 name="box-open" size={12} color="#43575F" />
-                                    <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
-                                </View>
-                                <Text style={styles.textBold}>Produtos:</Text>
-                                <View style={{ flexDirection: "row" }}>
-                                    {ocorrenciaSelecionada?.products.map((prod) => (
-                                        <Text key={prod.id} style={styles.text}> - {prod.name}</Text>
-                                    ))}
-                                </View>
-                            </View>
-                        )
-                        }
-
-                        {ocorrenciaSelecionada?.transports.length > 0 && (
-                            <View style={styles.linha}>
-                                <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
-                                    <FontAwesome6 name="truck" size={15} color="#43575F" />
-                                    {/* <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} /> */}
-                                </View>
-                                <Text style={styles.textBold}>Transportes:</Text>
-                                <View style={{ flexDirection: "row" }}>
-                                    {ocorrenciaSelecionada?.transports.map((t) => (
-                                        <Text key={t.id} style={styles.text}> - {t.name}</Text>
-                                    ))}
-                                </View>
-                            </View>
-                        )
-                        }
                     </View>
 
-                    {user?.userType === "OPERATIONAL" && ocorrenciaSelecionada.approvalStatus === null && <LeituraNFC />}
-
-                    {
-                        user?.userType === "OPERATIONAL" && ocorrenciaSelecionada.approvalStatus === null && (
-                            <View style={styles.buttonsContainer}>
-                                <TouchableOpacity onPress={() => modalizeJustificativaRef.current?.open()} style={styles.justifyButton}>
-                                    <Text style={{ color: "#404944", fontSize: 16 }}>JUSTIFICAR</Text>
-                                </TouchableOpacity>
-                                <TouchableOpacity
-                                    onPress={() => router.push("/checklist" as any)}
-                                    style={styles.doneButton}>
-                                    <Text style={styles.doneButtonText}>REALIZADA</Text>
+                    <Modalize
+                        ref={modalizeJustificativaRef}
+                        modalStyle={styles.modal}
+                        adjustToContentHeight
+                        handleStyle={styles.handle}
+                        keyboardAvoidingBehavior="padding"
+                        scrollViewProps={{
+                            keyboardShouldPersistTaps: 'handled',
+                            contentContainerStyle: { flexGrow: 1 }
+                        }}
+                    >
+                        <View>
+                            <View style={styles.modalHeader}>
+                                <View style={{ width: 40 }} />
+                                <Text style={styles.modalTitle}>Justificar</Text>
+                                <TouchableOpacity onPress={() => setModalizeVisible(!modalVisible)} style={styles.closeButton}>
+                                    <AntDesign name="close" size={26} color="#43575F" />
                                 </TouchableOpacity>
                             </View>
-                        )
-                    }
+                            <Text style={styles.modalSubtitle}>Selecione o motivo e envie sua justificativa</Text>
+                            <View style={{ gap: 10 }}>
+                                <Dropdown
+                                    mode="outlined"
+                                    label="Tipo de Justificativa"
+                                    options={[
+                                        { label: 'Interna', value: 'option2' },
+                                        { label: 'Externa', value: 'outro' },
+                                    ]}
+                                    value={justificativa.justificativa}
+                                    onSelect={(value) => setJustificativa({ ...justificativa, justificativa: value })}
+                                    CustomMenuHeader={() => <View></View>}
+                                    menuContentStyle={{ backgroundColor: '#fff' }}
+                                />
+                                <Dropdown
+                                    mode="outlined"
+                                    label="Material"
+                                    options={OPTIONS}
+                                    value={justificativa.material}
+                                    onSelect={(value) => setJustificativa({ ...justificativa, material: value })}
+                                    CustomMenuHeader={() => <View></View>}
+                                    menuContentStyle={{ backgroundColor: '#fff' }}
+                                />
+                                <TextInput
+                                    value={justificativa.descricao}
+                                    onChangeText={(value) => setJustificativa({ ...justificativa, descricao: value })}
+                                    mode="outlined" label="Descrição" outlineColor="#707974" activeOutlineColor="#707974" style={{ backgroundColor: '#fff', height: 120 }} multiline={true} numberOfLines={4} />
+                            </View>
+                        </View>
+                        <View style={styles.fotosContainer}>
+                            <CapturaImagens texto="Anexe a foto abaixo (obrigatório)" qtsImagens={3} />
+                            <TouchableOpacity style={styles.sendButton}>
+                                <Text style={{ color: "#fff", fontSize: 16 }}>ENVIAR</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </Modalize>
 
-                    {
-                        (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE") && ocorrenciaSelecionada.approvalStatus === null && (
-                            <View style={styles.buttonsContainer}>
-                                <TouchableOpacity style={styles.justifyButton}>
-                                    <Text style={{ color: "#404944", fontSize: 16 }}>REPROVAR</Text>
+                    <Modalize
+                        ref={modalizeDescricaoRef}
+                        modalStyle={styles.modal}
+                        adjustToContentHeight
+                        handleStyle={styles.handle}
+                        keyboardAvoidingBehavior="padding"
+                        scrollViewProps={{
+                            keyboardShouldPersistTaps: 'handled',
+                            contentContainerStyle: { flexGrow: 1 }
+                        }}
+                    >
+                        <View>
+                            <View style={styles.modalHeader}>
+                                <View style={{ width: 40 }} />
+                                <Text style={styles.modalTitle}>Descrição</Text>
+                                <TouchableOpacity onPress={() => setModalizeVisible(!modalVisible)} style={styles.closeButton}>
+                                    <AntDesign name="close" size={26} color="#43575F" />
                                 </TouchableOpacity>
-                                <TouchableOpacity
-                                    style={styles.doneButton}>
-                                    <Text style={styles.doneButtonText}>APROVAR</Text>
-                                </TouchableOpacity>
                             </View>
-                        )
-                    }
-
-                    {
-                        (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE" || user?.userType === "OPERATIONAL") && ocorrenciaSelecionada.approvalStatus === "Aprovado" && (
-                            <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
-                                <AprovacoStatus status={ocorrenciaSelecionada?.approvalStatus} date={ocorrenciaSelecionada?.approvalStatus} />
+                            <Text style={styles.modalSubtitle}>Insira uma descrição do motivo pelo qual não participou da realização da ocorrenciaSelecionada?.</Text>
+                            <View style={{ gap: 10 }}>
+                                <TextInput mode="outlined" label="Pessoa" outlineColor="#707974" activeOutlineColor="#707974" />
+                                <TextInput mode="outlined" label="Descrição" outlineColor="#707974" activeOutlineColor="#707974" style={{ height: 120 }} multiline={true} numberOfLines={4} />
                             </View>
-                        )
-                    }
+                        </View>
+                        <View style={styles.fotosContainer}>
+                            <TouchableOpacity style={styles.sendButton}>
+                                <Text style={{ color: "#fff", fontSize: 16 }}>ENVIAR</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </Modalize>
 
-                    {
-                        (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE" || user?.userType === "OPERATIONAL") && ocorrenciaSelecionada.approvalStatus === "Reprovado" && (
-                            <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
-                                <AprovacoStatus status={ocorrenciaSelecionada?.approvalStatus} date={ocorrenciaSelecionada?.approvalStatus} />
-                            </View>
-                        )
-                    }
-                </View>
-            </ScrollView>
-
-            <Modalize
-                ref={modalizeJustificativaRef}
-                modalStyle={styles.modal}
-                adjustToContentHeight
-                handleStyle={styles.handle}
-                keyboardAvoidingBehavior="padding"
-                scrollViewProps={{
-                    keyboardShouldPersistTaps: 'handled',
-                    contentContainerStyle: { flexGrow: 1 }
-                }}
-            >
-                <View>
-                    <View style={styles.modalHeader}>
-                        <View style={{ width: 40 }} />
-                        <Text style={styles.modalTitle}>Justificar</Text>
-                        <TouchableOpacity onPress={() => setModalizeVisible(!modalVisible)} style={styles.closeButton}>
-                            <AntDesign name="close" size={26} color="#43575F" />
-                        </TouchableOpacity>
-                    </View>
-                    <Text style={styles.modalSubtitle}>Selecione o motivo e envie sua justificativa</Text>
-                    <View style={{ gap: 10 }}>
-                        <Dropdown
-                            mode="outlined"
-                            label="Tipo de Justificativa"
-                            options={[
-                                { label: 'Interna', value: 'option2' },
-                                { label: 'Externa', value: 'outro' },
-                            ]}
-                            value={justificativa.justificativa}
-                            onSelect={(value) => setJustificativa({ ...justificativa, justificativa: value })}
-                            CustomMenuHeader={() => <View></View>}
-                            menuContentStyle={{ backgroundColor: '#fff' }}
-                        />
-                        <Dropdown
-                            mode="outlined"
-                            label="Material"
-                            options={OPTIONS}
-                            value={justificativa.material}
-                            onSelect={(value) => setJustificativa({ ...justificativa, material: value })}
-                            CustomMenuHeader={() => <View></View>}
-                            menuContentStyle={{ backgroundColor: '#fff' }}
-                        />
-                        <TextInput
-                            value={justificativa.descricao}
-                            onChangeText={(value) => setJustificativa({ ...justificativa, descricao: value })}
-                            mode="outlined" label="Descrição" outlineColor="#707974" activeOutlineColor="#707974" style={{ backgroundColor: '#fff', height: 120 }} multiline={true} numberOfLines={4} />
-                    </View>
-                </View>
-                <View style={styles.fotosContainer}>
-                    <CapturaImagens texto="Anexe a foto abaixo (obrigatório)" qtsImagens={3} />
-                    <TouchableOpacity style={styles.sendButton}>
-                        <Text style={{ color: "#fff", fontSize: 16 }}>ENVIAR</Text>
-                    </TouchableOpacity>
-                </View>
-            </Modalize>
-
-            <Modalize
-                ref={modalizeDescricaoRef}
-                modalStyle={styles.modal}
-                adjustToContentHeight
-                handleStyle={styles.handle}
-                keyboardAvoidingBehavior="padding"
-                scrollViewProps={{
-                    keyboardShouldPersistTaps: 'handled',
-                    contentContainerStyle: { flexGrow: 1 }
-                }}
-            >
-                <View>
-                    <View style={styles.modalHeader}>
-                        <View style={{ width: 40 }} />
-                        <Text style={styles.modalTitle}>Descrição</Text>
-                        <TouchableOpacity onPress={() => setModalizeVisible(!modalVisible)} style={styles.closeButton}>
-                            <AntDesign name="close" size={26} color="#43575F" />
-                        </TouchableOpacity>
-                    </View>
-                    <Text style={styles.modalSubtitle}>Insira uma descrição do motivo pelo qual não participou da realização da ocorrenciaSelecionada?.</Text>
-                    <View style={{ gap: 10 }}>
-                        <TextInput mode="outlined" label="Pessoa" outlineColor="#707974" activeOutlineColor="#707974" />
-                        <TextInput mode="outlined" label="Descrição" outlineColor="#707974" activeOutlineColor="#707974" style={{ height: 120 }} multiline={true} numberOfLines={4} />
-                    </View>
-                </View>
-                <View style={styles.fotosContainer}>
-                    <TouchableOpacity style={styles.sendButton}>
-                        <Text style={{ color: "#fff", fontSize: 16 }}>ENVIAR</Text>
-                    </TouchableOpacity>
-                </View>
-            </Modalize>
-
-            <Modal transparent={true} visible={modalVisible} animationType="fade">
-                <TouchableWithoutFeedback onPress={() => setModalizeVisible(false)}>
-                    <View style={styles.modalOverlay}>
-                        <TouchableWithoutFeedback onPress={() => { }}>
-                            <View style={styles.modalContent}>
-                                <Text style={{ alignSelf: "flex-start", color: "#404944", fontSize: 17, fontWeight: "bold" }}>Descartar Alterações?</Text>
-                                <Text style={{ alignSelf: "flex-start", color: "#404944", fontSize: 14, marginBottom: 20 }}>Todas as informações preenchidas serão perdidas.</Text>
-                                <View style={styles.buttonRow}>
-                                    <TouchableOpacity style={styles.button} onPress={() => setModalizeVisible(false)}>
-                                        <Text style={styles.buttonText}>NÃO</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity style={styles.button} onPress={deletarAlteracoes}>
-                                        <Text style={styles.buttonText}>SIM</Text>
-                                    </TouchableOpacity>
-                                </View>
+                    <Modal transparent={true} visible={modalVisible} animationType="fade">
+                        <TouchableWithoutFeedback onPress={() => setModalizeVisible(false)}>
+                            <View style={styles.modalOverlay}>
+                                <TouchableWithoutFeedback onPress={() => { }}>
+                                    <View style={styles.modalContent}>
+                                        <Text style={{ alignSelf: "flex-start", color: "#404944", fontSize: 17, fontWeight: "bold" }}>Descartar Alterações?</Text>
+                                        <Text style={{ alignSelf: "flex-start", color: "#404944", fontSize: 14, marginBottom: 20 }}>Todas as informações preenchidas serão perdidas.</Text>
+                                        <View style={styles.buttonRow}>
+                                            <TouchableOpacity style={styles.button} onPress={() => setModalizeVisible(false)}>
+                                                <Text style={styles.buttonText}>NÃO</Text>
+                                            </TouchableOpacity>
+                                            <TouchableOpacity style={styles.button} onPress={deleteChanges}>
+                                                <Text style={styles.buttonText}>SIM</Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                    </View>
+                                </TouchableWithoutFeedback>
                             </View>
                         </TouchableWithoutFeedback>
-                    </View>
-                </TouchableWithoutFeedback>
-            </Modal>
-        </StyledMainContainer>
+                    </Modal>
+                </StyledMainContainer>
+            </ScrollView>
+
+            <View style={styles.fixedButtonsContainer}>
+                {
+                    (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE" || user?.userType === "OPERATIONAL") && ocorrenciaSelecionada.approvalStatus === "APPROVED" && (
+                        <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
+                            <AprovacoStatus status={ocorrenciaSelecionada?.approvalStatus} date={ocorrenciaSelecionada?.approvalDate} />
+                        </View>
+                    )
+                }
+
+                {
+                    (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE" || user?.userType === "OPERATIONAL") && ocorrenciaSelecionada.approvalStatus === "REJECTED" && (
+                        <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
+                            <AprovacoStatus status={ocorrenciaSelecionada?.approvalStatus} date={ocorrenciaSelecionada?.approvalDate} />
+                        </View>
+                    )
+                }
+
+                {
+                    user?.userType === "OPERATIONAL" && ocorrenciaSelecionada.approvalStatus === "PENDING" && (
+                        <View style={styles.buttonsContainer}>
+                            <TouchableOpacity onPress={() => modalizeJustificativaRef.current?.open()} style={styles.justifyButton}>
+                                <Text style={{ color: "#404944", fontSize: 16 }}>JUSTIFICAR</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={() => {
+                                    setData([ocorrenciaSelecionada]);
+                                    router.push(`/checklist` as any)
+                                }
+                                }
+                                style={styles.doneButton}>
+                                <Text style={styles.doneButtonText}>REALIZADA</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )
+                }
+
+                {
+                    (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE") && ocorrenciaSelecionada.approvalStatus === "PENDING" && (
+                        <View style={styles.buttonsContainer}>
+                            <TouchableOpacity style={styles.justifyButton}>
+                                <Text style={{ color: "#404944", fontSize: 16 }}>REPROVAR</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                onPress={() => handleFinalizeActivity()}
+                                style={styles.doneButton}>
+                                <Text style={styles.doneButtonText}>APROVAR</Text>
+                            </TouchableOpacity>
+                        </View>
+                    )
+                }
+            </View>
+        </View>
+
     );
 }
 
 const styles = StyleSheet.create({
+    mainContainer: {
+        flex: 1,
+    },
+    scrollContent: {
+        flexGrow: 1,
+    },
+    fixedButtonsContainer: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        padding: 16,
+        backgroundColor: '#fff',
+        borderTopColor: '#eee',
+        borderTopLeftRadius: 20,
+        borderTopRightRadius: 20,
+    },
     title: {
         color: "#43575F",
         fontSize: 30,
@@ -385,9 +418,9 @@ const styles = StyleSheet.create({
         flexDirection: "column",
     },
     container: {
-        flexDirection: "column",
         gap: 2,
         paddingBottom: 20,
+        flexDirection: "column",
     },
     text: {
         fontSize: 14,
@@ -453,9 +486,6 @@ const styles = StyleSheet.create({
     },
     buttonsContainer: {
         gap: 10,
-        padding: 10,
-        marginBottom: 20,
-        borderRadius: 20,
         flexDirection: "row",
         justifyContent: "space-between",
     },

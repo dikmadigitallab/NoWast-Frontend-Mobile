@@ -1,28 +1,39 @@
 // Ocorrencias.tsx
 import AprovacoStatus from "@/components/aprovacaoStatus";
+import StatusIndicator from "@/components/StatusIndicator";
 import { useGetActivity } from "@/hooks/atividade/get";
-import { getStatusColor } from "@/utils/statusColor";
 import { AntDesign, FontAwesome, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useRef, useState } from "react";
-import { Dimensions, FlatList, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { FlatList, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { DatePickerModal } from "react-native-paper-dates";
 import MapScreen from "../../../components/renderMapOcorrencias";
 import { useAuth } from "../../../contexts/authProvider";
 import { useOcorrenciasStore } from "../../../store/storeOcorrencias";
-import { StatusContainer, StyledMainContainer } from "../../../styles/StyledComponents";
+import { StyledMainContainer } from "../../../styles/StyledComponents";
 
 export default function Mainpage() {
 
     const router = useRouter();
     const { user } = useAuth();
-    const { data } = useGetActivity({});
+    const { data, refetch } = useGetActivity({});
     const [date, setDate] = useState<Date | undefined>(undefined);
     const [showMap, setShowMap] = useState(false);
     const [openDate, setOpenDate] = useState(false);
     const { setOcorrenciaSelecionada } = useOcorrenciasStore();
     const [atividadeSelecionada, setAtividadeSelecionada] = useState({ atividade: "", label: "" });
+
+    useFocusEffect(
+        useCallback(() => {
+            if (refetch) {
+                refetch();
+            }
+
+            setDate(undefined);
+            setAtividadeSelecionada({ atividade: "", label: "" });
+        }, [refetch])
+    );
 
     const onDismissSingle = useCallback(() => {
         setOpenDate(false);
@@ -47,6 +58,7 @@ export default function Mainpage() {
         setOcorrenciaSelecionada(data);
         router.push(rota as never);
     };
+
 
 
     const renderAtividadeItem = ({ item }: { item: any }) => {
@@ -96,15 +108,11 @@ export default function Mainpage() {
                             <FontAwesome name="user" size={15} color="#385866" />
                             <Text style={styles.locationText}>Responsável: {item.supervisor}</Text>
                         </View>
-                        <StatusContainer backgroundColor={getStatusColor(item.approvalStatus)}>
-                            <Text style={[styles.statusText, { color: "#fff" }]}>
-                                {item.approvalStatus}
-                            </Text>
-                        </StatusContainer>
+                        <StatusIndicator status={item.approvalStatus} />
                     </View>
                 </View>
                 <View style={{ width: "100%", height: 40 }}>
-                    <AprovacoStatus status={item.approvalStatus} date={date} />
+                    <AprovacoStatus status={item.approvalStatus} date={item?.approvalDate} />
                 </View>
             </TouchableOpacity>
         );
@@ -151,8 +159,8 @@ export default function Mainpage() {
                     keyExtractor={(item) => String(item?.id)}
                     contentContainerStyle={{
                         gap: 10,
-                        paddingBottom: Dimensions.get('window').height - 600,
-                        paddingHorizontal: 10
+                        paddingHorizontal: 10,
+                        paddingBottom: 20
                     }}
                     renderItem={renderAtividadeItem}
                 />
@@ -212,16 +220,24 @@ const styles = StyleSheet.create({
         paddingHorizontal: 10
     },
     filterButton: {
-        height: 50,
+        height: 40,
         gap: 10,
         justifyContent: "space-between",
         alignItems: "center",
         paddingHorizontal: 20,
-        borderRadius: 8,
+        borderRadius: 10,
         borderWidth: 0.5,
         flexDirection: "row",
         borderColor: "#d9d9d9",
-        backgroundColor: "#fff"
+        backgroundColor: "#eff5f0",
+        shadowColor: "#000",
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.23,
+        shadowRadius: 2.62,
+        elevation: 4,
     },
     mainOccurrenceItem: {
         width: "100%",
@@ -296,7 +312,6 @@ const styles = StyleSheet.create({
         width: 60,
         height: 60,
         position: 'absolute',
-        bottom: Dimensions.get("window").height * 0.2,
         right: 20,
         borderRadius: 10,
         backgroundColor: '#186B53',

@@ -7,7 +7,7 @@ export const filterStatusActivity = (status: string): string => {
         case 'UNDER_REVIEW':
             return 'Em revisão';
         case 'PENDING':
-            return 'Pendente';
+            return 'PENDING';
         case 'JUSTIFIED':
             return 'Justificado';
         case 'INTERNAL_JUSTIFICATION':

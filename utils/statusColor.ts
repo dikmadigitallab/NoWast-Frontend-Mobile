@@ -1,20 +1,20 @@
 export function getStatusColor(status?: string): string {
-    switch (status) {
-        case "Grave":
+    switch (status?.toUpperCase()) {
+        case "SEVERE":
             return "#DE494C";
-        case "Pendente":
+        case "PENDING":
             return "#FFA44D";
-        case "Concluído":
+        case "COMPLETED":
             return "#00A614";
-        case "Aberto":
+        case "OPEN":
             return "#2E97FC";
-        case "Leve":
+        case "MILD":
             return "#FFD400";
-        case "Aprovado":
+        case "APPROVED":
             return "#00A614";
-        case "Reprovado":
+        case "REJECTED":
             return "#FF0000";
-        case "Justificado":
+        case "JUSTIFIED":
             return "#00A614";
         default:
             return "#81A8B8";

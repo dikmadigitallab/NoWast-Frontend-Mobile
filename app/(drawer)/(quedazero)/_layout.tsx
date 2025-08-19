@@ -46,6 +46,8 @@ export default function TabLayout() {
             <Tabs
                 tabBar={props => <TabBar {...props} />}
                 screenOptions={{
+                    freezeOnBlur: true,
+                    popToTopOnBlur: true,
                     headerTitle: () => <TopBar customBack={customBack} router={router} pathname={pathname} />,
                     headerShown: true,
                     animation: 'shift',
@@ -69,7 +71,7 @@ export default function TabLayout() {
                 <Tabs.Screen name="main" />
                 <Tabs.Screen name="detalharOcorrencia" />
                 <Tabs.Screen name="detalharAtividade" />
-                <Tabs.Screen name="checklist" />
+                <Tabs.Screen options={{ headerShown: false }} name="checklist" />
                 <Tabs.Screen name="mapa" />
                 <Tabs.Screen name="criarOcorrencia" />
                 <Tabs.Screen name="notificacoes" />

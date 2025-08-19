@@ -223,7 +223,7 @@ export const Dados = [
     id: 5,
     tipo: 1,
     nome: "Paulo Henrique",
-    status: "Pendente",
+    status: "PENDING",
     aprovacao: null,
     dataAprovacao: null,
     data: "05/05/2025",

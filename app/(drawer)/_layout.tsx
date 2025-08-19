@@ -19,8 +19,8 @@ import SelecionarStack from "./selecionar-stack";
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const [fontsLoaded] = useFonts({ SpaceMono: require("../../assets/fonts/SpaceMono-Regular.ttf") });
 
+  const [fontsLoaded] = useFonts({ SpaceMono: require("../../assets/fonts/SpaceMono-Regular.ttf") });
   const { moduleType } = useModuleStore();
   const [loading, setLoading] = useState(false);
 
@@ -58,46 +58,49 @@ export default function RootLayout() {
   }
 
   return (
-    <SafeAreaProvider>
-      <RootSiblingParent>
-        <AuthProvider>
-          {loading && (
-            <View
-              style={{
-                flex: 1,
-                position: "absolute",
-                zIndex: 999,
-                width: Dimensions.get("window").width,
-                height: Dimensions.get("window").height,
-                backgroundColor: "#fff",
-                justifyContent: "center",
-                alignItems: "center",
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <Toasts />
+        <RootSiblingParent>
+          <AuthProvider>
+            {loading && (
+              <View
+                style={{
+                  flex: 1,
+                  position: "absolute",
+                  zIndex: 999,
+                  width: Dimensions.get("window").width,
+                  height: Dimensions.get("window").height,
+                  backgroundColor: "#fff",
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
+                <ActivityIndicator size="large" color="#00A614" />
+              </View>
+            )}
+            <StatusBar barStyle="dark-content" backgroundColor="#fff" />
+            <Drawer
+              drawerContent={() => <SelecionarStack />}
+              backBehavior="history"
+              screenOptions={{
+                headerShown: false,
+                drawerStyle: { width: "80%" },
+                drawerType: "slide",
+                drawerPosition: "left",
               }}
             >
-              <ActivityIndicator size="large" color="#00A614" />
-            </View>
-          )}
-          <StatusBar barStyle="dark-content" backgroundColor="#fff" />
-          <Drawer
-            drawerContent={() => <SelecionarStack />}
-            backBehavior="history"
-            screenOptions={{
-              headerShown: false,
-              drawerStyle: { width: "80%" },
-              drawerType: "slide",
-              drawerPosition: "left",
-            }}
-          >
-            <Stack screenOptions={{ headerShown: false }}>
-              <Stack.Screen name="(quedazero)" />
-              <Stack.Screen name="(coleta)" />
-              <Stack.Screen name="(residuos)" />
-              <Stack.Screen name="perfil" />
-              <Stack.Screen name="+not-found" />
-            </Stack>
-          </Drawer>
-        </AuthProvider>
-      </RootSiblingParent>
-    </SafeAreaProvider>
+              <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="(quedazero)" />
+                <Stack.Screen name="(coleta)" />
+                <Stack.Screen name="(residuos)" />
+                <Stack.Screen name="perfil" />
+                <Stack.Screen name="+not-found" />
+              </Stack>
+            </Drawer>
+          </AuthProvider>
+        </RootSiblingParent>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
