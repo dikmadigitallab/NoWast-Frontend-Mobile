@@ -45,9 +45,7 @@ export const useUpdateActivityStatus = () => {
             toast.success("Atividade aprovada com sucesso!", { duration: 3000 });
             setTimeout(() => router.push("/main" as never), 1000);
         } catch (err: any) {
-            console.log("Erro ao atualizar status:", err);
             setError(err.message || "Erro desconhecido");
-
             toast.error(err.message || "Erro desconhecido", { duration: 3000 });
         } finally {
             setLoading(false);

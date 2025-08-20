@@ -18,17 +18,7 @@ export interface UseGetParams {
     environmentId?: number | null
 }
 
-export const useGetActivity = ({
-    page = 1,
-    pageSize = null,
-    query = null,
-    supervisorId = null,
-    positionId = null,
-    managerId = null,
-    responsibleManagerId = null,
-    buildingId = null,
-    environmentId = null
-}: UseGetParams) => {
+export const useGetActivity = ({ page = 1, pageSize = null, query = null, supervisorId = null, positionId = null, managerId = null, responsibleManagerId = null, buildingId = null, environmentId = null }: UseGetParams) => {
 
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
@@ -75,33 +65,39 @@ export const useGetActivity = ({
                 },
             });
 
-            const refactory = response.data.data.items?.map((item: any) => ({
-                id: item.id,
-                environment: item.environment?.name,
-                dimension: item.environment?.areaM2,
-                supervisor: item?.supervisor?.person?.name,
-                manager: item?.manager?.person?.name,
-                approvalDate: item?.approvalDate,
-                checklist: item?.checklists.map((checklist: any) => ({
-                    id: checklist.serviceItem.id,
-                    name: checklist.serviceItem.name
-                })),
-                approvalStatus: filterStatusActivity(item?.approvalStatus),
-                ppe: item?.ppe,
-                tools: item?.tools,
-                products: item?.products,
-                transports: item?.transports,
-                activityFiles: item?.activityFiles.map((fileObj: any) => fileObj.file.url),
-                dateTime: new Date(item.dateTime).toLocaleString('pt-BR', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                    hour12: false
+            const refactory = response.data.data.items?.map((item: any) => {
+
+
+                return ({
+                    id: item.id,
+                    environment: item.environment?.name,
+                    dimension: item.environment?.areaM2,
+                    supervisor: item?.supervisor?.person?.name,
+                    manager: item?.manager?.person?.name,
+                    statusEnum: item?.statusEnum,
+                    justification: item?.justification,
+                    approvalDate: item?.approvalDate,
+                    checklist: item?.checklists.map((checklist: any) => ({ id: checklist.serviceItem.id, name: checklist.serviceItem.name })),
+                    // approvalStatus: justifications.length > 0 ? "PENDING_JUSTIFIED" : filterStatusActivity(item?.approvalStatus),
+                    approvalStatus: filterStatusActivity(item?.approvalStatus),
+                    ppe: item?.ppe,
+                    tools: item?.tools,
+                    products: item?.products,
+                    transports: item?.transports,
+                    activityFiles: item?.activityFiles.map((fileObj: any) => fileObj.file.url),
+                    dateTime: new Date(item.dateTime).toLocaleString('pt-BR', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: false
+                    })
                 })
-            })) || [];
+            }) || [];
+
+
 
             setData(refactory);
         } catch (error) {
@@ -114,7 +110,6 @@ export const useGetActivity = ({
         }
     }, [page, pageSize, query, supervisorId, positionId, managerId, responsibleManagerId, buildingId, environmentId, logout]);
 
-    // Função refetch que pode ser chamada externamente
     const refetch = useCallback(() => {
         get();
     }, [get]);

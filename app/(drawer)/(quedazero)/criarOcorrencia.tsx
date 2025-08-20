@@ -3,7 +3,7 @@ import AudioRecorderPlayer from "@/components/gravadorAudio";
 import { toast } from "@backpackapp-io/react-native-toast";
 import React from "react";
 import { Controller, useForm } from "react-hook-form";
-import { Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { TextInput } from "react-native-paper";
 import { DatePickerInput } from 'react-native-paper-dates';
 import { Dropdown } from 'react-native-paper-dropdown';
@@ -31,7 +31,7 @@ export default function CadastroOcorrencia() {
     return (
         <StyledMainContainer>
             <ScrollView>
-                <View style={{ flex: 1, justifyContent: "space-between", paddingBottom: Dimensions.get('window').height - 750 }}>
+                <View style={{ flex: 1, justifyContent: "space-between", paddingBottom: 10 }}>
                     <View style={{ gap: 5 }}>
 
                         <Controller

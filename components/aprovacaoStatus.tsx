@@ -13,8 +13,7 @@ export default function AprovacoStatus({ status, date }: AprovacoStatusProps) {
 
     const isApproved = status === "APPROVED";
     const isDisapproved = status === "REJECTED";
-    const isPENDING = status === "PENDING";
-
+    const isPENDINGNoJustification = status === "PENDING";
     const formattedDate = date ? moment(date).format("DD/MM/YYYY HH:mm") : "";
 
     return (
@@ -38,18 +37,18 @@ export default function AprovacoStatus({ status, date }: AprovacoStatusProps) {
                         Reprovada em {formattedDate}
                     </Text>
                 </View>
-            ) : isPENDING ? (
+            ) : isPENDINGNoJustification ? (
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                     <MaterialIcons name="hourglass-bottom" size={20} color="#fff" />
                     <Text style={[styles.statusText, { color: "#fff", fontSize: 14 }]}>
-                        PENDING e sem justificativa
+                        Pendente
                     </Text>
                 </View>
             ) : (
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                     <MaterialIcons name="remove-done" size={20} color="#fff" />
                     <Text style={[styles.statusText, { color: "#fff", fontSize: 14 }]}>
-                        Aprovação PENDING
+                        Aprovação Pendente
                     </Text>
                 </View>
             )}
@@ -72,4 +71,3 @@ const styles = StyleSheet.create({
         fontWeight: "600",
     },
 });
-

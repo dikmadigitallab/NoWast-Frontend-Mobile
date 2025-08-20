@@ -1,23 +1,68 @@
 import { useAuth } from "@/contexts/authProvider";
 import { AntDesign, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { useRef, useState } from "react";
-import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { FlatList, ScrollView } from "react-native-gesture-handler";
+import React, { useRef, useState } from "react";
+import {
+  Animated,
+  Dimensions,
+  FlatList,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { PieChart } from "react-native-gifted-charts";
 
 export default function Dashboard() {
-
   const { user } = useAuth();
   const router = useRouter();
   const { width } = Dimensions.get('window');
   const flatListRef = useRef<FlatList<any>>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
+  const animation = useRef(new Animated.Value(0)).current;
   const [activeIndex, setActiveIndex] = useState(0);
 
   const scrollToIndex = (index: number) => {
     setActiveIndex(index);
     flatListRef.current?.scrollToIndex({ index, animated: true });
   };
+
+  const toggleButtons = () => {
+    Animated.spring(animation, {
+      toValue: isExpanded ? 0 : 1,
+      useNativeDriver: true,
+    }).start();
+    setIsExpanded(!isExpanded);
+  };
+
+  const tagStyle = {
+    transform: [
+      {
+        translateY: animation.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, -80],
+        }),
+      },
+      { scale: animation },
+    ],
+    opacity: animation,
+  };
+
+  const ocorrenciaStyle = {
+    transform: [
+      {
+        translateY: animation.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, -150],
+        }),
+      },
+      { scale: animation },
+    ],
+    opacity: animation,
+  };
+
+
 
   const pieData = [
     { value: 35, color: "#2E97FC", gradientCenterColor: "#2E97FC" },
@@ -70,9 +115,8 @@ export default function Dashboard() {
   ];
 
   const renderAtividades = () => (
-    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 330 }}>
+    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 10 }}>
       <View style={styles.contentCard}>
-
         <View style={{ height: 50 }}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterButtonsContainer}>
             <TouchableOpacity style={styles.filterButton}>
@@ -326,54 +370,61 @@ export default function Dashboard() {
   return (
     <View style={styles.container}>
 
-      {
-        (user?.userType === "ADM_DIKMA" || user?.userType === "OPERATIONAL") && (
-          <View style={styles.containerButtons}>
-            <TouchableOpacity style={styles.buttons} onPress={() => router.push("/tag" as never)}>
-              <MaterialCommunityIcons name="cellphone-nfc" size={20} color="#fff" />
-              <Text style={{ color: "#fff", fontSize: 16 }}>Tag</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.buttons}>
-              <AntDesign name="plus" size={20} color="#fff" />
-              <Text style={{ color: "#fff", fontSize: 16 }}>Ocorrência</Text>
-            </TouchableOpacity>
-          </View>
-        )
-      }
-
-      <View style={styles.headerBackground} />
-      <View style={styles.contentWrapper}>
-        <View style={styles.card}>
-          <View style={styles.sectionHeaderWrapper}>
-            <TouchableOpacity style={[styles.sectionHeader, { borderRightColor: '#186b5427', borderRightWidth: 1 }]} onPress={() => scrollToIndex(0)}>
-              <View />
-              <Text style={styles.sectionTitle}>Atividades</Text>
-              <View style={[styles.activeBar, { opacity: activeIndex === 0 ? 1 : 0 }]} />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.sectionHeader} onPress={() => scrollToIndex(1)}>
-              <View />
-              <Text style={styles.sectionTitle}>Colaborador</Text>
-              <View style={[styles.activeBar, { opacity: activeIndex === 1 ? 1 : 0 }]} />
-            </TouchableOpacity>
-          </View>
-          <FlatList
-            ref={flatListRef}
-            data={screens}
-            renderItem={({ item }) => item.component}
-            contentContainerStyle={{ gap: 10, paddingBottom: Dimensions.get('window').height - 750 }}
-            keyExtractor={item => item.id} horizontal pagingEnabled showsHorizontalScrollIndicator={false} onMomentumScrollEnd={(e) => {
-              const newIndex = Math.round(e.nativeEvent.contentOffset.x / width);
-              setActiveIndex(newIndex);
-            }}
-            initialScrollIndex={activeIndex}
-            getItemLayout={(data, index) => ({
-              length: width,
-              offset: width * index,
-              index,
-            })}
-          />
-        </View>
+      <View style={styles.sectionHeaderWrapper}>
+        <TouchableOpacity style={[styles.sectionHeader, { borderRightColor: '#186b5427', borderRightWidth: 1 }]} onPress={() => scrollToIndex(0)}>
+          <View />
+          <Text style={styles.sectionTitle}>Atividades</Text>
+          <View style={[styles.activeBar, { opacity: activeIndex === 0 ? 1 : 0 }]} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.sectionHeader} onPress={() => scrollToIndex(1)}>
+          <View />
+          <Text style={styles.sectionTitle}>Colaborador</Text>
+          <View style={[styles.activeBar, { opacity: activeIndex === 1 ? 1 : 0 }]} />
+        </TouchableOpacity>
       </View>
+
+      <FlatList
+        ref={flatListRef}
+        data={screens}
+        renderItem={({ item }) => item.component}
+        contentContainerStyle={{ gap: 10 }}
+        keyExtractor={item => item.id} horizontal pagingEnabled showsHorizontalScrollIndicator={false} onMomentumScrollEnd={(e) => {
+          const newIndex = Math.round(e.nativeEvent.contentOffset.x / width);
+          setActiveIndex(newIndex);
+        }}
+        initialScrollIndex={activeIndex}
+        getItemLayout={(data, index) => ({
+          length: width,
+          offset: width * index,
+          index,
+        })}
+      />
+
+      {(user?.userType === "ADM_DIKMA" || user?.userType === "OPERATIONAL") && (
+        <View style={styles.fabContainer}>
+          <Animated.View style={[styles.fabButton, tagStyle]}>
+            <TouchableOpacity
+              onPress={() => router.push("/tag" as never)}
+              style={[styles.innerButton, { backgroundColor: "#28A745" }]}
+            >
+              <MaterialCommunityIcons name="cellphone-nfc" size={20} color="#fff" />
+            </TouchableOpacity>
+          </Animated.View>
+
+          <Animated.View style={[styles.fabButton, ocorrenciaStyle]}>
+            <TouchableOpacity
+              onPress={() => router.push("/criarOcorrencia" as never)}
+              style={[styles.innerButton, { backgroundColor: "#FF3B30" }]}
+            >
+              <AntDesign name="form" size={20} color="#fff" />
+            </TouchableOpacity>
+          </Animated.View>
+
+          <TouchableOpacity style={styles.mainButton} onPress={toggleButtons}>
+            <AntDesign name="plus" size={28} color="#fff" />
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }
@@ -385,16 +436,24 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   filterButton: {
-    height: 50,
+    height: 40,
     gap: 10,
     justifyContent: "space-between",
     alignItems: "center",
     paddingHorizontal: 20,
-    borderRadius: 8,
+    borderRadius: 10,
     borderWidth: 0.5,
     flexDirection: "row",
     borderColor: "#d9d9d9",
-    backgroundColor: "#fff"
+    backgroundColor: "#eff5f0",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.23,
+    shadowRadius: 2.62,
+    elevation: 4,
   },
   title: {
     fontSize: 30,
@@ -437,13 +496,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#F7F9FB",
   },
-  headerBackground: {
-    width: "100%",
-    height: 200,
-    backgroundColor: "#186B53"
-  },
+
   contentWrapper: {
-    marginTop: -160,
     width: "100%",
     gap: 10
   },
@@ -547,12 +601,45 @@ const styles = StyleSheet.create({
     width: "49%",
     borderWidth: 1,
     borderRadius: 12,
-    marginVertical: 20,
-    paddingVertical: 20,
+    height: 70,
     flexDirection: "row",
     alignItems: "center",
     borderColor: "#186B53",
     justifyContent: "center",
     backgroundColor: "#186B53"
+  },
+  fabContainer: {
+    position: "absolute",
+    bottom: 30,
+    right: 20,
+    alignItems: "center",
+  },
+  mainButton: {
+    width: 70,
+    height: 70,
+    borderRadius: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#186B53",
+    elevation: 6,
+  },
+  fabButton: {
+    position: "absolute",
+    bottom: 0,
+    right: 8,
+  },
+  innerButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingHorizontal: 16,
+    height: 50,
+    borderRadius: 10,
+    elevation: 5,
+  },
+  innerText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "500",
   },
 });

@@ -4,6 +4,8 @@ export function getStatusColor(status?: string): string {
             return "#DE494C";
         case "PENDING":
             return "#FFA44D";
+        case "PENDING_JUSTIFIED":
+            return "#89c800ff";
         case "COMPLETED":
             return "#00A614";
         case "OPEN":

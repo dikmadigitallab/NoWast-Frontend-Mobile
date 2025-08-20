@@ -15,7 +15,8 @@ const STATUS_MAPPING: Record<string, { color: string; translation: string }> = {
     "MILD": { color: "#FFD400", translation: "Leve" },
     "APPROVED": { color: "#00A614", translation: "Aprovado" },
     "REJECTED": { color: "#FF0000", translation: "Rejeitado" },
-    "JUSTIFIED": { color: "#00A614", translation: "Justificado" }
+    "INTERNAL_JUSTIFICATION": { color: "#FFA44D", translation: "Justificativa Interna" },
+    "JUSTIFIED": { color: "#FFA44D", translation: "Justificativa Externa" }
 };
 
 export function getStatusColor(status?: string): string {

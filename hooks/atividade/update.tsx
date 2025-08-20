@@ -59,7 +59,6 @@ export const useCloseActivity = () => {
                 body: formData,
             });
 
-            console.log("Response:", formData);
 
             if (!response.ok) {
                 const err = await response.json().catch(() => null);
@@ -69,7 +68,6 @@ export const useCloseActivity = () => {
             toast.success("Atividade finalizada com sucesso");
             setTimeout(() => router.push("/main" as never), 1000);
         } catch (err: any) {
-            console.log("Erro ao finalizar atividade:", err);
             setLoading(false);
             toast.error(err.message || "Erro desconhecido");
         } finally {

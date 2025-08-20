@@ -11,7 +11,7 @@ export interface IItem {
 
 export interface IAtividade {
   id: number;
-  approvalStatus: "PENDING" | "APPROVED" | "REJECTED";
+  approvalStatus: "PENDING" | "APPROVED" | "REJECTED" | "PENDING_JUSTIFIED" | "JUSTIFIED";
   dateTime: string;
   dimension: number;
   environment: string;
@@ -23,5 +23,8 @@ export interface IAtividade {
   transports: IItem[];
   activityFiles: string[];
   approvalDate?: string;
+  statusEnum?: string;
+  justifications?: any;
+  justification?: any;
 
 }

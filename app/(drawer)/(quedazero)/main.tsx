@@ -60,7 +60,6 @@ export default function Mainpage() {
     };
 
 
-
     const renderAtividadeItem = ({ item }: { item: any }) => {
         const [date, time] = item.dateTime.split(' ');
 
@@ -108,7 +107,7 @@ export default function Mainpage() {
                             <FontAwesome name="user" size={15} color="#385866" />
                             <Text style={styles.locationText}>Responsável: {item.supervisor}</Text>
                         </View>
-                        <StatusIndicator status={item.approvalStatus} />
+                        <StatusIndicator status={item.statusEnum} />
                     </View>
                 </View>
                 <View style={{ width: "100%", height: 40 }}>
@@ -316,6 +315,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         backgroundColor: '#186B53',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
+        bottom: 20
     }
 });

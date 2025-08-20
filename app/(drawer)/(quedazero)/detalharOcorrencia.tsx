@@ -5,7 +5,7 @@ import { AntDesign, FontAwesome, FontAwesome5, MaterialCommunityIcons } from "@e
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { useRef, useState } from "react";
-import { Dimensions, Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
+import { Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import { Modalize } from "react-native-modalize";
 import { TextInput } from "react-native-paper";
 import MapScreen from "../../../components/renderMapOcorrencias";
@@ -53,7 +53,7 @@ export default function DetalharOcorrencia() {
   return (
     <StyledMainContainer>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={[styles.wrapper, { paddingBottom: Dimensions.get('window').height - 750 }]}>
+        <View style={styles.wrapper}>
           <View style={styles.container}>
             <View style={styles.linha}>
               <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>

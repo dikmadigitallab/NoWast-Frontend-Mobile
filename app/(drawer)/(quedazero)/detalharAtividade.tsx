@@ -1,5 +1,7 @@
 import AprovacoStatus from "@/components/aprovacaoStatus";
+import StatusIndicator from "@/components/StatusIndicator";
 import { useUpdateActivityStatus } from "@/hooks/atividade/aprove";
+import { useCloseActivity } from "@/hooks/atividade/update";
 import { useDataStore } from "@/store/dataStore";
 import { AntDesign, FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
 import Entypo from "@expo/vector-icons/Entypo";
@@ -13,14 +15,8 @@ import { Dropdown } from "react-native-paper-dropdown";
 import CapturaImagens from "../../../components/capturaImagens";
 import { useAuth } from "../../../contexts/authProvider";
 import { useOcorrenciasStore } from "../../../store/storeOcorrencias";
-import { StatusContainer, StyledMainContainer } from "../../../styles/StyledComponents";
-import { getStatusColor } from "../../../utils/statusColor";
+import { StyledMainContainer } from "../../../styles/StyledComponents";
 
-const OPTIONS = [
-    { label: 'Atestado', value: 'atestado' },
-    { label: 'Opção 2', value: 'option2' },
-    { label: 'Outro', value: 'outro' },
-];
 
 export default function DetalharAtividade() {
 
@@ -32,11 +28,15 @@ export default function DetalharAtividade() {
     const [modalVisible, setModalizeVisible] = useState(false);
     const modalizeJustificativaRef = useRef<Modalize | null>(null);
     const { updateStatus } = useUpdateActivityStatus()
+    const { close } = useCloseActivity()
 
-    const [justificativa, setJustificativa] = useState<any>({
-        justificativa: '',
-        descricao: '',
-        material: ''
+    console.log(ocorrenciaSelecionada?.statusEnum)
+
+    const [form, setForm] = useState({
+        id: ocorrenciaSelecionada?.id,
+        status: "JUSTIFIED",
+        justification: "",
+        images: []
     });
 
     const closeModal = () => {
@@ -45,9 +45,9 @@ export default function DetalharAtividade() {
             modalizeJustificativaRef.current.close();
         }
     };
-
     const deleteChanges = () => {
         closeModal();
+        setForm({ id: ocorrenciaSelecionada?.id, status: "", justification: "", images: [] });
         setModalizeVisible(false);
     };
 
@@ -60,12 +60,16 @@ export default function DetalharAtividade() {
         );
     }
 
-    const handleFinalizeActivity = () => {
+    const handleFinalizeActivity = (status: string) => {
         updateStatus({
             id: String(ocorrenciaSelecionada.id),
-            approvalStatus: "APPROVED",
+            approvalStatus: status,
             approvalUpdatedByUserId: String(user?.id),
         });
+    };
+
+    const handleJustification = () => {
+        close(form)
     };
 
 
@@ -78,6 +82,7 @@ export default function DetalharAtividade() {
                     </View>
                     <View style={styles.wrapper}>
                         <View style={styles.container}>
+
                             <View style={styles.linha}>
                                 <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
                                     <Entypo name="calendar" size={15} color="#43575F" />
@@ -86,22 +91,48 @@ export default function DetalharAtividade() {
                                 <Text style={styles.text}>{ocorrenciaSelecionada?.dateTime}</Text>
                             </View>
 
-                            <View style={[styles.linha, { height: 150, alignItems: "flex-start" }]}>
-                                <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 10 }]}>
-                                    <AntDesign name="camera" size={15} color="#43575F" />
-                                    <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+                            {ocorrenciaSelecionada?.statusEnum === "COMPLETED" && (
+                                <View style={[styles.linha, { height: 150, alignItems: "flex-start" }]}>
+                                    <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 10 }]}>
+                                        <AntDesign name="camera" size={15} color="#43575F" />
+                                        <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+                                    </View>
+                                    {
+                                        ocorrenciaSelecionada?.activityFiles?.length > 0 ?
+                                            <ScrollView
+                                                horizontal
+                                                showsHorizontalScrollIndicator={false}
+                                                contentContainerStyle={{ paddingRight: 50 }}
+                                            >
+                                                {ocorrenciaSelecionada?.activityFiles?.map((url: string, index: number) => (
+                                                    <View key={index} style={{ width: 200, height: "100%", marginRight: 10 }}>
+                                                        <Image
+                                                            source={{ uri: url }}
+                                                            style={styles.image}
+                                                            resizeMode="cover"
+                                                        />
+                                                    </View>
+                                                ))}
+                                            </ScrollView>
+                                            :
+                                            <View style={{ height: "100%", justifyContent: "center", alignItems: "center" }}>
+                                                <MaterialCommunityIcons name="image-off-outline" size={104} color="#43575F" />
+                                            </View>
+                                    }
                                 </View>
-                                <View style={{ flexDirection: "column", gap: 10 }}>
-                                    {ocorrenciaSelecionada?.activityFiles?.length === 0 ? (
-                                        <View style={{ width: 200, height: "100%", marginRight: 10, justifyContent: "center", alignItems: "center" }}>
-                                            <MaterialCommunityIcons name="image-off-outline" size={120} color="#385866" />
+                            )}
+
+                            {
+                                (ocorrenciaSelecionada?.statusEnum === "INTERNAL_JUSTIFICATION" || ocorrenciaSelecionada?.statusEnum === "JUSTIFIED") && (
+                                    <View style={[styles.linha, { height: 150, alignItems: "flex-start" }]}>
+                                        <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 10 }]}>
+                                            <AntDesign name="camera" size={15} color="#43575F" />
+                                            <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                                         </View>
-                                    ) : (
-                                        <ScrollView
-                                            horizontal
-                                            showsHorizontalScrollIndicator={false}
-                                            contentContainerStyle={{ paddingRight: 50 }}
-                                        >
+                                        <View style={{ flexDirection: "column", gap: 5 }}>
+                                            <Text style={styles.textBold}>Justificativa:</Text>
+                                            <Text style={styles.text}>{ocorrenciaSelecionada?.justification?.description}</Text>
+
                                             {ocorrenciaSelecionada?.activityFiles?.map((url: string, index: number) => (
                                                 <View key={index} style={{ width: 200, height: "100%", marginRight: 10 }}>
                                                     <Image
@@ -111,11 +142,10 @@ export default function DetalharAtividade() {
                                                     />
                                                 </View>
                                             ))}
-                                        </ScrollView>
-                                    )}
-
-                                </View>
-                            </View>
+                                        </View>
+                                    </View>
+                                )
+                            }
 
                             <View style={styles.linha}>
                                 <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
@@ -140,9 +170,7 @@ export default function DetalharAtividade() {
                                     <Entypo name="flag" size={15} color="#43575F" />
                                     <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                                 </View>
-                                <StatusContainer backgroundColor={getStatusColor(ocorrenciaSelecionada?.approvalStatus)}>
-                                    <Text style={styles.statusTextWhite}>{ocorrenciaSelecionada?.approvalStatus}</Text>
-                                </StatusContainer>
+                                <StatusIndicator status={ocorrenciaSelecionada.statusEnum} />
                             </View>
 
                             <View style={styles.linha}>
@@ -221,115 +249,6 @@ export default function DetalharAtividade() {
                             }
                         </View>
                     </View>
-
-                    <Modalize
-                        ref={modalizeJustificativaRef}
-                        modalStyle={styles.modal}
-                        adjustToContentHeight
-                        handleStyle={styles.handle}
-                        keyboardAvoidingBehavior="padding"
-                        scrollViewProps={{
-                            keyboardShouldPersistTaps: 'handled',
-                            contentContainerStyle: { flexGrow: 1 }
-                        }}
-                    >
-                        <View>
-                            <View style={styles.modalHeader}>
-                                <View style={{ width: 40 }} />
-                                <Text style={styles.modalTitle}>Justificar</Text>
-                                <TouchableOpacity onPress={() => setModalizeVisible(!modalVisible)} style={styles.closeButton}>
-                                    <AntDesign name="close" size={26} color="#43575F" />
-                                </TouchableOpacity>
-                            </View>
-                            <Text style={styles.modalSubtitle}>Selecione o motivo e envie sua justificativa</Text>
-                            <View style={{ gap: 10 }}>
-                                <Dropdown
-                                    mode="outlined"
-                                    label="Tipo de Justificativa"
-                                    options={[
-                                        { label: 'Interna', value: 'option2' },
-                                        { label: 'Externa', value: 'outro' },
-                                    ]}
-                                    value={justificativa.justificativa}
-                                    onSelect={(value) => setJustificativa({ ...justificativa, justificativa: value })}
-                                    CustomMenuHeader={() => <View></View>}
-                                    menuContentStyle={{ backgroundColor: '#fff' }}
-                                />
-                                <Dropdown
-                                    mode="outlined"
-                                    label="Material"
-                                    options={OPTIONS}
-                                    value={justificativa.material}
-                                    onSelect={(value) => setJustificativa({ ...justificativa, material: value })}
-                                    CustomMenuHeader={() => <View></View>}
-                                    menuContentStyle={{ backgroundColor: '#fff' }}
-                                />
-                                <TextInput
-                                    value={justificativa.descricao}
-                                    onChangeText={(value) => setJustificativa({ ...justificativa, descricao: value })}
-                                    mode="outlined" label="Descrição" outlineColor="#707974" activeOutlineColor="#707974" style={{ backgroundColor: '#fff', height: 120 }} multiline={true} numberOfLines={4} />
-                            </View>
-                        </View>
-                        <View style={styles.fotosContainer}>
-                            <CapturaImagens texto="Anexe a foto abaixo (obrigatório)" qtsImagens={3} />
-                            <TouchableOpacity style={styles.sendButton}>
-                                <Text style={{ color: "#fff", fontSize: 16 }}>ENVIAR</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </Modalize>
-
-                    <Modalize
-                        ref={modalizeDescricaoRef}
-                        modalStyle={styles.modal}
-                        adjustToContentHeight
-                        handleStyle={styles.handle}
-                        keyboardAvoidingBehavior="padding"
-                        scrollViewProps={{
-                            keyboardShouldPersistTaps: 'handled',
-                            contentContainerStyle: { flexGrow: 1 }
-                        }}
-                    >
-                        <View>
-                            <View style={styles.modalHeader}>
-                                <View style={{ width: 40 }} />
-                                <Text style={styles.modalTitle}>Descrição</Text>
-                                <TouchableOpacity onPress={() => setModalizeVisible(!modalVisible)} style={styles.closeButton}>
-                                    <AntDesign name="close" size={26} color="#43575F" />
-                                </TouchableOpacity>
-                            </View>
-                            <Text style={styles.modalSubtitle}>Insira uma descrição do motivo pelo qual não participou da realização da ocorrenciaSelecionada?.</Text>
-                            <View style={{ gap: 10 }}>
-                                <TextInput mode="outlined" label="Pessoa" outlineColor="#707974" activeOutlineColor="#707974" />
-                                <TextInput mode="outlined" label="Descrição" outlineColor="#707974" activeOutlineColor="#707974" style={{ height: 120 }} multiline={true} numberOfLines={4} />
-                            </View>
-                        </View>
-                        <View style={styles.fotosContainer}>
-                            <TouchableOpacity style={styles.sendButton}>
-                                <Text style={{ color: "#fff", fontSize: 16 }}>ENVIAR</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </Modalize>
-
-                    <Modal transparent={true} visible={modalVisible} animationType="fade">
-                        <TouchableWithoutFeedback onPress={() => setModalizeVisible(false)}>
-                            <View style={styles.modalOverlay}>
-                                <TouchableWithoutFeedback onPress={() => { }}>
-                                    <View style={styles.modalContent}>
-                                        <Text style={{ alignSelf: "flex-start", color: "#404944", fontSize: 17, fontWeight: "bold" }}>Descartar Alterações?</Text>
-                                        <Text style={{ alignSelf: "flex-start", color: "#404944", fontSize: 14, marginBottom: 20 }}>Todas as informações preenchidas serão perdidas.</Text>
-                                        <View style={styles.buttonRow}>
-                                            <TouchableOpacity style={styles.button} onPress={() => setModalizeVisible(false)}>
-                                                <Text style={styles.buttonText}>NÃO</Text>
-                                            </TouchableOpacity>
-                                            <TouchableOpacity style={styles.button} onPress={deleteChanges}>
-                                                <Text style={styles.buttonText}>SIM</Text>
-                                            </TouchableOpacity>
-                                        </View>
-                                    </View>
-                                </TouchableWithoutFeedback>
-                            </View>
-                        </TouchableWithoutFeedback>
-                    </Modal>
                 </StyledMainContainer>
             </ScrollView>
 
@@ -372,11 +291,13 @@ export default function DetalharAtividade() {
                 {
                     (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE") && ocorrenciaSelecionada.approvalStatus === "PENDING" && (
                         <View style={styles.buttonsContainer}>
-                            <TouchableOpacity style={styles.justifyButton}>
+                            <TouchableOpacity
+                                onPress={() => handleFinalizeActivity("REJECTED")}
+                                style={styles.justifyButton}>
                                 <Text style={{ color: "#404944", fontSize: 16 }}>REPROVAR</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                onPress={() => handleFinalizeActivity()}
+                                onPress={() => handleFinalizeActivity("APPROVED")}
                                 style={styles.doneButton}>
                                 <Text style={styles.doneButtonText}>APROVAR</Text>
                             </TouchableOpacity>
@@ -384,6 +305,111 @@ export default function DetalharAtividade() {
                     )
                 }
             </View>
+
+            <Modalize
+                ref={modalizeJustificativaRef}
+                modalStyle={styles.modal}
+                adjustToContentHeight
+                handleStyle={styles.handle}
+                keyboardAvoidingBehavior="padding"
+                scrollViewProps={{
+                    keyboardShouldPersistTaps: 'handled',
+                    contentContainerStyle: { flexGrow: 1 }
+                }}
+            >
+                <View>
+                    <View style={styles.modalHeader}>
+                        <View style={{ width: 40 }} />
+                        <Text style={styles.modalTitle}>Justificar</Text>
+                        <TouchableOpacity onPress={() => setModalizeVisible(!modalVisible)} style={styles.closeButton}>
+                            <AntDesign name="close" size={26} color="#43575F" />
+                        </TouchableOpacity>
+                    </View>
+                    <Text style={styles.modalSubtitle}>Selecione o motivo e envie sua justificativa</Text>
+                    <View style={{ gap: 10 }}>
+                        <Dropdown
+                            mode="outlined"
+                            label="Tipo de Justificativa"
+                            options={[
+                                { label: 'Interna', value: 'INTERNAL_JUSTIFICATION' },
+                                { label: 'Externa', value: 'JUSTIFIED' },
+                            ]}
+                            value={form?.status}
+                            onSelect={(value) => setForm(prev => ({ ...prev, status: value || '' }))}
+                            CustomMenuHeader={() => <View></View>}
+                            menuContentStyle={{ backgroundColor: '#fff' }}
+                        />
+                        <TextInput
+                            mode="outlined"
+                            label="Justificação"
+                            multiline
+                            outlineColor="#707974"
+                            activeOutlineColor="#0B6780"
+                            value={form?.justification}
+                            onChangeText={(text) => setForm(prev => ({ ...prev, justification: text }))}
+                        />
+                    </View>
+                </View>
+                <View style={styles.fotosContainer}>
+                    <CapturaImagens texto="Anexe a foto abaixo (obrigatório)" qtsImagens={1} setForm={(uris) => setForm(prev => ({ ...prev, images: uris }))} />
+                    <TouchableOpacity style={styles.sendButton} onPress={handleJustification}>
+                        <Text style={{ color: "#fff", fontSize: 16 }}>ENVIAR</Text>
+                    </TouchableOpacity>
+                </View>
+            </Modalize>
+
+            <Modalize
+                ref={modalizeDescricaoRef}
+                modalStyle={styles.modal}
+                adjustToContentHeight
+                handleStyle={styles.handle}
+                keyboardAvoidingBehavior="padding"
+                scrollViewProps={{
+                    keyboardShouldPersistTaps: 'handled',
+                    contentContainerStyle: { flexGrow: 1 }
+                }}
+            >
+                <View>
+                    <View style={styles.modalHeader}>
+                        <View style={{ width: 40 }} />
+                        <Text style={styles.modalTitle}>Descrição</Text>
+                        <TouchableOpacity onPress={() => setModalizeVisible(!modalVisible)} style={styles.closeButton}>
+                            <AntDesign name="close" size={26} color="#43575F" />
+                        </TouchableOpacity>
+                    </View>
+                    <Text style={styles.modalSubtitle}>Insira uma descrição do motivo pelo qual não participou da realização da ocorrenciaSelecionada?.</Text>
+                    <View style={{ gap: 10 }}>
+                        <TextInput mode="outlined" label="Pessoa" outlineColor="#707974" activeOutlineColor="#707974" />
+                        <TextInput mode="outlined" label="Descrição" outlineColor="#707974" activeOutlineColor="#707974" style={{ height: 120 }} multiline={true} numberOfLines={4} />
+                    </View>
+                </View>
+                <View style={styles.fotosContainer}>
+                    <TouchableOpacity style={styles.sendButton}>
+                        <Text style={{ color: "#fff", fontSize: 16 }}>ENVIAR</Text>
+                    </TouchableOpacity>
+                </View>
+            </Modalize>
+
+            <Modal transparent={true} visible={modalVisible} animationType="fade">
+                <TouchableWithoutFeedback onPress={() => setModalizeVisible(false)}>
+                    <View style={styles.modalOverlay}>
+                        <TouchableWithoutFeedback onPress={() => { }}>
+                            <View style={styles.modalContent}>
+                                <Text style={{ alignSelf: "flex-start", color: "#404944", fontSize: 17, fontWeight: "bold" }}>Descartar Alterações?</Text>
+                                <Text style={{ alignSelf: "flex-start", color: "#404944", fontSize: 14, marginBottom: 20 }}>Todas as informações preenchidas serão perdidas.</Text>
+                                <View style={styles.buttonRow}>
+                                    <TouchableOpacity style={styles.button} onPress={() => setModalizeVisible(false)}>
+                                        <Text style={styles.buttonText}>NÃO</Text>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity style={styles.button} onPress={deleteChanges}>
+                                        <Text style={styles.buttonText}>SIM</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </TouchableWithoutFeedback>
+                    </View>
+                </TouchableWithoutFeedback>
+            </Modal>
         </View>
 
     );
@@ -518,6 +544,7 @@ const styles = StyleSheet.create({
         fontSize: 16
     },
     modal: {
+        zIndex: 999,
         backgroundColor: '#fff',
         borderTopLeftRadius: 16,
         borderTopRightRadius: 16,
