@@ -1,16 +1,16 @@
-// store/useOcorrenciasStore.ts
+// store/useItemsStore.ts
 import { IAtividade } from "@/types/IOcorrencias";
 import { create } from "zustand";
 
-interface OcorrenciasState {
-  ocorrenciaSelecionada: IAtividade | null;
-  setOcorrenciaSelecionada: (ocorrencia: IAtividade | null) => void;
+interface ItemsState {
+  items: IAtividade | null;
+  setitems: (items: IAtividade | null) => void;
 }
 
-export const useOcorrenciasStore = create<OcorrenciasState>((set) => ({
-  ocorrenciaSelecionada: null,
+export const useItemsStore = create<ItemsState>((set) => ({
+  items: null,
 
-  setOcorrenciaSelecionada: (ocorrencia) =>
-    set({ ocorrenciaSelecionada: ocorrencia }),
+  setitems: (items) =>
+    set({ items: items }),
 
 }));

@@ -1,8 +1,11 @@
 import AprovacoStatus from "@/components/aprovacaoStatus";
+import LoadingScreen from "@/components/carregamento";
 import StatusIndicator from "@/components/StatusIndicator";
 import { useUpdateActivityStatus } from "@/hooks/atividade/aprove";
 import { useCloseActivity } from "@/hooks/atividade/update";
+import { useUserJustification } from "@/hooks/atividade/userJustification";
 import { useDataStore } from "@/store/dataStore";
+import { userTypes } from "@/types/user";
 import { AntDesign, FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
@@ -10,11 +13,11 @@ import { useRouter } from "expo-router";
 import React, { useRef, useState } from "react";
 import { Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import { Modalize } from 'react-native-modalize';
-import { TextInput } from "react-native-paper";
+import { ActivityIndicator, TextInput } from "react-native-paper";
 import { Dropdown } from "react-native-paper-dropdown";
 import CapturaImagens from "../../../components/capturaImagens";
 import { useAuth } from "../../../contexts/authProvider";
-import { useOcorrenciasStore } from "../../../store/storeOcorrencias";
+import { useItemsStore } from "../../../store/storeOcorrencias";
 import { StyledMainContainer } from "../../../styles/StyledComponents";
 
 
@@ -22,22 +25,42 @@ export default function DetalharAtividade() {
 
     const { user } = useAuth();
     const router = useRouter();
-    const { ocorrenciaSelecionada } = useOcorrenciasStore();
+    const { items } = useItemsStore();
     const { setData } = useDataStore()
     const modalizeDescricaoRef = useRef<Modalize | null>(null);
     const [modalVisible, setModalizeVisible] = useState(false);
     const modalizeJustificativaRef = useRef<Modalize | null>(null);
     const { updateStatus } = useUpdateActivityStatus()
     const { close } = useCloseActivity()
-
-    console.log(ocorrenciaSelecionada?.statusEnum)
+    const { justification, loading } = useUserJustification()
 
     const [form, setForm] = useState({
-        id: ocorrenciaSelecionada?.id,
+        id: items?.id,
         status: "JUSTIFIED",
         justification: "",
         images: []
     });
+
+    const [userDescricao, setUserDescricao] = useState({
+        activityId: "",
+        userId: "",
+        reason: "",
+        name: ""
+    })
+
+    const openModelizeDescricao = (data: any) => {
+        setUserDescricao(data)
+        modalizeDescricaoRef.current?.open()
+    }
+
+    const sendDescricao = () => {
+        const newData = {
+            activityId: userDescricao?.activityId,
+            userId: userDescricao?.userId,
+            reason: userDescricao?.reason,
+        }
+        justification(newData)
+    }
 
     const closeModal = () => {
         if (modalizeJustificativaRef.current && modalizeDescricaoRef.current) {
@@ -45,13 +68,15 @@ export default function DetalharAtividade() {
             modalizeJustificativaRef.current.close();
         }
     };
+
     const deleteChanges = () => {
         closeModal();
-        setForm({ id: ocorrenciaSelecionada?.id, status: "", justification: "", images: [] });
+        setForm({ id: items?.id, status: "", justification: "", images: [] });
+        setUserDescricao({ activityId: "", userId: "", reason: "", name: "" });
         setModalizeVisible(false);
     };
 
-    if (!ocorrenciaSelecionada) {
+    if (!items) {
         return (
             <StyledMainContainer>
                 <Text style={styles.title}>Detalhar Ocorrência</Text>
@@ -62,7 +87,7 @@ export default function DetalharAtividade() {
 
     const handleFinalizeActivity = (status: string) => {
         updateStatus({
-            id: String(ocorrenciaSelecionada.id),
+            id: String(items.id),
             approvalStatus: status,
             approvalUpdatedByUserId: String(user?.id),
         });
@@ -72,6 +97,9 @@ export default function DetalharAtividade() {
         close(form)
     };
 
+    if (!items) {
+        return (<LoadingScreen />)
+    }
 
     return (
         <View style={styles.mainContainer}>
@@ -88,23 +116,23 @@ export default function DetalharAtividade() {
                                     <Entypo name="calendar" size={15} color="#43575F" />
                                     <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                                 </View>
-                                <Text style={styles.text}>{ocorrenciaSelecionada?.dateTime}</Text>
+                                <Text style={styles.text}>{items?.dateTime}</Text>
                             </View>
 
-                            {ocorrenciaSelecionada?.statusEnum === "COMPLETED" && (
+                            {items?.statusEnum === "COMPLETED" && (
                                 <View style={[styles.linha, { height: 150, alignItems: "flex-start" }]}>
                                     <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 10 }]}>
                                         <AntDesign name="camera" size={15} color="#43575F" />
                                         <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                                     </View>
                                     {
-                                        ocorrenciaSelecionada?.activityFiles?.length > 0 ?
+                                        items?.activityFiles?.length > 0 ?
                                             <ScrollView
                                                 horizontal
                                                 showsHorizontalScrollIndicator={false}
                                                 contentContainerStyle={{ paddingRight: 50 }}
                                             >
-                                                {ocorrenciaSelecionada?.activityFiles?.map((url: string, index: number) => (
+                                                {items?.activityFiles?.map((url: string, index: number) => (
                                                     <View key={index} style={{ width: 200, height: "100%", marginRight: 10 }}>
                                                         <Image
                                                             source={{ uri: url }}
@@ -123,7 +151,7 @@ export default function DetalharAtividade() {
                             )}
 
                             {
-                                (ocorrenciaSelecionada?.statusEnum === "INTERNAL_JUSTIFICATION" || ocorrenciaSelecionada?.statusEnum === "JUSTIFIED") && (
+                                (items?.statusEnum === "INTERNAL_JUSTIFICATION" || items?.statusEnum === "JUSTIFIED") && (
                                     <View style={[styles.linha, { height: 150, alignItems: "flex-start" }]}>
                                         <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 10 }]}>
                                             <AntDesign name="camera" size={15} color="#43575F" />
@@ -131,9 +159,9 @@ export default function DetalharAtividade() {
                                         </View>
                                         <View style={{ flexDirection: "column", gap: 5 }}>
                                             <Text style={styles.textBold}>Justificativa:</Text>
-                                            <Text style={styles.text}>{ocorrenciaSelecionada?.justification?.description}</Text>
+                                            <Text style={styles.text}>{items?.justification?.description}</Text>
 
-                                            {ocorrenciaSelecionada?.activityFiles?.map((url: string, index: number) => (
+                                            {items?.activityFiles?.map((url: string, index: number) => (
                                                 <View key={index} style={{ width: 200, height: "100%", marginRight: 10 }}>
                                                     <Image
                                                         source={{ uri: url }}
@@ -153,7 +181,7 @@ export default function DetalharAtividade() {
                                     <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                                 </View>
                                 <Text style={styles.textBold}>Encarregado:</Text>
-                                <Text style={styles.text}>{ocorrenciaSelecionada?.manager}</Text>
+                                <Text style={styles.text}>{items?.manager}</Text>
                             </View>
 
                             <View style={styles.linha}>
@@ -162,7 +190,37 @@ export default function DetalharAtividade() {
                                     <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                                 </View>
                                 <Text style={styles.textBold}>Supervisor:</Text>
-                                <Text style={styles.text}>{ocorrenciaSelecionada?.supervisor}</Text>
+                                <Text style={styles.text}>{items?.supervisor}</Text>
+                            </View>
+
+                            <View style={[styles.linha, { alignItems: "flex-start", height: "auto", marginBottom: 10 }]}>
+                                <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 10 }]}>
+                                    <FontAwesome6 name="helmet-safety" size={15} color="#43575F" />
+                                    <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+                                </View>
+                                <View style={{ flexDirection: "column", gap: 10 }}>
+                                    {items?.userActivities.map((data: any, index: number) => {
+                                        return (
+                                            <View key={index} style={{ flexDirection: "row", width: "90%", alignItems: "flex-start", gap: 10 }}>
+                                                <View style={{ flexDirection: "column", alignItems: "flex-start", }}>
+                                                    <Text style={{ fontSize: 12, color: "#999" }}>{userTypes[data.user.userType]}</Text>
+                                                    <Text style={{ fontSize: 14, color: "#43575F" }}>{data.user.person.name}</Text>
+                                                </View>
+                                                <TouchableOpacity
+                                                    onPress={() => openModelizeDescricao({
+                                                        activityId: items.id,
+                                                        userId: data.user.id,
+                                                        name: data.user.person.name
+                                                    })}
+                                                    style={{ flexDirection: "row", alignItems: "center", gap: 5, borderWidth: 1, borderRadius: 100, borderColor: "#43575F", padding: 5 }}>
+                                                    <AntDesign name="plus" size={15} color="#404944" />
+                                                    <Text style={{ fontSize: 12, color: "#404944" }}>Descrição</Text>
+                                                </TouchableOpacity>
+                                            </View>
+
+                                        )
+                                    })}
+                                </View>
                             </View>
 
                             <View style={[styles.linha, { alignItems: "flex-start" }]}>
@@ -170,7 +228,7 @@ export default function DetalharAtividade() {
                                     <Entypo name="flag" size={15} color="#43575F" />
                                     <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                                 </View>
-                                <StatusIndicator status={ocorrenciaSelecionada.statusEnum} />
+                                <StatusIndicator status={items.statusEnum} />
                             </View>
 
                             <View style={styles.linha}>
@@ -179,7 +237,7 @@ export default function DetalharAtividade() {
                                     <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                                 </View>
                                 <Text style={styles.textBold}>Ambiente:</Text>
-                                <Text style={styles.text}>{ocorrenciaSelecionada?.environment}</Text>
+                                <Text style={styles.text}>{items?.environment}</Text>
                             </View>
 
                             <View style={styles.linha}>
@@ -188,64 +246,70 @@ export default function DetalharAtividade() {
                                     <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                                 </View>
                                 <Text style={styles.textBold}>Dimensão:</Text>
-                                <Text style={styles.text}>{ocorrenciaSelecionada?.dimension}</Text>
+                                <Text style={styles.text}>{items?.dimension}</Text>
                             </View>
 
-                            {ocorrenciaSelecionada?.ppe && (
-                                <View style={styles.linha}>
-                                    <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
-                                        <FontAwesome6 name="helmet-safety" size={15} color="#43575F" />
-                                        <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+                            {
+                                items?.ppe && (
+                                    <View style={styles.linha}>
+                                        <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
+                                            <FontAwesome6 name="helmet-safety" size={15} color="#43575F" />
+                                            <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+                                        </View>
+                                        <Text style={styles.textBold}>EPI:</Text>
+                                        <Text style={styles.text}>{items?.ppe ?? "Nenhum"}</Text>
                                     </View>
-                                    <Text style={styles.textBold}>EPI:</Text>
-                                    <Text style={styles.text}>{ocorrenciaSelecionada?.ppe ?? "Nenhum"}</Text>
-                                </View>
-                            )}
-
-                            {ocorrenciaSelecionada?.tools.length > 0 && (
-                                <View style={styles.linha}>
-                                    <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
-                                        <Entypo name="tools" size={15} color="#43575F" />
-                                        <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
-                                    </View>
-                                    <Text style={styles.textBold}>Ferramentas:</Text>
-                                    <View style={{ flexDirection: "row" }}>
-                                        {ocorrenciaSelecionada?.tools.map((tool) => (
-                                            <Text key={tool.id} style={styles.text}> - {tool.name}</Text>
-                                        ))}
-                                    </View>
-                                </View>
-                            )}
-
-                            {ocorrenciaSelecionada?.products.length > 0 && (
-                                <View style={styles.linha}>
-                                    <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
-                                        <FontAwesome5 name="box-open" size={12} color="#43575F" />
-                                        <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
-                                    </View>
-                                    <Text style={styles.textBold}>Produtos:</Text>
-                                    <View style={{ flexDirection: "row" }}>
-                                        {ocorrenciaSelecionada?.products.map((prod) => (
-                                            <Text key={prod.id} style={styles.text}> - {prod.name}</Text>
-                                        ))}
-                                    </View>
-                                </View>
-                            )
+                                )
                             }
 
-                            {ocorrenciaSelecionada?.transports.length > 0 && (
-                                <View style={styles.linha}>
-                                    <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
-                                        <FontAwesome6 name="truck" size={15} color="#43575F" />
+                            {
+                                items?.tools.length > 0 && (
+                                    <View style={styles.linha}>
+                                        <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
+                                            <Entypo name="tools" size={15} color="#43575F" />
+                                            <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+                                        </View>
+                                        <Text style={styles.textBold}>Ferramentas:</Text>
+                                        <View style={{ flexDirection: "row" }}>
+                                            {items?.tools.map((tool) => (
+                                                <Text key={tool.id} style={styles.text}> - {tool.name}</Text>
+                                            ))}
+                                        </View>
                                     </View>
-                                    <Text style={styles.textBold}>Transportes:</Text>
-                                    <View style={{ flexDirection: "row" }}>
-                                        {ocorrenciaSelecionada?.transports.map((t) => (
-                                            <Text key={t.id} style={styles.text}> - {t.name}</Text>
-                                        ))}
+                                )
+                            }
+
+                            {
+                                items?.products.length > 0 && (
+                                    <View style={styles.linha}>
+                                        <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
+                                            <FontAwesome5 name="box-open" size={12} color="#43575F" />
+                                            <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+                                        </View>
+                                        <Text style={styles.textBold}>Produtos:</Text>
+                                        <View style={{ flexDirection: "row" }}>
+                                            {items?.products.map((prod) => (
+                                                <Text key={prod.id} style={styles.text}> - {prod.name}</Text>
+                                            ))}
+                                        </View>
                                     </View>
-                                </View>
-                            )
+                                )
+                            }
+
+                            {
+                                items?.transports.length > 0 && (
+                                    <View style={styles.linha}>
+                                        <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
+                                            <FontAwesome6 name="truck" size={15} color="#43575F" />
+                                        </View>
+                                        <Text style={styles.textBold}>Transportes:</Text>
+                                        <View style={{ flexDirection: "row" }}>
+                                            {items?.transports.map((t) => (
+                                                <Text key={t.id} style={styles.text}> - {t.name}</Text>
+                                            ))}
+                                        </View>
+                                    </View>
+                                )
                             }
                         </View>
                     </View>
@@ -254,30 +318,30 @@ export default function DetalharAtividade() {
 
             <View style={styles.fixedButtonsContainer}>
                 {
-                    (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE" || user?.userType === "OPERATIONAL") && ocorrenciaSelecionada.approvalStatus === "APPROVED" && (
+                    (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE" || user?.userType === "OPERATIONAL") && items.approvalStatus === "APPROVED" && (
                         <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
-                            <AprovacoStatus status={ocorrenciaSelecionada?.approvalStatus} date={ocorrenciaSelecionada?.approvalDate} />
+                            <AprovacoStatus status={items?.approvalStatus} date={items?.approvalDate} />
                         </View>
                     )
                 }
 
                 {
-                    (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE" || user?.userType === "OPERATIONAL") && ocorrenciaSelecionada.approvalStatus === "REJECTED" && (
+                    (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE" || user?.userType === "OPERATIONAL") && items.approvalStatus === "REJECTED" && (
                         <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
-                            <AprovacoStatus status={ocorrenciaSelecionada?.approvalStatus} date={ocorrenciaSelecionada?.approvalDate} />
+                            <AprovacoStatus status={items?.approvalStatus} date={items?.approvalDate} />
                         </View>
                     )
                 }
 
                 {
-                    user?.userType === "OPERATIONAL" && ocorrenciaSelecionada.approvalStatus === "PENDING" && (
+                    (user?.userType === "OPERATIONAL" && items.approvalStatus === "PENDING") && items?.statusEnum !== "COMPLETED" && (
                         <View style={styles.buttonsContainer}>
                             <TouchableOpacity onPress={() => modalizeJustificativaRef.current?.open()} style={styles.justifyButton}>
                                 <Text style={{ color: "#404944", fontSize: 16 }}>JUSTIFICAR</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
                                 onPress={() => {
-                                    setData([ocorrenciaSelecionada]);
+                                    setData([items]);
                                     router.push(`/checklist` as any)
                                 }
                                 }
@@ -289,7 +353,7 @@ export default function DetalharAtividade() {
                 }
 
                 {
-                    (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE") && ocorrenciaSelecionada.approvalStatus === "PENDING" && (
+                    (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE") && items.approvalStatus === "PENDING" && (
                         <View style={styles.buttonsContainer}>
                             <TouchableOpacity
                                 onPress={() => handleFinalizeActivity("REJECTED")}
@@ -341,7 +405,7 @@ export default function DetalharAtividade() {
                         />
                         <TextInput
                             mode="outlined"
-                            label="Justificação"
+                            label="Justificativa"
                             multiline
                             outlineColor="#707974"
                             activeOutlineColor="#0B6780"
@@ -377,15 +441,25 @@ export default function DetalharAtividade() {
                             <AntDesign name="close" size={26} color="#43575F" />
                         </TouchableOpacity>
                     </View>
-                    <Text style={styles.modalSubtitle}>Insira uma descrição do motivo pelo qual não participou da realização da ocorrenciaSelecionada?.</Text>
+                    <Text style={styles.modalSubtitle}>Insira uma descrição do motivo pelo qual não participou da realização da items?.</Text>
                     <View style={{ gap: 10 }}>
-                        <TextInput mode="outlined" label="Pessoa" outlineColor="#707974" activeOutlineColor="#707974" />
-                        <TextInput mode="outlined" label="Descrição" outlineColor="#707974" activeOutlineColor="#707974" style={{ height: 120 }} multiline={true} numberOfLines={4} />
+                        <TextInput disabled={true} value={userDescricao?.name} mode="outlined" label="Pessoa" outlineColor="#707974" activeOutlineColor="#707974" />
+                        <TextInput
+                            onChangeText={(text) => setUserDescricao(prev => ({ ...prev, reason: text }))}
+                            value={userDescricao?.reason}
+                            mode="outlined"
+                            label="Descrição"
+                            outlineColor="#707974"
+                            activeOutlineColor="#707974"
+                            style={{ height: 120 }} multiline={true}
+                            numberOfLines={4} />
                     </View>
                 </View>
                 <View style={styles.fotosContainer}>
-                    <TouchableOpacity style={styles.sendButton}>
-                        <Text style={{ color: "#fff", fontSize: 16 }}>ENVIAR</Text>
+                    <TouchableOpacity style={styles.sendButton} onPress={sendDescricao}>
+                        <Text style={{ color: "#fff", fontSize: 15 }}>
+                            {loading ? (<ActivityIndicator size="small" color="#fff" />) : "Enviar"}
+                        </Text>
                     </TouchableOpacity>
                 </View>
             </Modalize>
@@ -428,10 +502,10 @@ const styles = StyleSheet.create({
         left: 0,
         right: 0,
         padding: 16,
-        backgroundColor: '#fff',
         borderTopColor: '#eee',
-        borderTopLeftRadius: 20,
-        borderTopRightRadius: 20,
+        backgroundColor: '#fff',
+        borderTopLeftRadius: 12,
+        borderTopRightRadius: 12,
     },
     title: {
         color: "#43575F",
@@ -512,6 +586,7 @@ const styles = StyleSheet.create({
     },
     buttonsContainer: {
         gap: 10,
+        width: "100%",
         flexDirection: "row",
         justifyContent: "space-between",
     },
@@ -654,6 +729,7 @@ const styles = StyleSheet.create({
         width: "100%",
         borderWidth: 1,
         borderRadius: 12,
+        marginBottom: 10,
         paddingVertical: 20,
         flexDirection: "row",
         alignItems: "center",
@@ -686,6 +762,6 @@ const styles = StyleSheet.create({
     buttonText: {
         color: '#186B53',
         fontWeight: '500',
-        fontSize: 20
+        fontSize: 16
     },
 });

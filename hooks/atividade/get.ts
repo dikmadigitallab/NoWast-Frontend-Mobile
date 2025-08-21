@@ -25,7 +25,6 @@ export const useGetActivity = ({ page = 1, pageSize = null, query = null, superv
     const [data, setData] = useState<any>(null);
     const { logout } = useAuth();
 
-    // Mova a lógica do get para uma função useCallback
     const get = useCallback(async () => {
         setError(null);
         setLoading(true);
@@ -67,7 +66,6 @@ export const useGetActivity = ({ page = 1, pageSize = null, query = null, superv
 
             const refactory = response.data.data.items?.map((item: any) => {
 
-
                 return ({
                     id: item.id,
                     environment: item.environment?.name,
@@ -78,13 +76,13 @@ export const useGetActivity = ({ page = 1, pageSize = null, query = null, superv
                     justification: item?.justification,
                     approvalDate: item?.approvalDate,
                     checklist: item?.checklists.map((checklist: any) => ({ id: checklist.serviceItem.id, name: checklist.serviceItem.name })),
-                    // approvalStatus: justifications.length > 0 ? "PENDING_JUSTIFIED" : filterStatusActivity(item?.approvalStatus),
                     approvalStatus: filterStatusActivity(item?.approvalStatus),
                     ppe: item?.ppe,
                     tools: item?.tools,
                     products: item?.products,
                     transports: item?.transports,
                     activityFiles: item?.activityFiles.map((fileObj: any) => fileObj.file.url),
+                    userActivities: item?.userActivities.map((userActivity: any) => userActivity),
                     dateTime: new Date(item.dateTime).toLocaleString('pt-BR', {
                         year: 'numeric',
                         month: '2-digit',
@@ -96,8 +94,6 @@ export const useGetActivity = ({ page = 1, pageSize = null, query = null, superv
                     })
                 })
             }) || [];
-
-
 
             setData(refactory);
         } catch (error) {

@@ -5,7 +5,6 @@ import React, { useRef, useState } from "react";
 import {
   Animated,
   Dimensions,
-  FlatList,
   ScrollView,
   StyleSheet,
   Text,
@@ -15,18 +14,12 @@ import {
 import { PieChart } from "react-native-gifted-charts";
 
 export default function Dashboard() {
+
   const { user } = useAuth();
   const router = useRouter();
-  const { width } = Dimensions.get('window');
-  const flatListRef = useRef<FlatList<any>>(null);
   const [isExpanded, setIsExpanded] = useState(false);
   const animation = useRef(new Animated.Value(0)).current;
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  const scrollToIndex = (index: number) => {
-    setActiveIndex(index);
-    flatListRef.current?.scrollToIndex({ index, animated: true });
-  };
+  const [activeTab, setActiveTab] = useState<"atividades" | "colaboradores">("atividades");
 
   const toggleButtons = () => {
     Animated.spring(animation, {
@@ -61,8 +54,6 @@ export default function Dashboard() {
     ],
     opacity: animation,
   };
-
-
 
   const pieData = [
     { value: 35, color: "#2E97FC", gradientCenterColor: "#2E97FC" },
@@ -115,7 +106,7 @@ export default function Dashboard() {
   ];
 
   const renderAtividades = () => (
-    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 10 }}>
+    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
       <View style={styles.contentCard}>
         <View style={{ height: 50 }}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterButtonsContainer}>
@@ -146,7 +137,7 @@ export default function Dashboard() {
         <View style={styles.chartRow}>
           <View style={styles.pieWrapper}>
             <Text style={styles.pieTitle}>Atividades</Text>
-            <PieChart data={pieData} donut showGradient sectionAutoFocus radius={90} innerRadius={60} innerCircleColor={"#fff"} strokeColor={"#fff"} strokeWidth={6} centerLabelComponent={() => (
+            <PieChart data={pieData} donut showGradient sectionAutoFocus radius={90} innerRadius={60} innerCircleColor={"#fff"} strokeColor={"#f7f9fb"} strokeWidth={6} centerLabelComponent={() => (
               <View style={styles.centerLabel}>
                 <Text style={styles.percentageText}>47%</Text>
                 <Text style={styles.centerLabelText}>Excellent</Text>
@@ -169,7 +160,7 @@ export default function Dashboard() {
         <View style={styles.chartRow}>
           <View style={styles.pieWrapper}>
             <Text style={styles.pieTitle}>Aprovações</Text>
-            <PieChart data={pieData} donut showGradient sectionAutoFocus radius={90} innerRadius={65} innerCircleColor={"#fff"} strokeColor={"#fff"} strokeWidth={19} centerLabelComponent={() => (
+            <PieChart data={pieData} donut showGradient sectionAutoFocus radius={90} innerRadius={65} innerCircleColor={"#fff"} strokeColor={"#f7f9fb"} strokeWidth={19} centerLabelComponent={() => (
               <View style={styles.centerLabel}>
                 <Text style={styles.percentageText}>123.42</Text>
                 <Text style={styles.centerLabelText}>Total</Text>
@@ -192,7 +183,7 @@ export default function Dashboard() {
         <View style={styles.chartColumn}>
           <Text style={{ alignSelf: "center", fontSize: 22, color: "#43575F", fontWeight: "bold" }}>Execuções</Text>
           <View style={[styles.pieWrapper, { width: '100%' }]}>
-            <PieChart data={pieData3} donut showGradient sectionAutoFocus radius={80} innerRadius={70} innerCircleColor={"#fff"} strokeColor={"#fff"} centerLabelComponent={() => (
+            <PieChart data={pieData3} donut showGradient sectionAutoFocus radius={80} innerRadius={70} innerCircleColor={"#fff"} strokeColor={"#f7f9fb"} centerLabelComponent={() => (
               <View style={styles.centerLabel}>
                 <Text style={styles.percentageText}>132</Text>
                 <Text style={styles.centerLabelText}>Total</Text>
@@ -233,7 +224,7 @@ export default function Dashboard() {
         <View style={styles.chartColumn}>
           <Text style={{ alignSelf: "center", fontSize: 22, color: "#43575F", fontWeight: "bold" }}>Ocorrências</Text>
           <View style={[styles.pieWrapper, { width: '100%' }]}>
-            <PieChart data={pieDataOcorrencias} donut radius={80} innerRadius={65} innerCircleColor={"#F7F9FB"} strokeColor={"#fff"} showGradient sectionAutoFocus centerLabelComponent={() => (
+            <PieChart data={pieDataOcorrencias} donut radius={80} innerRadius={65} innerCircleColor={"#F7F9FB"} strokeColor={"#f7f9fb"} showGradient sectionAutoFocus centerLabelComponent={() => (
               <View style={styles.centerLabel}>
                 <Text style={styles.percentageText}>100%</Text>
                 <Text style={styles.centerLabelText}>Total</Text>
@@ -258,7 +249,7 @@ export default function Dashboard() {
   );
 
   const renderColaboradores = () => (
-    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 330 }}>
+    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
       <View style={styles.contentCard}>
         <TouchableOpacity style={[styles.filterButton, { width: "40%" }]}>
           <MaterialCommunityIcons name="calendar" size={24} color="black" />
@@ -362,49 +353,39 @@ export default function Dashboard() {
     </ScrollView>
   );
 
-  const screens = [
-    { id: '1', component: renderAtividades() },
-    { id: '2', component: renderColaboradores() }
-  ];
-
   return (
     <View style={styles.container}>
 
       <View style={styles.sectionHeaderWrapper}>
-        <TouchableOpacity style={[styles.sectionHeader, { borderRightColor: '#186b5427', borderRightWidth: 1 }]} onPress={() => scrollToIndex(0)}>
+        <TouchableOpacity
+          style={[styles.sectionHeader, { borderRightColor: '#186b5427', borderRightWidth: 1 }]}
+          onPress={() => setActiveTab("atividades")}
+        >
           <View />
           <Text style={styles.sectionTitle}>Atividades</Text>
-          <View style={[styles.activeBar, { opacity: activeIndex === 0 ? 1 : 0 }]} />
+          <View style={[styles.activeBar, { opacity: activeTab === "atividades" ? 1 : 0 }]} />
         </TouchableOpacity>
-        <TouchableOpacity style={styles.sectionHeader} onPress={() => scrollToIndex(1)}>
+        <TouchableOpacity
+          style={styles.sectionHeader}
+          onPress={() => setActiveTab("colaboradores")}
+        >
           <View />
           <Text style={styles.sectionTitle}>Colaborador</Text>
-          <View style={[styles.activeBar, { opacity: activeIndex === 1 ? 1 : 0 }]} />
+          <View style={[styles.activeBar, { opacity: activeTab === "colaboradores" ? 1 : 0 }]} />
         </TouchableOpacity>
       </View>
 
-      <FlatList
-        ref={flatListRef}
-        data={screens}
-        renderItem={({ item }) => item.component}
-        contentContainerStyle={{ gap: 10 }}
-        keyExtractor={item => item.id} horizontal pagingEnabled showsHorizontalScrollIndicator={false} onMomentumScrollEnd={(e) => {
-          const newIndex = Math.round(e.nativeEvent.contentOffset.x / width);
-          setActiveIndex(newIndex);
-        }}
-        initialScrollIndex={activeIndex}
-        getItemLayout={(data, index) => ({
-          length: width,
-          offset: width * index,
-          index,
-        })}
-      />
+      {/* Renderização condicional baseada na tab ativa */}
+      {activeTab === "atividades" ? renderAtividades() : renderColaboradores()}
 
       {(user?.userType === "ADM_DIKMA" || user?.userType === "OPERATIONAL") && (
         <View style={styles.fabContainer}>
           <Animated.View style={[styles.fabButton, tagStyle]}>
             <TouchableOpacity
-              onPress={() => router.push("/tag" as never)}
+              onPress={() => {
+                toggleButtons();
+                router.push("/tag" as never)
+              }}
               style={[styles.innerButton, { backgroundColor: "#28A745" }]}
             >
               <MaterialCommunityIcons name="cellphone-nfc" size={20} color="#fff" />
@@ -413,7 +394,10 @@ export default function Dashboard() {
 
           <Animated.View style={[styles.fabButton, ocorrenciaStyle]}>
             <TouchableOpacity
-              onPress={() => router.push("/criarOcorrencia" as never)}
+              onPress={() => {
+                toggleButtons();
+                router.push("/criarOcorrencia" as never)
+              }}
               style={[styles.innerButton, { backgroundColor: "#FF3B30" }]}
             >
               <AntDesign name="form" size={20} color="#fff" />

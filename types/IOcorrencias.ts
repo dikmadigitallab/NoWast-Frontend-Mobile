@@ -22,9 +22,20 @@ export interface IAtividade {
   tools: IItem[];
   transports: IItem[];
   activityFiles: string[];
+  userActivities: string[];
   approvalDate?: string;
   statusEnum?: string;
   justifications?: any;
   justification?: any;
+  supervisorId?: number;
+  positionId?: number;
+  managerId?: number;
+  responsibleManagerId?: number;
+  buildingId?: number;
+  environmentId?: number;
+  createdAt: string;
+  updatedAt: string;
+  deletedAt: string | null;
+  activityId: number;
 
 }

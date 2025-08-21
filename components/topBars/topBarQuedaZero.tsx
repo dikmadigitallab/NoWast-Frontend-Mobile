@@ -29,7 +29,6 @@ export function TopBar({ customBack, router, pathname }: TopBarProps) {
   const navigation = useNavigation() as DrawerNavigationProp<any>;
   const showIcons = ["/mapa", "/detalharOcorrencia", "/detalharAtividade", "/checklist", "/notificacoes", "/criarOcorrencia", "/tag"]
 
-
   return (
     <View style={[
       styles.container,

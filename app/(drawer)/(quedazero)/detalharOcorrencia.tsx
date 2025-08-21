@@ -10,7 +10,7 @@ import { Modalize } from "react-native-modalize";
 import { TextInput } from "react-native-paper";
 import MapScreen from "../../../components/renderMapOcorrencias";
 import { AudioPlayer } from "../../../components/reprodutorAudio";
-import { useOcorrenciasStore } from "../../../store/storeOcorrencias";
+import { useItemsStore } from "../../../store/storeOcorrencias";
 import { StatusContainer, StyledMainContainer } from "../../../styles/StyledComponents";
 import { getStatusColor } from "../../../utils/statusColor";
 
@@ -28,7 +28,7 @@ export default function DetalharOcorrencia() {
   const { user } = useAuth();
   const modalizeRef = useRef<Modalize | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
-  const { ocorrenciaSelecionada } = useOcorrenciasStore();
+  const { items } = useItemsStore();
 
   const closeModal = () => {
     if (modalizeRef.current) {
@@ -41,7 +41,7 @@ export default function DetalharOcorrencia() {
     setModalVisible(false);
   };
 
-  if (!ocorrenciaSelecionada) {
+  if (!items) {
     return (
       <StyledMainContainer>
         <Text style={styles.title}>Detalhar Ocorrência</Text>
@@ -61,33 +61,33 @@ export default function DetalharOcorrencia() {
                 <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
               </View>
               <Text style={styles.text}>
-                {ocorrenciaSelecionada.data} - {ocorrenciaSelecionada.hora}
+                {items.data} - {items.hora}
               </Text>
             </View>
-            <View style={[styles.linha, { height: ocorrenciaSelecionada.justificativa ? 250 : 40, alignItems: "flex-start" }]}>
+            <View style={[styles.linha, { height: items.justificativa ? 250 : 40, alignItems: "flex-start" }]}>
               <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
                 <Entypo name="flag" size={15} color="#43575F" />
                 <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
               </View>
               <View style={{ width: "100%", gap: 10 }}>
-                <StatusContainer backgroundColor={getStatusColor(ocorrenciaSelecionada?.status)}>
+                <StatusContainer backgroundColor={getStatusColor(items?.status)}>
                   <Text style={styles.statusTextWhite}>
-                    {ocorrenciaSelecionada?.status === "Concluído" ? `Concluído em ${ocorrenciaSelecionada?.dataConclusao} / ${ocorrenciaSelecionada?.horaConclusao}` : ocorrenciaSelecionada?.status}
+                    {items?.status === "Concluído" ? `Concluído em ${items?.dataConclusao} / ${items?.horaConclusao}` : items?.status}
                   </Text>
                 </StatusContainer>
                 {
-                  ocorrenciaSelecionada.justificativa && (
+                  items.justificativa && (
                     <View>
                       <View style={{ flexDirection: "row", gap: 10, height: "100%" }}>
                         <View style={{ width: "100%", flexDirection: "column", gap: 10 }}>
                           <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-                            <Text style={styles.text}>Motivo: {ocorrenciaSelecionada.justificativa.motivo}</Text>
+                            <Text style={styles.text}>Motivo: {items.justificativa.motivo}</Text>
                           </ View>
                           <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-                            <Text style={styles.text}>Descrição: {ocorrenciaSelecionada.justificativa.descricao}</Text>
+                            <Text style={styles.text}>Descrição: {items.justificativa.descricao}</Text>
                           </ View>
                           <View style={styles.imageContainer}>
-                            <Image source={ocorrenciaSelecionada.justificativa.imagem as any} style={styles.image} />
+                            <Image source={items.justificativa.imagem as any} style={styles.image} />
                           </View>
                         </View>
                       </View>
@@ -103,7 +103,7 @@ export default function DetalharOcorrencia() {
                 <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
               </View>
               <Text style={styles.textBold}>Encarregado:</Text>
-              <Text style={styles.text}>{ocorrenciaSelecionada.nome}</Text>
+              <Text style={styles.text}>{items.nome}</Text>
             </View>
 
             <View style={[styles.linha, { height: 150, alignItems: "flex-start" }]}>
@@ -112,7 +112,7 @@ export default function DetalharOcorrencia() {
                 <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
               </View>
               <View style={{ flexDirection: "column", gap: 10 }}>
-                <Text style={styles.text}>Fotos Registradas: {ocorrenciaSelecionada.data_fotos_registradas} - {ocorrenciaSelecionada.hora_fotos_registradas}</Text>
+                <Text style={styles.text}>Fotos Registradas: {items.data_fotos_registradas} - {items.hora_fotos_registradas}</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingRight: 50 }}>
                   {images.map((image, index) => (
                     <View key={index} style={{ width: 200, height: "100%", marginRight: 10 }}>
@@ -128,7 +128,7 @@ export default function DetalharOcorrencia() {
                 <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
               </View>
               <Text style={styles.textBold}>Material:</Text>
-              <Text style={styles.text}>{ocorrenciaSelecionada.material}</Text>
+              <Text style={styles.text}>{items.material}</Text>
             </View>
 
             <View style={styles.linha}>
@@ -136,7 +136,7 @@ export default function DetalharOcorrencia() {
                 <MaterialCommunityIcons name="weight" size={15} color="#43575F" />
                 <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
               </View>
-              <Text style={styles.text}>{ocorrenciaSelecionada.peso}</Text>
+              <Text style={styles.text}>{items.peso}</Text>
             </View>
 
             <View style={styles.linha}>
@@ -145,7 +145,7 @@ export default function DetalharOcorrencia() {
                 <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
               </View>
               <Text style={styles.textBold}>Causa da queda:</Text>
-              <Text style={styles.text}>{ocorrenciaSelecionada.causa_queda}</Text>
+              <Text style={styles.text}>{items.causa_queda}</Text>
             </View>
 
             <View style={styles.linha}>
@@ -153,7 +153,7 @@ export default function DetalharOcorrencia() {
                 <FontAwesome name="exclamation-triangle" size={15} color="#43575F" />
                 <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
               </View>
-              <Text style={styles.text}>{ocorrenciaSelecionada.status}</Text>
+              <Text style={styles.text}>{items.status}</Text>
             </View>
 
             <View style={[styles.linha, { height: 320, alignItems: "flex-start", marginTop: 5 }]}>
@@ -165,13 +165,13 @@ export default function DetalharOcorrencia() {
                 <View style={styles.locationTextContainer}>
                   <View style={styles.coluna_localizacao}>
                     <Text style={styles.textBold}>Localização:</Text>
-                    <Text style={[styles.text, { fontWeight: "700" }]}>Prédio: <Text style={{ fontWeight: 400 }}>{ocorrenciaSelecionada.localizacao.local}</Text></Text>
-                    <Text style={[styles.text, { fontWeight: "700" }]}>Setor: <Text style={{ fontWeight: 400 }}>{ocorrenciaSelecionada.localizacao.origem}</Text></Text>
-                    <Text style={[styles.text, { fontWeight: "700" }]}>Dimensão: <Text style={{ fontWeight: 400 }}>{ocorrenciaSelecionada.localizacao.origem_detalhado}</Text></Text>
+                    <Text style={[styles.text, { fontWeight: "700" }]}>Prédio: <Text style={{ fontWeight: 400 }}>{items.localizacao.local}</Text></Text>
+                    <Text style={[styles.text, { fontWeight: "700" }]}>Setor: <Text style={{ fontWeight: 400 }}>{items.localizacao.origem}</Text></Text>
+                    <Text style={[styles.text, { fontWeight: "700" }]}>Dimensão: <Text style={{ fontWeight: 400 }}>{items.localizacao.origem_detalhado}</Text></Text>
                   </View>
                 </View>
                 <View style={styles.mapContainer}>
-                  <MapScreen location={ocorrenciaSelecionada.localizacao} showMap={() => true} />
+                  <MapScreen location={items.localizacao} showMap={() => true} />
                 </View>
               </View>
             </View>
@@ -207,7 +207,7 @@ export default function DetalharOcorrencia() {
           </View>
 
           {
-            (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE") && ocorrenciaSelecionada.aprovacao === null && (
+            (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE") && items.aprovacao === null && (
               <View style={styles.buttonsContainer}>
                 <TouchableOpacity style={styles.justifyButton}>
                   <Text style={{ color: "#404944", fontSize: 16 }}>REPROVAR</Text>
@@ -221,17 +221,17 @@ export default function DetalharOcorrencia() {
           }
 
           {
-            (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE") && ocorrenciaSelecionada.aprovacao === "Aprovado" && (
+            (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE") && items.aprovacao === "Aprovado" && (
               <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
-                <AprovacoStatus status={ocorrenciaSelecionada?.aprovacao} date={ocorrenciaSelecionada?.dataAprovacao} />
+                <AprovacoStatus status={items?.aprovacao} date={items?.dataAprovacao} />
               </View>
             )
           }
 
           {
-            (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE") && ocorrenciaSelecionada.aprovacao === "Reprovado" && (
+            (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE") && items.aprovacao === "Reprovado" && (
               <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
-                <AprovacoStatus status={ocorrenciaSelecionada?.aprovacao} date={ocorrenciaSelecionada?.dataAprovacao} />
+                <AprovacoStatus status={items?.aprovacao} date={items?.dataAprovacao} />
               </View>
             )
           }

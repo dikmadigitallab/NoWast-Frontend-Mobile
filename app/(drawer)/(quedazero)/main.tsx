@@ -1,5 +1,6 @@
 // Ocorrencias.tsx
 import AprovacoStatus from "@/components/aprovacaoStatus";
+import LoadingScreen from "@/components/carregamento";
 import StatusIndicator from "@/components/StatusIndicator";
 import { useGetActivity } from "@/hooks/atividade/get";
 import { AntDesign, FontAwesome, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -10,7 +11,7 @@ import { FlatList, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View }
 import { DatePickerModal } from "react-native-paper-dates";
 import MapScreen from "../../../components/renderMapOcorrencias";
 import { useAuth } from "../../../contexts/authProvider";
-import { useOcorrenciasStore } from "../../../store/storeOcorrencias";
+import { useItemsStore } from "../../../store/storeOcorrencias";
 import { StyledMainContainer } from "../../../styles/StyledComponents";
 
 export default function Mainpage() {
@@ -21,7 +22,7 @@ export default function Mainpage() {
     const [date, setDate] = useState<Date | undefined>(undefined);
     const [showMap, setShowMap] = useState(false);
     const [openDate, setOpenDate] = useState(false);
-    const { setOcorrenciaSelecionada } = useOcorrenciasStore();
+    const { setitems } = useItemsStore();
     const [atividadeSelecionada, setAtividadeSelecionada] = useState({ atividade: "", label: "" });
 
     useFocusEffect(
@@ -29,7 +30,6 @@ export default function Mainpage() {
             if (refetch) {
                 refetch();
             }
-
             setDate(undefined);
             setAtividadeSelecionada({ atividade: "", label: "" });
         }, [refetch])
@@ -55,10 +55,13 @@ export default function Mainpage() {
     }
 
     const onSelected = (data: any, rota: string) => {
-        setOcorrenciaSelecionada(data);
+        setitems(data);
         router.push(rota as never);
     };
 
+    if (!data) {
+        return (<LoadingScreen />)
+    }
 
     const renderAtividadeItem = ({ item }: { item: any }) => {
         const [date, time] = item.dateTime.split(' ');

@@ -1,5 +1,6 @@
 import { useAuth } from '@/contexts/authProvider';
 import { useModuleStore } from '@/store/moduleStore';
+import { userTypes } from '@/types/user';
 import { FontAwesome, FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
@@ -14,14 +15,6 @@ export default function SelecionarStack() {
     const [loading, setLoading] = useState(false);
     const { user } = useAuth();
 
-    const userTypes: { [key: string]: string } = {
-        DEFAULT: '',
-        ADM_DIKMA: 'Administrador Dikma',
-        GESTAO: 'Gestão',
-        ADM_CLIENTE: 'Administrador(a) Cliente Dikma',
-        DIKMA_DIRECTOR: 'Diretoria Dikma',
-        OPERATIONAL: 'Operacional'
-    }
 
     const handleSelecionarStack = (stack: 'quedazero' | 'coleta' | 'residuos') => {
         setModuleType(stack);
