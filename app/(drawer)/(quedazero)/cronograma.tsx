@@ -1,10 +1,12 @@
 import AprovacoStatus from '@/components/aprovacaoStatus';
 import { Dados } from '@/data';
+import { useGetActivity } from '@/hooks/atividade/get';
 import { AntDesign, Entypo, FontAwesome6 } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
+import { useFocusEffect } from 'expo-router';
 import moment from 'moment';
 import 'moment/locale/pt-br';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
   Dimensions,
@@ -34,6 +36,17 @@ export default function Cronograma() {
   const [atividadeSelecionada, setAtividadeSelecionada] = useState({ atividade: "", label: "" });
   const pickerRef = useRef<any>(null);
   const animatedHeight = useRef(new Animated.Value(0)).current;
+  const { data, refetch, loading } = useGetActivity({});
+
+  useFocusEffect(
+    useCallback(() => {
+      if (refetch) {
+        refetch();
+      }
+      setAtividadeSelecionada({ atividade: "", label: "" });
+    }, [refetch])
+  );
+
 
   useEffect(() => {
     Animated.timing(animatedHeight, {

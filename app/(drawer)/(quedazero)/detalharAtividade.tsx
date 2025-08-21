@@ -346,7 +346,7 @@ export default function DetalharAtividade() {
                                 }
                                 }
                                 style={styles.doneButton}>
-                                <Text style={styles.doneButtonText}>REALIZADA</Text>
+                                <Text style={styles.doneButtonText}>REALIZAR</Text>
                             </TouchableOpacity>
                         </View>
                     )
@@ -503,7 +503,7 @@ const styles = StyleSheet.create({
         right: 0,
         padding: 16,
         borderTopColor: '#eee',
-        backgroundColor: '#fff',
+        backgroundColor: '#f7f9fb',
         borderTopLeftRadius: 12,
         borderTopRightRadius: 12,
     },
