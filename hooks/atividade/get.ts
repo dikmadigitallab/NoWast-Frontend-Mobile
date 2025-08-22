@@ -27,7 +27,6 @@ export const useGetActivity = ({ page = 1, pageSize = null, query = null, superv
 
     const get = useCallback(async () => {
         setError(null);
-        setLoading(true);
 
         const authToken = await AsyncStorage.getItem("authToken");
 
@@ -40,6 +39,7 @@ export const useGetActivity = ({ page = 1, pageSize = null, query = null, superv
 
         try {
             const params = new URLSearchParams();
+            setLoading(true);
 
             params.append("disablePagination", "true");
             params.append("page", String(page));
@@ -66,6 +66,10 @@ export const useGetActivity = ({ page = 1, pageSize = null, query = null, superv
 
             const refactory = response.data.data.items?.map((item: any) => {
 
+                const data = item.userActivities.map((userActivity: any) => userActivity);
+                const data2 = data.map((userActivity: any) => userActivity.user);
+                const data3 = data2.map((userActivity: any) => userActivity.justifications);
+
                 return ({
                     id: item.id,
                     environment: item.environment?.name,
@@ -77,12 +81,18 @@ export const useGetActivity = ({ page = 1, pageSize = null, query = null, superv
                     approvalDate: item?.approvalDate,
                     checklist: item?.checklists.map((checklist: any) => ({ id: checklist.serviceItem.id, name: checklist.serviceItem.name })),
                     approvalStatus: filterStatusActivity(item?.approvalStatus),
+                    local: {
+                        latitude: item?.environment?.sector?.latitude,
+                        longitude: item?.environment?.sector?.longitude
+                    },
                     ppe: item?.ppe,
                     tools: item?.tools,
                     products: item?.products,
                     transports: item?.transports,
                     activityFiles: item?.activityFiles.map((fileObj: any) => fileObj.file.url),
                     userActivities: item?.userActivities.map((userActivity: any) => userActivity),
+                    file: item?.justification?.justificationFiles[0]?.file.url,
+                    userJustification: data3[1][0].description,
                     dateTime: new Date(item.dateTime).toLocaleString('pt-BR', {
                         year: 'numeric',
                         month: '2-digit',
@@ -94,6 +104,7 @@ export const useGetActivity = ({ page = 1, pageSize = null, query = null, superv
                     })
                 })
             }) || [];
+
 
             setData(refactory);
         } catch (error) {
@@ -111,8 +122,6 @@ export const useGetActivity = ({ page = 1, pageSize = null, query = null, superv
     }, [get]);
 
     useEffect(() => {
-        setLoading(true);
-
         const delayDebounce = setTimeout(() => {
             get();
         }, 1000);

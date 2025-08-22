@@ -9,7 +9,7 @@ const images = [
 ];
 
 export function getStatusImage(status?: string) {
-  switch (status?.toLowerCase()) {
+  switch (status) {
     case "grave":
       return images[2];
     case "leve":
@@ -18,9 +18,9 @@ export function getStatusImage(status?: string) {
       return images[0];
     case "PENDING":
       return images[3];
-    case "concluído":
+    case "COMPLETED":
       return images[4];
-    case "aberto":
+    case "OPEN":
       return images[5];
     default:
       return images[0];

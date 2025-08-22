@@ -22,7 +22,6 @@ import Calendario from '../../../components/calendario';
 import { StatusContainer, StyledMainContainer } from '../../../styles/StyledComponents';
 import { getStatusColor } from '../../../utils/statusColor';
 
-// Interface para tipar os dados da API
 interface ActivityData {
   activityFiles: any[];
   approvalDate: string | null;
@@ -48,22 +47,21 @@ const formatDateHeader = (dateStr: string) => {
   return date.format('dddd [ - ] DD [de] MMMM').replace(/^\w/, c => c.toUpperCase());
 };
 
-// Função para extrair data e hora do campo dateTime (formato 00:00)
 const extractDateTime = (dateTime: string) => {
   const [date, fullTime] = dateTime.split(' ');
   const [hours, minutes] = fullTime.split(':');
-  const time = `${hours}:${minutes}`; // Formato 00:00
+  const time = `${hours}:${minutes}`;
 
   return { date, time };
 };
 
 export default function Cronograma() {
   const [open, setOpen] = useState(false);
-  const [showCalendar, setShowCalendar] = useState(false);
+  const [showCalendar, setShowCalendar] = useState(true);
   const [range, setRange] = useState<{ startDate?: Date; endDate?: Date }>({});
   const [atividadeSelecionada, setAtividadeSelecionada] = useState({ atividade: "", label: "" });
   const pickerRef = useRef<any>(null);
-  const animatedHeight = useRef(new Animated.Value(0)).current;
+  const animatedHeight = useRef(new Animated.Value(360)).current;
   const { data, refetch, loading } = useGetActivity({});
 
   useFocusEffect(
@@ -94,7 +92,6 @@ export default function Cronograma() {
     setRange({ startDate, endDate });
   };
 
-  // Processar os dados da API para o formato esperado pela SectionList
   const sections = useMemo<any[]>(() => {
     if (!data || !Array.isArray(data)) return [];
 
@@ -106,7 +103,6 @@ export default function Cronograma() {
 
       if (!grouped[key]) grouped[key] = [];
 
-      // Formatar hora de conclusão para o formato 00:00
       let horaConclusaoFormatada = "";
       if (item.statusEnum === "COMPLETED" && item.approvalDate) {
         const approvalMoment = moment(item.approvalDate);
@@ -116,7 +112,7 @@ export default function Cronograma() {
       grouped[key].push({
         id: item.id.toString(),
         data: date,
-        hora: extractDateTime(item.dateTime).time, // Já está no formato 00:00
+        hora: extractDateTime(item.dateTime).time,
         localizacao: {
           local: item.environment,
           origem: `Dimensão: ${item.dimension}`
@@ -128,20 +124,13 @@ export default function Cronograma() {
         horaConclusao: horaConclusaoFormatada,
         aprovacao: item.approvalStatus,
         dataAprovacao: item.approvalDate ? moment(item.approvalDate).format('DD/MM/YYYY HH:mm') : null,
-        foto: [] // Placeholder para fotos
+        foto: []
       });
     });
 
     return Object.entries(grouped).map(([title, data]) => ({ title, data }));
   }, [data]);
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Text>Carregando atividades...</Text>
-      </View>
-    );
-  }
 
   return (
     <View style={{ flex: 1 }}>
@@ -166,14 +155,37 @@ export default function Cronograma() {
         <Picker.Item label="Ocorrências" value="ocorrências" />
       </Picker>
 
-      <Animated.View style={{ overflow: "hidden", height: animatedHeight, backgroundColor: "#186B53" }}>
+      <Animated.View style={{
+        overflow: "hidden",
+        height: animatedHeight,
+        backgroundColor: "#186B53",
+        elevation: 5,
+        shadowColor: "#000",
+        shadowOffset: {
+          width: 0,
+          height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+      }}>
         <Calendario />
       </Animated.View>
-      <TouchableOpacity onPress={() => setShowCalendar(!showCalendar)} style={[styles.toggleButton, { backgroundColor: showCalendar ? "#166f56" : "#186B53" }]}>
-        <AntDesign name={showCalendar ? "up" : "down"} size={20} color={showCalendar ? "#00ab7b" : "#fff"} />
-      </TouchableOpacity>
-      <StyledMainContainer>
 
+      <TouchableOpacity
+        onPress={() => setShowCalendar(!showCalendar)}
+        style={[styles.toggleButton, {
+          backgroundColor: showCalendar ? "#166f56" : "#186B53",
+          borderBottomLeftRadius: 10,
+          borderBottomRightRadius: 10,
+        }]}
+      >
+        <AntDesign name={showCalendar ? "up" : "down"} size={20} color="#fff" />
+        <Text style={styles.toggleButtonText}>
+          {showCalendar ? "Recolher calendário" : "Expandir calendário"}
+        </Text>
+      </TouchableOpacity>
+
+      <StyledMainContainer>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingVertical: 10 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 5 }}>
             <TouchableOpacity style={styles.filterButton} onPress={openSelect} >
@@ -295,7 +307,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 5
+    paddingVertical: 12,
+    paddingHorizontal: 15,
+    marginTop: -10,
+    zIndex: 10,
+  },
+  toggleButtonText: {
+    color: '#fff',
+    marginLeft: 8,
+    fontWeight: '500',
+    fontSize: 12,
   },
   filterButton: {
     height: 40,

@@ -23,7 +23,9 @@
       },
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ],
       "package": "br.com.dikmadigital.nowaste",
       "config": {
@@ -41,6 +43,12 @@
       "expo-router",
       "./plugins/custom-android-styles.js",
       [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow $(PRODUCT_NAME) to use your location."
+        }
+      ],
+      [
         "expo-camera",
         {
           "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera",
@@ -57,9 +65,9 @@
         "origin": false
       },
       "eas": {
-        "projectId": "0cb420c4-1a9b-448a-ae14-867f2e2eabcf"
+        "projectId": "ea0c1e7b-f729-4d48-9740-411d3efe46e7"
       }
     },
-    "owner": "warlleimartins"
+    "owner": "warllei.martins"
   }
 }

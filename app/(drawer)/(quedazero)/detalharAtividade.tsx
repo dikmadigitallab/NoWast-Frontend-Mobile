@@ -101,6 +101,8 @@ export default function DetalharAtividade() {
         return (<LoadingScreen />)
     }
 
+    console.log("items", items)
+
     return (
         <View style={styles.mainContainer}>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} >
@@ -201,21 +203,31 @@ export default function DetalharAtividade() {
                                 <View style={{ flexDirection: "column", gap: 10 }}>
                                     {items?.userActivities.map((data: any, index: number) => {
                                         return (
-                                            <View key={index} style={{ flexDirection: "row", width: "90%", alignItems: "flex-start", gap: 10 }}>
-                                                <View style={{ flexDirection: "column", alignItems: "flex-start", }}>
-                                                    <Text style={{ fontSize: 12, color: "#999" }}>{userTypes[data.user.userType]}</Text>
-                                                    <Text style={{ fontSize: 14, color: "#43575F" }}>{data.user.person.name}</Text>
+                                            <View key={index} style={{ flexDirection: "row", alignItems: "flex-start", gap: 10 }}>
+                                                <View style={{ flexDirection: "column", alignItems: "flex-start", gap: 5 }}>
+                                                    <View>
+                                                        <Text style={{ fontSize: 12, color: "#999" }}>{userTypes[data.user.userType]}</Text>
+                                                        <Text style={{ fontSize: 14, color: "#43575F" }}>{data.user.person.name}</Text>
+                                                    </View>
+                                                    <View>
+                                                        <Text style={{ fontSize: 12, color: "#999" }}>Justificativa:</Text>
+                                                        <Text style={{ fontSize: 12, color: "#43575F" }}>{items?.userJustification}</Text>
+                                                    </View>
+
                                                 </View>
-                                                <TouchableOpacity
-                                                    onPress={() => openModelizeDescricao({
-                                                        activityId: items.id,
-                                                        userId: data.user.id,
-                                                        name: data.user.person.name
-                                                    })}
-                                                    style={{ flexDirection: "row", alignItems: "center", gap: 5, borderWidth: 1, borderRadius: 100, borderColor: "#43575F", padding: 5 }}>
-                                                    <AntDesign name="plus" size={15} color="#404944" />
-                                                    <Text style={{ fontSize: 12, color: "#404944" }}>Descrição</Text>
-                                                </TouchableOpacity>
+                                                {
+                                                    !items?.userJustification &&
+                                                    <TouchableOpacity
+                                                        onPress={() => openModelizeDescricao({
+                                                            activityId: items.id,
+                                                            userId: data.user.id,
+                                                            name: data.user.person.name
+                                                        })}
+                                                        style={{ flexDirection: "row", alignItems: "center", gap: 5, borderWidth: 1, borderRadius: 100, borderColor: "#43575F", padding: 5 }}>
+                                                        <AntDesign name="plus" size={15} color="#404944" />
+                                                        <Text style={{ fontSize: 12, color: "#404944" }}>Descrição</Text>
+                                                    </TouchableOpacity>
+                                                }
                                             </View>
 
                                         )

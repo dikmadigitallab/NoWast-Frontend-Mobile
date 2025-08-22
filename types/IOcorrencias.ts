@@ -37,5 +37,6 @@ export interface IAtividade {
   updatedAt: string;
   deletedAt: string | null;
   activityId: number;
+  userJustification?: string;
 
 }

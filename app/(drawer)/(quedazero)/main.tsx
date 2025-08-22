@@ -80,9 +80,9 @@ export default function Mainpage() {
                             justifyContent: 'center',
                             alignItems: 'center'
                         }}>
-                            {item?.activityFiles.length > 1 ? (
+                            {item?.file ? (
                                 <Image
-                                    source={{ uri: item.activityFiles[0] }}
+                                    source={{ uri: item.file }}
                                     style={{ width: "100%", height: "100%", borderRadius: 10 }}
                                 />
                             ) :

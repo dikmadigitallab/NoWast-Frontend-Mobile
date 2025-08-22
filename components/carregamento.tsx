@@ -15,6 +15,11 @@ const LoadingScreen = ({ message = "Carregando...", color = "#186b53", backgroun
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        zIndex: 99999,
+        width: '100%',
+        height: '100%',
+        position: 'absolute',
+        backgroundColor: '#fff',
         justifyContent: 'center',
         alignItems: 'center',
         padding: 20,

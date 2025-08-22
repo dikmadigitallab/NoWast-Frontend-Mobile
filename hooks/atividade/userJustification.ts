@@ -51,8 +51,6 @@ export const useUserJustification = () => {
                 }
             });
 
-            console.log(formData)
-
             const response = await fetch(`http://189.50.3.3:3308/activity/${data?.activityId}/users/${data?.userId}/justify-absence`, {
                 method: "POST",
                 headers: {

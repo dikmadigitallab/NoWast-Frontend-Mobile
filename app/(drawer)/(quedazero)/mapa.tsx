@@ -1,55 +1,147 @@
-import AprovacoStatus from "@/components/aprovacaoStatus";
-import { Dados } from "@/data";
+import LoadingScreen from "@/components/carregamento";
+import { useGetActivity } from "@/hooks/atividade/get";
 import { StatusContainer } from "@/styles/StyledComponents";
 import { getStatusColor } from "@/utils/statusColor";
 import { AntDesign, Entypo, FontAwesome, Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import { useFocusEffect } from "expo-router";
+import moment from "moment";
+import "moment/locale/pt-br";
+import React, { useCallback, useRef, useState } from "react";
 import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import MapView, { Marker, Region } from "react-native-maps";
-import { IOcorrencias } from "../../../types/IOcorrencias";
 import { getStatusImage } from "../../../utils/getStatusImage";
 
-export default function Mapa() {
-
-  const [selectedLocation, setSelectedLocation] = useState<IOcorrencias | null>(null);
-
-  const initialRegion: Region = {
-    latitude: -20.3155,
-    longitude: -40.3128,
-    latitudeDelta: 0.5,
-    longitudeDelta: 0.5,
+interface ActivityData {
+  activityFiles: any[];
+  approvalDate: string | null;
+  approvalStatus: string;
+  checklist: any[];
+  dateTime: string;
+  dimension: number;
+  environment: string;
+  id: number;
+  justification: string | null;
+  manager: string;
+  ppe: any;
+  local: {
+    latitude: number | string;
+    longitude: number | string;
   };
+  products: any[];
+  statusEnum: string;
+  supervisor: string;
+  tools: any[];
+  transports: any[];
+  userActivities: any[];
+}
+
+const extractDateTime = (dateTime: string) => {
+  const [date, fullTime] = dateTime.split(' ');
+  const [hours, minutes] = fullTime.split(':');
+  const time = `${hours}:${minutes}`;
+  return { date, time };
+};
+
+const initialRegion: Region = {
+  latitude: -20.3155,
+  longitude: -40.3128,
+  latitudeDelta: 0.5,
+  longitudeDelta: 0.5,
+};
+
+export default function Mapa() {
+  const { data, refetch, loading } = useGetActivity({});
+  const [selectedLocation, setSelectedLocation] = useState<ActivityData | null>(null);
+  const [mapLoaded, setMapLoaded] = useState(false);
+  const mapRef = useRef<MapView>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (refetch) {
+        refetch();
+        setSelectedLocation(null);
+      }
+    }, [refetch])
+  );
+
+  const handleMapLoaded = () => {
+    setMapLoaded(true);
+  };
+
+  const formatApprovalDate = (approvalDate: string | null) => {
+    if (!approvalDate) return { date: "", time: "" };
+
+    try {
+      const [datePart, timePart] = approvalDate.split(' ');
+      if (datePart && timePart) {
+        const [hours, minutes] = timePart.split(':');
+        return {
+          date: datePart,
+          time: `${hours}:${minutes}`
+        };
+      }
+
+      const momentDate = moment(approvalDate);
+      if (momentDate.isValid()) {
+        return {
+          date: momentDate.format('DD/MM/YYYY'),
+          time: momentDate.format('HH:mm')
+        };
+      }
+
+      return { date: "", time: "" };
+    } catch (error) {
+      console.error("Erro ao formatar data de aprovação:", error);
+      return { date: "", time: "" };
+    }
+  };
+
 
   return (
     <View style={styles.container}>
+      {loading && <LoadingScreen />}
 
-      <MapView style={styles.map} initialRegion={initialRegion}>
-        {Dados.map((loc) => (
-          <Marker
-            key={loc.id}
-            coordinate={{
-              latitude: loc.localizacao.latitude,
-              longitude: loc.localizacao.longitude,
-            }}
-            pinColor="red"
-            onPress={() => setSelectedLocation(loc as any)}
-          >
-            <Image
-              style={styles.markerImage}
-              resizeMode="contain"
-              source={getStatusImage(loc?.status) as never}
-            />
-          </Marker>
-        ))}
+      <MapView
+        ref={mapRef}
+        style={styles.map}
+        initialRegion={initialRegion}
+        onMapLoaded={handleMapLoaded}
+        onLayout={handleMapLoaded}
+      >
+        {data?.map((activity: ActivityData) => {
+          const lat = Number(activity.local?.latitude);
+          const lng = Number(activity.local?.longitude);
+
+          if (isNaN(lat) || isNaN(lng)) {
+            console.warn(`Coordenadas inválidas para atividade ${activity.id}`);
+            return null;
+          }
+
+          return (
+            <Marker
+              key={activity.id}
+              coordinate={{
+                latitude: lat,
+                longitude: lng,
+              }}
+              onPress={() => setSelectedLocation(activity)}
+            >
+              <Image
+                style={styles.markerImage}
+                resizeMode="contain"
+                source={getStatusImage(activity.statusEnum) as never}
+              />
+            </Marker>
+          );
+        })}
       </MapView>
 
-      <View style={styles.filterContainer}>
+      <View style={{ position: 'absolute', top: 10, flexDirection: 'row', alignSelf: 'center', justifyContent: 'space-between', alignItems: 'center', gap: 5 }}>
         <TouchableOpacity style={styles.filterButton}>
           <Entypo name="calendar" size={15} color="#186B53" />
           <Text>Data</Text>
           <AntDesign name="caretdown" size={10} color="black" />
         </TouchableOpacity>
-
         <TouchableOpacity style={styles.filterButton}>
           <Text>Ocorrências</Text>
           <AntDesign name="caretdown" size={10} color="black" />
@@ -58,51 +150,42 @@ export default function Mapa() {
 
       {selectedLocation && (
         <View style={styles.infoBox}>
-          <View style={styles.infoBoxContent}>
-            <View style={styles.infoHeader}>
-              <Image
-                style={styles.image}
-                source={selectedLocation?.foto[0]}
-                resizeMode="cover"
-              />
-              <View style={styles.infoContent}>
-                <View style={styles.row}>
-                  <Entypo name="calendar" size={15} color="black" />
-                  <Text style={styles.text}>
-                    {selectedLocation?.data} / {selectedLocation?.hora}
-                  </Text>
-                </View>
-                <View style={styles.row}>
-                  <FontAwesome name="user" size={15} color="#385866" />
-                  <Text style={styles.text} numberOfLines={1} ellipsizeMode="tail">
-                    {selectedLocation?.nome}
-                  </Text>
-                </View>
-                <View style={styles.addressRow}>
-                  <Ionicons name="location" size={15} color="#385866" />
-                  <View style={styles.flex1}>
-                    <Text style={styles.text}>
-                      {selectedLocation?.localizacao?.local} -{" "}
-                      {selectedLocation?.localizacao?.origem} - {selectedLocation?.peso}
-                    </Text>
-                  </View>
-                </View>
-                <StatusContainer backgroundColor={getStatusColor(selectedLocation?.status)}>
-                  <Text style={[styles.statusText, { color: "#fff" }]}>
-                    {selectedLocation?.status === "Concluído"
-                      ? `Concluído em ${selectedLocation?.dataConclusao} / ${selectedLocation?.horaConclusao}`
-                      : selectedLocation?.status}
-                  </Text>
-                </StatusContainer>
+          {selectedLocation.activityFiles && selectedLocation.activityFiles.length > 0 && (
+            <Image
+              style={styles.image}
+              source={{ uri: selectedLocation.activityFiles[0] }}
+              resizeMode="cover"
+            />
+          )}
+          <View style={styles.infoContent}>
+            <View style={styles.row}>
+              <Entypo name="calendar" size={15} color="black" />
+              <Text style={styles.text}>
+                {extractDateTime(selectedLocation.dateTime).date} / {extractDateTime(selectedLocation.dateTime).time}
+              </Text>
+            </View>
+            <View style={styles.row}>
+              <FontAwesome name="user" size={15} color="#385866" />
+              <Text style={styles.text} numberOfLines={1} ellipsizeMode="tail">
+                {selectedLocation.supervisor}
+              </Text>
+            </View>
+            <View style={styles.addressRow}>
+              <Ionicons name="location" size={15} color="#385866" />
+              <View style={styles.flex1}>
+                <Text style={styles.text}>
+                  Dimensão: {selectedLocation.dimension}m² - {selectedLocation.environment}
+                </Text>
               </View>
             </View>
 
-            <View style={styles.approvalContainer}>
-              <AprovacoStatus
-                status={selectedLocation.aprovacao !== null ? selectedLocation.aprovacao : "Sem Aprovacao"}
-                date={selectedLocation.dataAprovacao}
-              />
-            </View>
+            <StatusContainer backgroundColor={getStatusColor(selectedLocation.statusEnum)}>
+              <Text style={[styles.statusText, { color: "#fff" }]}>
+                {selectedLocation.statusEnum === "COMPLETED" && selectedLocation.approvalDate
+                  ? `Concluído em ${formatApprovalDate(selectedLocation.approvalDate).date} / ${formatApprovalDate(selectedLocation.approvalDate).time}`
+                  : selectedLocation.statusEnum === "COMPLETED" ? "Concluído" : "Pendente"}
+              </Text>
+            </StatusContainer>
           </View>
         </View>
       )}
@@ -111,18 +194,6 @@ export default function Mapa() {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  filterContainer: {
-    position: 'absolute',
-    top: 10,
-    flexDirection: 'row',
-    alignSelf: 'center',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: 5
-  },
   filterButton: {
     height: 40,
     width: 120,
@@ -135,6 +206,10 @@ const styles = StyleSheet.create({
     borderColor: "#d9d9d9",
     backgroundColor: "#fff"
   },
+  container: {
+    flex: 1,
+    position: 'relative',
+  },
   markerImage: {
     width: 36,
     height: 36,
@@ -145,9 +220,9 @@ const styles = StyleSheet.create({
   },
   infoBox: {
     position: "absolute",
-    overflow: "hidden",
-    bottom: Dimensions.get("window").height * 0.1,
+    bottom: 10,
     width: "95%",
+    padding: 10,
     borderRadius: 12,
     flexDirection: "row",
     justifyContent: "space-between",
@@ -158,16 +233,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 5,
     elevation: 5,
-  },
-  infoBoxContent: {
-    width: "100%",
-    flexDirection: "column",
-    gap: 5
-  },
-  infoHeader: {
-    flexDirection: "row",
-    gap: 10,
-    padding: 5
   },
   image: {
     width: "28%",
@@ -199,8 +264,4 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
   },
-  approvalContainer: {
-    width: "100%",
-    height: 40
-  }
 });
