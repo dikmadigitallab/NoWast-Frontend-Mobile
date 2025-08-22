@@ -1,5 +1,4 @@
 import AprovacoStatus from '@/components/aprovacaoStatus';
-import { Dados } from '@/data';
 import { useGetActivity } from '@/hooks/atividade/get';
 import { AntDesign, Entypo, FontAwesome6 } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
@@ -23,13 +22,42 @@ import Calendario from '../../../components/calendario';
 import { StatusContainer, StyledMainContainer } from '../../../styles/StyledComponents';
 import { getStatusColor } from '../../../utils/statusColor';
 
-const formatDateHeader = (dateStr: any) => {
+// Interface para tipar os dados da API
+interface ActivityData {
+  activityFiles: any[];
+  approvalDate: string | null;
+  approvalStatus: string;
+  checklist: any[];
+  dateTime: string;
+  dimension: number;
+  environment: string;
+  id: number;
+  justification: string | null;
+  manager: string;
+  ppe: any;
+  products: any[];
+  statusEnum: string;
+  supervisor: string;
+  tools: any[];
+  transports: any[];
+  userActivities: any[];
+}
+
+const formatDateHeader = (dateStr: string) => {
   const date = moment(dateStr, 'DD/MM/YYYY');
   return date.format('dddd [ - ] DD [de] MMMM').replace(/^\w/, c => c.toUpperCase());
 };
 
-export default function Cronograma() {
+// Função para extrair data e hora do campo dateTime (formato 00:00)
+const extractDateTime = (dateTime: string) => {
+  const [date, fullTime] = dateTime.split(' ');
+  const [hours, minutes] = fullTime.split(':');
+  const time = `${hours}:${minutes}`; // Formato 00:00
 
+  return { date, time };
+};
+
+export default function Cronograma() {
   const [open, setOpen] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
   const [range, setRange] = useState<{ startDate?: Date; endDate?: Date }>({});
@@ -46,7 +74,6 @@ export default function Cronograma() {
       setAtividadeSelecionada({ atividade: "", label: "" });
     }, [refetch])
   );
-
 
   useEffect(() => {
     Animated.timing(animatedHeight, {
@@ -67,15 +94,54 @@ export default function Cronograma() {
     setRange({ startDate, endDate });
   };
 
+  // Processar os dados da API para o formato esperado pela SectionList
   const sections = useMemo<any[]>(() => {
+    if (!data || !Array.isArray(data)) return [];
+
     const grouped: Record<string, any[]> = {};
-    Dados.forEach((item) => {
-      const key = formatDateHeader(item.data);
+
+    data.forEach((item: ActivityData) => {
+      const { date } = extractDateTime(item.dateTime);
+      const key = formatDateHeader(date);
+
       if (!grouped[key]) grouped[key] = [];
-      grouped[key].push(item);
+
+      // Formatar hora de conclusão para o formato 00:00
+      let horaConclusaoFormatada = "";
+      if (item.statusEnum === "COMPLETED" && item.approvalDate) {
+        const approvalMoment = moment(item.approvalDate);
+        horaConclusaoFormatada = approvalMoment.format('HH:mm');
+      }
+
+      grouped[key].push({
+        id: item.id.toString(),
+        data: date,
+        hora: extractDateTime(item.dateTime).time, // Já está no formato 00:00
+        localizacao: {
+          local: item.environment,
+          origem: `Dimensão: ${item.dimension}`
+        },
+        nome: `Atividade ${item.id} - ${item.environment}`,
+        status: item.statusEnum === "COMPLETED" ? "Concluído" : "Pendente",
+        dataConclusao: item.statusEnum === "COMPLETED" ?
+          (item.approvalDate ? moment(item.approvalDate).format('DD/MM/YYYY') : date) : "",
+        horaConclusao: horaConclusaoFormatada,
+        aprovacao: item.approvalStatus,
+        dataAprovacao: item.approvalDate ? moment(item.approvalDate).format('DD/MM/YYYY HH:mm') : null,
+        foto: [] // Placeholder para fotos
+      });
     });
+
     return Object.entries(grouped).map(([title, data]) => ({ title, data }));
-  }, []);
+  }, [data]);
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Text>Carregando atividades...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={{ flex: 1 }}>
@@ -100,7 +166,6 @@ export default function Cronograma() {
         <Picker.Item label="Ocorrências" value="ocorrências" />
       </Picker>
 
-
       <Animated.View style={{ overflow: "hidden", height: animatedHeight, backgroundColor: "#186B53" }}>
         <Calendario />
       </Animated.View>
@@ -109,18 +174,16 @@ export default function Cronograma() {
       </TouchableOpacity>
       <StyledMainContainer>
 
-
-
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingVertical: 10 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 5 }}>
             <TouchableOpacity style={styles.filterButton} onPress={openSelect} >
               <FontAwesome6 name="location-dot" size={15} color="#43575F" />
-              <Text>Sinterização</Text>
+              <Text style={styles.filterButtonText}>Ambiente</Text>
               <AntDesign name="caretdown" size={10} color="black" />
             </TouchableOpacity>
             <TouchableOpacity style={styles.filterButton} onPress={openSelect}>
               <FontAwesome6 name="user-tie" size={15} color="#43575F" />
-              <Text>2+ Seelecionado</Text>
+              <Text style={styles.filterButtonText}>Supervisor</Text>
               <AntDesign name="caretdown" size={10} color="black" />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setOpen(true)} style={[styles.filterButton]}>
@@ -136,78 +199,103 @@ export default function Cronograma() {
           </View>
         </ScrollView>
 
-        <SectionList
-          sections={sections}
-          keyExtractor={(item) => item.id}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ gap: 10, paddingBottom: Dimensions.get('window').height - 750 }}
-          renderSectionHeader={({ section: { title } }) => (
-            <View style={{ flexDirection: "row", alignItems: "center" }}>
-              <Text style={styles.sectionHeader}>{title}</Text>
-              <View style={{ width: "100%", height: 1, marginLeft: 10, backgroundColor: "#81A8B8" }} />
-            </View>
-          )}
-          renderItem={({ item }) => (
-            <View>
-              <Text style={styles.horaText}>{item.hora}</Text>
-              <View style={styles.mainOccurrenceItem}>
-                <View style={styles.occurrenceItem}>
+        {sections.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>Nenhuma atividade encontrada</Text>
+          </View>
+        ) : (
+          <SectionList
+            sections={sections}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ gap: 10, paddingBottom: Dimensions.get('window').height - 750 }}
+            renderSectionHeader={({ section: { title } }) => (
+              <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}>
+                <Text style={styles.sectionHeader}>{title}</Text>
+                <View style={{ flex: 1, height: 1, marginLeft: 10, backgroundColor: "#81A8B8" }} />
+              </View>
+            )}
+            renderItem={({ item }) => (
+              <View style={styles.itemContainer}>
+                <Text style={styles.horaText}>{item.hora}</Text>
+                <View style={styles.mainOccurrenceItem}>
+                  <View style={styles.occurrenceItem}>
 
-                  <View style={styles.contentInfoConteiner}>
-                    <View style={styles.photoContainer}>
-                      {item?.foto?.[0] && (
-                        <ImageBackground
-                          source={item.foto[0]}
-                          style={{ width: "100%", height: "100%" }}
-                          resizeMode="cover"
-                          imageStyle={styles.imageStyle}
-                        />
-                      )}
+                    <View style={styles.contentInfoConteiner}>
+                      <View style={styles.photoContainer}>
+                        {item?.foto?.[0] ? (
+                          <ImageBackground
+                            source={item.foto[0]}
+                            style={{ width: "100%", height: "100%" }}
+                            resizeMode="cover"
+                            imageStyle={styles.imageStyle}
+                          />
+                        ) : (
+                          <View style={styles.placeholderImage}>
+                            <FontAwesome6 name="image" size={24} color="#ccc" />
+                            <Text style={styles.placeholderText}>Sem imagem</Text>
+                          </View>
+                        )}
+                      </View>
+                      <View style={styles.detailsSection}>
+                        <View style={styles.dateSection}>
+                          <Text style={styles.dateTimeText}>{item?.data} / {item?.hora}</Text>
+                        </View>
+                        <View style={styles.locationSection}>
+                          <Text style={styles.locationText}>
+                            {item?.localizacao?.local} - {item?.localizacao?.origem}
+                          </Text>
+                        </View>
+                        <View style={styles.locationSection}>
+                          <Text style={styles.locationText}>{item?.nome}</Text>
+                        </View>
+                        <StatusContainer backgroundColor={getStatusColor(item?.status)}>
+                          <Text style={[styles.statusText, { color: "#fff" }]}>
+                            {item?.status === "Concluído" ?
+                              `Concluído em ${item?.dataConclusao} / ${item?.horaConclusao}` :
+                              item?.status}
+                          </Text>
+                        </StatusContainer>
+                      </View>
                     </View>
-                    <View style={styles.detailsSection}>
-                      <View style={styles.dateSection}>
-                        <Text style={styles.dateTimeText}>{item?.data} / {item?.hora}</Text>
-                      </View>
-                      <View style={styles.locationSection}>
-                        <Text style={styles.locationText}>
-                          {item?.localizacao?.local} -  {item?.localizacao?.origem}
-                        </Text>
-                      </View>
-                      <View style={styles.locationSection}>
-                        <Text style={styles.locationText}>{item?.nome}</Text>
-                      </View>
-                      <StatusContainer backgroundColor={getStatusColor(item?.status)}>
-                        <Text style={[styles.statusText, { color: "#fff" }]}>
-                          {item?.status === "Concluído" ? `Concluído em ${item?.dataConclusao} / ${item?.horaConclusao}` : item?.status}
-                        </Text>
-                      </StatusContainer>
+
+                    <View style={styles.approvalContainer}>
+                      <AprovacoStatus status={item.aprovacao !== null ? item.aprovacao : "Sem Aprovacao"} date={item.dataAprovacao} />
                     </View>
-                  </View>
 
-                  <View style={{ width: "100%", height: 40 }}>
-                    <AprovacoStatus status={item.aprovacao !== null ? item.aprovacao : "Sem Aprovacao"} date={item.dataAprovacao} />
                   </View>
-
                 </View>
               </View>
-            </View>
-          )}
-        />
+            )}
+          />
+        )}
       </StyledMainContainer>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff'
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 50
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#666'
+  },
   toggleButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: 5
-  },
-  toggleButtonText: {
-    fontWeight: "bold",
-    color: "#333"
   },
   filterButton: {
     height: 40,
@@ -221,10 +309,17 @@ const styles = StyleSheet.create({
     borderColor: "#d9d9d9",
     backgroundColor: "#fff"
   },
+  filterButtonText: {
+    color: '#000',
+    fontSize: 12,
+  },
   sectionHeader: {
     fontSize: 17,
     fontWeight: '400',
     color: '#404944',
+  },
+  itemContainer: {
+    marginBottom: 15,
   },
   horaText: {
     fontSize: 15,
@@ -261,12 +356,25 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "#fff",
   },
+  placeholderImage: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 10
+  },
+  placeholderText: {
+    fontSize: 10,
+    color: '#999',
+    marginTop: 5,
+  },
   dateTimeText: {
     fontSize: 16,
     fontWeight: "800",
   },
   locationText: {
     letterSpacing: -0.5,
+    fontSize: 14,
   },
   photoContainer: {
     width: "35%",
@@ -290,5 +398,10 @@ const styles = StyleSheet.create({
     gap: 3,
     flexDirection: "row",
     alignItems: "flex-start",
+  },
+  approvalContainer: {
+    width: "100%",
+    height: 40,
+    paddingHorizontal: 10,
   },
 });
