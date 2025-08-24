@@ -1,7 +1,6 @@
+import AprovacoStatus from "@/components/aprovacaoStatus";
 import LoadingScreen from "@/components/carregamento";
 import { useGetActivity } from "@/hooks/atividade/get";
-import { StatusContainer } from "@/styles/StyledComponents";
-import { getStatusColor } from "@/utils/statusColor";
 import { AntDesign, Entypo, FontAwesome, Ionicons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
 import moment from "moment";
@@ -136,7 +135,7 @@ export default function Mapa() {
         })}
       </MapView>
 
-      <View style={{ position: 'absolute', top: 10, flexDirection: 'row', alignSelf: 'center', justifyContent: 'space-between', alignItems: 'center', gap: 5 }}>
+      <View style={{ position: 'absolute', top: 10, left: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 5 }}>
         <TouchableOpacity style={styles.filterButton}>
           <Entypo name="calendar" size={15} color="#186B53" />
           <Text>Data</Text>
@@ -178,14 +177,9 @@ export default function Mapa() {
                 </Text>
               </View>
             </View>
-
-            <StatusContainer backgroundColor={getStatusColor(selectedLocation.statusEnum)}>
-              <Text style={[styles.statusText, { color: "#fff" }]}>
-                {selectedLocation.statusEnum === "COMPLETED" && selectedLocation.approvalDate
-                  ? `Concluído em ${formatApprovalDate(selectedLocation.approvalDate).date} / ${formatApprovalDate(selectedLocation.approvalDate).time}`
-                  : selectedLocation.statusEnum === "COMPLETED" ? "Concluído" : "Pendente"}
-              </Text>
-            </StatusContainer>
+            <View style={{ width: "100%", height: 40 }}>
+              <AprovacoStatus status={selectedLocation.approvalStatus} date={formatApprovalDate(selectedLocation.approvalDate).date} />
+            </View>
           </View>
         </View>
       )}
@@ -218,17 +212,23 @@ const styles = StyleSheet.create({
     width: Dimensions.get("window").width,
     height: Dimensions.get("window").height,
   },
+  mainInfoContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    padding: 10,
+  },
   infoBox: {
     position: "absolute",
     bottom: 10,
+    overflow: "hidden",
     width: "95%",
-    padding: 10,
-    borderRadius: 12,
-    flexDirection: "row",
+    flexDirection: "column",
     justifyContent: "space-between",
-    backgroundColor: "#fff",
     alignSelf: "center",
     shadowColor: "#000",
+    borderRadius: 12,
+    backgroundColor: "#fff",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 5,
@@ -241,6 +241,7 @@ const styles = StyleSheet.create({
   },
   infoContent: {
     width: "70%",
+    gap: 5
   },
   row: {
     flexDirection: "row",
