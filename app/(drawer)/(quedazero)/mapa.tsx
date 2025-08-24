@@ -58,7 +58,7 @@ export default function Mapa() {
     useCallback(() => {
       if (refetch) {
         refetch();
-        setSelectedLocation(data[0]);
+        setSelectedLocation(null);
       }
     }, [refetch])
   );
@@ -186,7 +186,6 @@ export default function Mapa() {
                 </View>
               </View>
             </View>
-
           </View>
           <View style={{ width: "100%", height: 40 }}>
             <AprovacoStatus status={selectedLocation.approvalStatus} date={formatApprovalDate(selectedLocation.approvalDate).date} />
