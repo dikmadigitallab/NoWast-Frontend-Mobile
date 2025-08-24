@@ -1,7 +1,7 @@
 import AprovacoStatus from "@/components/aprovacaoStatus";
 import LoadingScreen from "@/components/carregamento";
 import { useGetActivity } from "@/hooks/atividade/get";
-import { AntDesign, Entypo, FontAwesome, Ionicons } from "@expo/vector-icons";
+import { AntDesign, Entypo, FontAwesome, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
 import moment from "moment";
 import "moment/locale/pt-br";
@@ -58,7 +58,7 @@ export default function Mapa() {
     useCallback(() => {
       if (refetch) {
         refetch();
-        setSelectedLocation(null);
+        setSelectedLocation(data[0]);
       }
     }, [refetch])
   );
@@ -99,6 +99,7 @@ export default function Mapa() {
   return (
     <View style={styles.container}>
       {loading && <LoadingScreen />}
+
 
       <MapView
         ref={mapRef}
@@ -149,37 +150,46 @@ export default function Mapa() {
 
       {selectedLocation && (
         <View style={styles.infoBox}>
-          {selectedLocation.activityFiles && selectedLocation.activityFiles.length > 0 && (
-            <Image
-              style={styles.image}
-              source={{ uri: selectedLocation.activityFiles[0] }}
-              resizeMode="cover"
-            />
-          )}
-          <View style={styles.infoContent}>
-            <View style={styles.row}>
-              <Entypo name="calendar" size={15} color="black" />
-              <Text style={styles.text}>
-                {extractDateTime(selectedLocation.dateTime).date} / {extractDateTime(selectedLocation.dateTime).time}
-              </Text>
+
+          <View style={styles.mainInfoContainer}>
+
+            <View style={{
+              width: "20%",
+              height: '100%',
+              backgroundColor: '#f0f0f0',
+              borderRadius: 10,
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}>
+              <MaterialCommunityIcons name="image-off-outline" size={40} color="#385866" />
             </View>
-            <View style={styles.row}>
-              <FontAwesome name="user" size={15} color="#385866" />
-              <Text style={styles.text} numberOfLines={1} ellipsizeMode="tail">
-                {selectedLocation.supervisor}
-              </Text>
-            </View>
-            <View style={styles.addressRow}>
-              <Ionicons name="location" size={15} color="#385866" />
-              <View style={styles.flex1}>
+
+            <View style={styles.infoContent}>
+              <View style={styles.row}>
+                <Entypo name="calendar" size={15} color="black" />
                 <Text style={styles.text}>
-                  Dimensão: {selectedLocation.dimension}m² - {selectedLocation.environment}
+                  {extractDateTime(selectedLocation.dateTime).date} / {extractDateTime(selectedLocation.dateTime).time}
                 </Text>
               </View>
+              <View style={styles.row}>
+                <FontAwesome name="user" size={15} color="#385866" />
+                <Text style={styles.text} numberOfLines={1} ellipsizeMode="tail">
+                  {selectedLocation.supervisor}
+                </Text>
+              </View>
+              <View style={styles.addressRow}>
+                <Ionicons name="location" size={15} color="#385866" />
+                <View style={styles.flex1}>
+                  <Text style={styles.text}>
+                    Dimensão: {selectedLocation.dimension}m² - {selectedLocation.environment}
+                  </Text>
+                </View>
+              </View>
             </View>
-            <View style={{ width: "100%", height: 40 }}>
-              <AprovacoStatus status={selectedLocation.approvalStatus} date={formatApprovalDate(selectedLocation.approvalDate).date} />
-            </View>
+
+          </View>
+          <View style={{ width: "100%", height: 40 }}>
+            <AprovacoStatus status={selectedLocation.approvalStatus} date={formatApprovalDate(selectedLocation.approvalDate).date} />
           </View>
         </View>
       )}
