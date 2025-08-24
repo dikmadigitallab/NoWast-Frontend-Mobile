@@ -1,5 +1,6 @@
 import AprovacoStatus from "@/components/aprovacaoStatus";
 import LoadingScreen from "@/components/carregamento";
+import StatusIndicator from "@/components/StatusIndicator";
 import { useGetActivity } from "@/hooks/atividade/get";
 import { AntDesign, Entypo, FontAwesome, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFocusEffect } from "expo-router";
@@ -185,6 +186,7 @@ export default function Mapa() {
                   </Text>
                 </View>
               </View>
+              <StatusIndicator status={selectedLocation.statusEnum} />
             </View>
           </View>
           <View style={{ width: "100%", height: 40 }}>
