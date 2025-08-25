@@ -9,6 +9,22 @@ import { DatePickerInput } from 'react-native-paper-dates';
 import { Dropdown } from 'react-native-paper-dropdown';
 import { StyledMainContainer } from "../../../styles/StyledComponents";
 
+interface IFormData {
+    data: string;
+    hora: string;
+    colaborador: string;
+    material: string;
+    status: string;
+    peso: string;
+    origem: string;
+    origem_detalhada: string;
+    destino_final: string;
+    causa_queda: string;
+    trans_ult_para_recolhimento: string;
+    fotos: string[];
+    audio: string;
+}
+
 const OPTIONS = [
     { label: 'Opção 1', value: 'option1' },
     { label: 'Opção 2', value: 'option2' },
@@ -20,10 +36,7 @@ export default function CadastroOcorrencia() {
     const { control, handleSubmit, formState: { errors } } = useForm({
         defaultValues: { data: "", hora: "", colaborador: "", material: "", status: "", peso: "", origem: "", origem_detalhada: "", destino_final: "", causa_queda: "", trans_ult_para_recolhimento: "", fotos: [""], audio: "" },
     });
-
-    // const { data: usuarios } = useGetUsuario({})
-
-    const onSubmit = (data: any) => {
+    const onSubmit = (data: IFormData): void => {
         toast.success('Cadastro realizado com sucesso', { duration: 3000 })
     };
 
@@ -82,27 +95,6 @@ export default function CadastroOcorrencia() {
                                 </View>
                             )}
                         />
-
-                        {/* <Controller
-                            control={control}
-                            name="colaborador"
-                            rules={{ required: 'Selecione o colaborador' }}
-                            render={({ field: { onChange, value }, fieldState: { error } }) => (
-                                <View>
-                                    <Dropdown
-                                        mode="outlined"
-                                        label="Colaborador"
-                                        options={usuarios?.map((user: any) => ({ value: user.id, label: user.name }))}
-                                        value={value}
-                                        onSelect={onChange}
-                                        CustomMenuHeader={() => <View></View>}
-                                        menuContentStyle={{ backgroundColor: '#fff' }}
-                                        error={!!error}
-                                    />
-                                    {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
-                                </View>
-                            )}
-                        /> */}
 
                         <Controller
                             control={control}

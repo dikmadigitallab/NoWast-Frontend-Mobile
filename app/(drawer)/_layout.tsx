@@ -59,6 +59,7 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <StatusBar barStyle="dark-content" backgroundColor="#186B53" />
       <SafeAreaProvider>
         <Toasts />
         <RootSiblingParent>
@@ -79,7 +80,6 @@ export default function RootLayout() {
                 <ActivityIndicator size="large" color="#00A614" />
               </View>
             )}
-            <StatusBar barStyle="dark-content" backgroundColor="#fff" />
             <Drawer
               drawerContent={() => <SelecionarStack />}
               backBehavior="history"

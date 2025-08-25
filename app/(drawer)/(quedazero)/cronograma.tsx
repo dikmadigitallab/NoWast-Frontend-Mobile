@@ -1,5 +1,8 @@
 import AprovacoStatus from '@/components/aprovacaoStatus';
 import { useGetActivity } from '@/hooks/atividade/get';
+import { useGet } from '@/hooks/crud/get/get';
+import { useGetUsuario } from '@/hooks/usuarios/get';
+import { ActivityData } from '@/types/IAtividade';
 import { AntDesign, Entypo, FontAwesome6 } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { useFocusEffect } from 'expo-router';
@@ -9,6 +12,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Animated,
   Dimensions,
+  Image,
   ImageBackground,
   ScrollView,
   SectionList,
@@ -18,28 +22,17 @@ import {
   View
 } from 'react-native';
 import { DatePickerModal } from 'react-native-paper-dates';
+import { CalendarDate } from 'react-native-paper-dates/lib/typescript/Date/Calendar';
 import Calendario from '../../../components/calendario';
 import { StatusContainer, StyledMainContainer } from '../../../styles/StyledComponents';
 import { getStatusColor } from '../../../utils/statusColor';
 
-interface ActivityData {
-  activityFiles: any[];
-  approvalDate: string | null;
-  approvalStatus: string;
-  checklist: any[];
-  dateTime: string;
-  dimension: number;
-  environment: string;
-  id: number;
-  justification: string | null;
-  manager: string;
-  ppe: any;
-  products: any[];
-  statusEnum: string;
-  supervisor: string;
-  tools: any[];
-  transports: any[];
-  userActivities: any[];
+interface PickerRef {
+  open: () => void;
+  close: () => void;
+  focus: () => void;
+  blur: () => void;
+  getValue: () => string;
 }
 
 const formatDateHeader = (dateStr: string) => {
@@ -51,25 +44,38 @@ const extractDateTime = (dateTime: string) => {
   const [date, fullTime] = dateTime.split(' ');
   const [hours, minutes] = fullTime.split(':');
   const time = `${hours}:${minutes}`;
-
   return { date, time };
 };
 
 export default function Cronograma() {
+
+  const enviromentPickerRef = useRef<PickerRef>(null);
+  const supervisorPickerRef = useRef<PickerRef>(null);
   const [open, setOpen] = useState(false);
-  const [showCalendar, setShowCalendar] = useState(true);
-  const [range, setRange] = useState<{ startDate?: Date; endDate?: Date }>({});
-  const [atividadeSelecionada, setAtividadeSelecionada] = useState({ atividade: "", label: "" });
-  const pickerRef = useRef<any>(null);
-  const animatedHeight = useRef(new Animated.Value(360)).current;
+  const { data: supervisores } = useGetUsuario({})
+  const { data: environment } = useGet({ url: "environment" })
   const { data, refetch, loading } = useGetActivity({});
+  const [showCalendar, setShowCalendar] = useState(true);
+  const animatedHeight = useRef(new Animated.Value(360)).current;
+  const [range, setRange] = useState<{ startDate?: Date; endDate?: Date }>({});
+
+  const [filter, setFilter] = useState({
+    supervisor: {
+      id: 0,
+      label: ""
+    },
+    date: "",
+    environment: {
+      id: 0,
+      label: ""
+    }
+  });
 
   useFocusEffect(
     useCallback(() => {
       if (refetch) {
         refetch();
       }
-      setAtividadeSelecionada({ atividade: "", label: "" });
     }, [refetch])
   );
 
@@ -81,21 +87,34 @@ export default function Cronograma() {
     }).start();
   }, [showCalendar]);
 
-  function openSelect() {
-    pickerRef.current?.focus();
-  }
-
   const onDismiss = () => setOpen(false);
 
-  const onConfirm = ({ startDate, endDate }: any) => {
+  interface GroupedData {
+    id: string;
+    data: string;
+    hora: string;
+    localizacao: {
+      local: string;
+      origem: string;
+    };
+    nome: string;
+    status: "Concluído" | "Pendente";
+    dataConclusao: string;
+    horaConclusao: string;
+    aprovacao: string;
+    dataAprovacao: string | null;
+    foto: string[];
+  }
+
+  const onConfirm = ({ startDate, endDate }: { startDate: CalendarDate; endDate: CalendarDate }) => {
     setOpen(false);
     setRange({ startDate, endDate });
   };
 
-  const sections = useMemo<any[]>(() => {
+  const sections = useMemo(() => {
     if (!data || !Array.isArray(data)) return [];
 
-    const grouped: Record<string, any[]> = {};
+    const grouped: Record<string, GroupedData[]> = {};
 
     data.forEach((item: ActivityData) => {
       const { date } = extractDateTime(item.dateTime);
@@ -114,7 +133,7 @@ export default function Cronograma() {
         data: date,
         hora: extractDateTime(item.dateTime).time,
         localizacao: {
-          local: item.environment,
+          local: item.environment ?? "",
           origem: `Dimensão: ${item.dimension}`
         },
         nome: `Atividade ${item.id} - ${item.environment}`,
@@ -122,7 +141,7 @@ export default function Cronograma() {
         dataConclusao: item.statusEnum === "COMPLETED" ?
           (item.approvalDate ? moment(item.approvalDate).format('DD/MM/YYYY') : date) : "",
         horaConclusao: horaConclusaoFormatada,
-        aprovacao: item.approvalStatus,
+        aprovacao: item.approvalStatus ?? "",
         dataAprovacao: item.approvalDate ? moment(item.approvalDate).format('DD/MM/YYYY HH:mm') : null,
         foto: []
       });
@@ -132,8 +151,27 @@ export default function Cronograma() {
   }, [data]);
 
 
+  if (data?.length === 0) {
+    return (
+      <StyledMainContainer>
+        <View style={styles.emptyContainer}>
+          <Image
+            style={{ width: 130, height: 130, marginBottom: -20 }}
+            source={require("../../../assets/images/adaptive-icon.png")}
+          />
+          <Text style={styles.emptyTitle}>Nenhum dado encontrado</Text>
+          <Text style={styles.emptySubtitle}>
+            Não há atividades ou ocorrências cadastradas
+          </Text>
+        </View>
+      </StyledMainContainer>
+    );
+  }
+
+
   return (
     <View style={{ flex: 1 }}>
+
       <DatePickerModal
         locale="pt-BR"
         mode="range"
@@ -146,13 +184,31 @@ export default function Cronograma() {
         label="Selecione uma data"
         saveLabel="Confirmar"
       />
+
       <Picker
         style={{ display: "none" }}
-        ref={pickerRef}
-        selectedValue={atividadeSelecionada.atividade}
+        ref={supervisorPickerRef as React.MutableRefObject<Picker<number> | null>}
+        selectedValue={filter.supervisor.id}
+        onValueChange={(itemValue, itemIndex) => {
+          setFilter((prevState) => ({ ...prevState, supervisor: { id: itemValue, label: supervisores?.[itemIndex]?.name } }));
+        }}
       >
-        <Picker.Item label="Atividades" value="atividades" />
-        <Picker.Item label="Ocorrências" value="ocorrências" />
+        {supervisores?.map((supervisor: { id: number; name: string }) => (
+          <Picker.Item key={supervisor.id} label={supervisor.name} value={supervisor.id} />
+        ))}
+      </Picker>
+
+      <Picker
+        style={{ display: "none" }}
+        ref={enviromentPickerRef as React.MutableRefObject<Picker<number> | null>}
+        selectedValue={filter.environment.id}
+        onValueChange={(itemValue, itemIndex) => {
+          setFilter((prevState) => ({ ...prevState, environment: { id: itemValue, label: environment?.[itemIndex]?.name } }));
+        }}
+      >
+        {environment?.map((environment: { id: number; name: string }) => (
+          <Picker.Item key={environment.id} label={environment.name} value={environment.id} />
+        ))}
       </Picker>
 
       <Animated.View style={{
@@ -188,21 +244,27 @@ export default function Cronograma() {
       <StyledMainContainer>
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingVertical: 10 }}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 5 }}>
-            <TouchableOpacity style={styles.filterButton} onPress={openSelect} >
+            <TouchableOpacity style={styles.filterButton} onPress={() => enviromentPickerRef.current?.focus()} >
               <FontAwesome6 name="location-dot" size={15} color="#43575F" />
-              <Text style={styles.filterButtonText}>Ambiente</Text>
+              <Text style={styles.filterButtonText}>{filter.environment.label ? filter.environment.label : "Ambiente"}</Text>
               <AntDesign name="caretdown" size={10} color="black" />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.filterButton} onPress={openSelect}>
+            <TouchableOpacity style={styles.filterButton} onPress={() => supervisorPickerRef.current?.focus()}>
               <FontAwesome6 name="user-tie" size={15} color="#43575F" />
-              <Text style={styles.filterButtonText}>Supervisor</Text>
+              <Text style={styles.filterButtonText}>{filter.supervisor.label ? filter.supervisor.label : "Supervisor"}</Text>
               <AntDesign name="caretdown" size={10} color="black" />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setOpen(true)} style={[styles.filterButton]}>
-              {range.startDate && range.endDate ? (
-                <Text style={{ color: '#000', fontWeight: '500', fontSize: 12 }}>
-                  {moment(range.startDate).format('DD/MM/YYYY')} - {moment(range.endDate).format('DD/MM/YYYY')}
-                </Text>
+              {range.startDate ? (
+                range.endDate ? (
+                  <Text style={{ color: '#000', fontWeight: '500', fontSize: 12 }}>
+                    {moment(range.startDate).format('DD/MM/YYYY')} - {moment(range.endDate).format('DD/MM/YYYY')}
+                  </Text>
+                ) : (
+                  <Text style={{ color: '#000', fontWeight: '500', fontSize: 12 }}>
+                    {moment(range.startDate).format('DD/MM/YYYY')}
+                  </Text>
+                )
               )
                 : (<Text style={{ color: '#000', fontWeight: '500', fontSize: 12 }}>Selecione um período</Text>)
               }
@@ -211,11 +273,7 @@ export default function Cronograma() {
           </View>
         </ScrollView>
 
-        {sections.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>Nenhuma atividade encontrada</Text>
-          </View>
-        ) : (
+        {sections.length === 0 && (
           <SectionList
             sections={sections}
             keyExtractor={(item) => item.id}
@@ -230,14 +288,16 @@ export default function Cronograma() {
             renderItem={({ item }) => (
               <View style={styles.itemContainer}>
                 <Text style={styles.horaText}>{item.hora}</Text>
+
                 <View style={styles.mainOccurrenceItem}>
+
                   <View style={styles.occurrenceItem}>
 
                     <View style={styles.contentInfoConteiner}>
                       <View style={styles.photoContainer}>
                         {item?.foto?.[0] ? (
                           <ImageBackground
-                            source={item.foto[0]}
+                            source={{ uri: item.foto[0] }}
                             style={{ width: "100%", height: "100%" }}
                             resizeMode="cover"
                             imageStyle={styles.imageStyle}
@@ -245,7 +305,6 @@ export default function Cronograma() {
                         ) : (
                           <View style={styles.placeholderImage}>
                             <FontAwesome6 name="image" size={24} color="#ccc" />
-                            <Text style={styles.placeholderText}>Sem imagem</Text>
                           </View>
                         )}
                       </View>
@@ -272,7 +331,7 @@ export default function Cronograma() {
                     </View>
 
                     <View style={styles.approvalContainer}>
-                      <AprovacoStatus status={item.aprovacao !== null ? item.aprovacao : "Sem Aprovacao"} date={item.dataAprovacao} />
+                      <AprovacoStatus status={item.aprovacao ?? "Sem Aprovacao"} date={item.dataAprovacao ?? undefined} />
                     </View>
 
                   </View>
@@ -320,15 +379,23 @@ const styles = StyleSheet.create({
   },
   filterButton: {
     height: 40,
-    width: 160,
+    gap: 10,
+    justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 10,
-    borderRadius: 8,
+    paddingHorizontal: 20,
+    borderRadius: 10,
     borderWidth: 0.5,
     flexDirection: "row",
-    justifyContent: "space-between",
     borderColor: "#d9d9d9",
-    backgroundColor: "#fff"
+    backgroundColor: "#eff5f0",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.23,
+    shadowRadius: 2.62,
+    elevation: 4,
   },
   filterButtonText: {
     color: '#000',
@@ -423,6 +490,32 @@ const styles = StyleSheet.create({
   approvalContainer: {
     width: "100%",
     height: 40,
-    paddingHorizontal: 10,
   },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#385866',
+    textAlign: 'center'
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 20
+  },
+  emptyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: '#186B53',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginTop: 10
+  },
+  emptyButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14
+  }
 });

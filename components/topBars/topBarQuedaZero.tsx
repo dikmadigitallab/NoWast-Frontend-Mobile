@@ -3,7 +3,9 @@ import { formatRouteNameQuedaZero } from "@/utils/formatRouteNameQuedaZero";
 import { Feather, FontAwesome6, MaterialCommunityIcons } from "@expo/vector-icons";
 import type { DrawerNavigationProp } from '@react-navigation/drawer';
 import { useNavigation } from '@react-navigation/native';
+import { useState } from "react";
 import { Dimensions, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { DatePickerModal } from "react-native-paper-dates";
 
 interface TopBarProps {
   router: any;
@@ -13,6 +15,8 @@ interface TopBarProps {
 
 export function TopBar({ customBack, router, pathname }: TopBarProps) {
 
+  const [open, setOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const title = formatRouteNameQuedaZero(pathname);
 
   const handleBack = () => {
@@ -29,6 +33,14 @@ export function TopBar({ customBack, router, pathname }: TopBarProps) {
   const navigation = useNavigation() as DrawerNavigationProp<any>;
   const showIcons = ["/mapa", "/detalharOcorrencia", "/detalharAtividade", "/checklist", "/notificacoes", "/criarOcorrencia", "/tag"]
 
+  console.log(open)
+
+  const onDismiss = () => setOpen(false);
+
+  const onConfirm = (params: { date: any }) => {
+    setOpen(false);
+    setSelectedDate(params.date);
+  };
   return (
     <View style={[
       styles.container,
@@ -38,6 +50,19 @@ export function TopBar({ customBack, router, pathname }: TopBarProps) {
         marginBottom: 0
       }
     ]}>
+
+      <DatePickerModal
+        locale="pt-BR"
+        mode="single"
+        visible={open}
+        onDismiss={onDismiss}
+        date={selectedDate}
+        onConfirm={onConfirm}
+        presentationStyle="pageSheet"
+        label="Selecione uma data"
+        saveLabel="Confirmar"
+      />
+
       <Pressable onPress={() => navigation.openDrawer() as never} style={styles.settingsButton}>
 
         {!showIcons.includes(pathname) && (
@@ -56,7 +81,7 @@ export function TopBar({ customBack, router, pathname }: TopBarProps) {
         )}
 
         {isHomeOrDashboard && (
-          <Text style={styles.textName}>Olá, {user?.name}!</Text>
+          <Text style={styles.textName}>Olá, {user?.name?.split(' ')[0]}!</Text>
         )}
       </Pressable>
 
@@ -71,9 +96,9 @@ export function TopBar({ customBack, router, pathname }: TopBarProps) {
 
       {isHomeOrDashboard ? (
         <View style={{ flexDirection: "row", alignItems: "center", gap: 20 }}>
-          <TouchableOpacity style={styles.calendarButton}>
+          <TouchableOpacity style={styles.calendarButton} onPress={() => setOpen(true)} >
             <MaterialCommunityIcons name="calendar" size={18} color="#fff" />
-            <Text style={{ fontSize: 15, color: "#fff" }}>12/34</Text>
+            <Text style={{ fontSize: 15, color: "#fff" }}>{selectedDate ? `${selectedDate.getDate()}/${("0" + (selectedDate.getMonth() + 1)).slice(-2)}` : "Selecione uma data"}</Text>
           </TouchableOpacity>
           <TouchableOpacity style={{ position: "relative" }} onPress={() => router.push("/notificacoes" as never)}>
             <View style={{ position: "absolute", top: 0, right: 0, width: 8, height: 8, zIndex: 1, backgroundColor: "#FF0000", borderRadius: 50 }} />
@@ -145,6 +170,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   calendarButton: {
+    zIndex: 999999,
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 15,

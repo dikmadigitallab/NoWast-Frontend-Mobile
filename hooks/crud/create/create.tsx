@@ -1,7 +1,7 @@
 import { toast } from "@backpackapp-io/react-native-toast";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import api from "../api";
+import api from "../../api";
 
 export const useCreate = (url: string, redirect: string) => {
 

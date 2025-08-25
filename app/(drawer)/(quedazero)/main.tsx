@@ -18,11 +18,11 @@ export default function Mainpage() {
 
     const router = useRouter();
     const { user } = useAuth();
+    const { setitems } = useItemsStore();
     const { data, refetch } = useGetActivity({});
-    const [date, setDate] = useState<Date | undefined>(undefined);
     const [showMap, setShowMap] = useState(false);
     const [openDate, setOpenDate] = useState(false);
-    const { setitems } = useItemsStore();
+    const [date, setDate] = useState<Date | undefined>(undefined);
     const [atividadeSelecionada, setAtividadeSelecionada] = useState({ atividade: "", label: "" });
 
     useFocusEffect(
@@ -61,6 +61,37 @@ export default function Mainpage() {
 
     if (!data) {
         return (<LoadingScreen />)
+    }
+
+
+    if (data.length === 0) {
+        return (
+            <StyledMainContainer>
+                <View style={styles.emptyContainer}>
+                    <Image
+                        style={{ width: 130, height: 130, marginBottom: -20 }}
+                        source={require("../../../assets/images/adaptive-icon.png")}
+                    />
+                    <Text style={styles.emptyTitle}>Nenhum dado encontrado</Text>
+                    <Text style={styles.emptySubtitle}>
+                        {user?.userType === "ADM_DIKMA"
+                            ? "Não há atividades ou ocorrências cadastradas"
+                            : "Você ainda não criou nenhuma ocorrência"
+                        }
+                    </Text>
+
+                    {user?.userType !== "ADM_DIKMA" && (
+                        <TouchableOpacity
+                            onPress={() => router.push('criarOcorrencia' as never)}
+                            style={styles.emptyButton}
+                        >
+                            <AntDesign name="plus" size={20} color="#fff" />
+                            <Text style={styles.emptyButtonText}>Criar Primeira Ocorrência</Text>
+                        </TouchableOpacity>
+                    )}
+                </View>
+            </StyledMainContainer>
+        );
     }
 
     const renderAtividadeItem = ({ item }: { item: any }) => {
@@ -320,5 +351,39 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         bottom: 20
+    },
+    emptyContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+        gap: 15
+    },
+    emptyTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        color: '#385866',
+        textAlign: 'center'
+    },
+    emptySubtitle: {
+        fontSize: 14,
+        color: '#666',
+        textAlign: 'center',
+        lineHeight: 20
+    },
+    emptyButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10,
+        backgroundColor: '#186B53',
+        paddingHorizontal: 20,
+        paddingVertical: 12,
+        borderRadius: 10,
+        marginTop: 10
+    },
+    emptyButtonText: {
+        color: '#fff',
+        fontWeight: '600',
+        fontSize: 14
     }
 });

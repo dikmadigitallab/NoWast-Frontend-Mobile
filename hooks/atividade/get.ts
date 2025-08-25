@@ -1,28 +1,39 @@
 'use client';
 
 import { useAuth } from "@/contexts/authProvider";
+import { ActivityData } from "@/types/IAtividade";
 import { filterStatusActivity } from "@/utils/statusActivity";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useCallback, useEffect, useState } from "react";
 import api from "../api";
 
 export interface UseGetParams {
-    page?: number,
-    pageSize?: number | null,
-    query?: string | null,
-    supervisorId?: number | null,
-    positionId?: number | null,
-    managerId?: number | null,
-    responsibleManagerId?: number | null,
-    buildingId?: number | null,
-    environmentId?: number | null
+    page?: number;
+    pageSize?: number | null;
+    query?: string | null;
+    supervisorId?: number | null;
+    positionId?: number | null;
+    managerId?: number | null;
+    responsibleManagerId?: number | null;
+    buildingId?: number | null;
+    environmentId?: number | null;
 }
 
-export const useGetActivity = ({ page = 1, pageSize = null, query = null, supervisorId = null, positionId = null, managerId = null, responsibleManagerId = null, buildingId = null, environmentId = null }: UseGetParams) => {
+export const useGetActivity = ({
+    page = 1,
+    pageSize = null,
+    query = null,
+    supervisorId = null,
+    positionId = null,
+    managerId = null,
+    responsibleManagerId = null,
+    buildingId = null,
+    environmentId = null
+}: UseGetParams) => {
 
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
-    const [data, setData] = useState<any>(null);
+    const [data, setData] = useState<ActivityData[] | null>(null);
     const { logout } = useAuth();
 
     const get = useCallback(async () => {
@@ -57,42 +68,46 @@ export const useGetActivity = ({ page = 1, pageSize = null, query = null, superv
 
             const bearerToken = authToken.includes("=") ? authToken.split("=")[1] : authToken;
 
-            const response = await api.get<any>(paramUrl, {
+            const response = await api.get(paramUrl, {
                 headers: {
                     Authorization: `Bearer ${bearerToken}`,
                     "Content-Type": "application/json",
                 },
             });
 
-            const refactory = response.data.data.items?.map((item: any) => {
+
+            const refactory: ActivityData[] = response.data.data.items?.map((item: any) => {
 
                 const data = item.userActivities.map((userActivity: any) => userActivity);
                 const data2 = data.map((userActivity: any) => userActivity.user);
                 const data3 = data2.map((userActivity: any) => userActivity.justifications);
 
-                return ({
+                return {
                     id: item.id,
-                    environment: item.environment?.name,
-                    dimension: item.environment?.areaM2,
-                    supervisor: item?.supervisor?.person?.name,
-                    manager: item?.manager?.person?.name,
-                    statusEnum: item?.statusEnum,
-                    justification: item?.justification,
-                    approvalDate: item?.approvalDate,
-                    checklist: item?.checklists.map((checklist: any) => ({ id: checklist.serviceItem.id, name: checklist.serviceItem.name })),
+                    environment: item.environment?.name || null,
+                    dimension: item.environment?.areaM2 || null,
+                    supervisor: item?.supervisor?.person?.name || null,
+                    manager: item?.manager?.person?.name || null,
+                    statusEnum: item?.statusEnum || null,
+                    justification: item?.justification || null,
+                    approvalDate: item?.approvalDate || null,
+                    checklist: item?.checklists?.map((checklist: any) => ({
+                        id: checklist.serviceItem.id,
+                        name: checklist.serviceItem.name
+                    })) || [],
                     approvalStatus: filterStatusActivity(item?.approvalStatus),
-                    local: {
-                        latitude: item?.environment?.sector?.latitude,
-                        longitude: item?.environment?.sector?.longitude
-                    },
-                    ppe: item?.ppe,
-                    tools: item?.tools,
-                    products: item?.products,
-                    transports: item?.transports,
-                    activityFiles: item?.activityFiles.map((fileObj: any) => fileObj.file.url),
-                    userActivities: item?.userActivities.map((userActivity: any) => userActivity),
-                    file: item?.justification?.justificationFiles[0]?.file.url,
-                    userJustification: data3[1][0].description,
+                    local: item?.environment?.sector ? {
+                        latitude: item.environment.sector.latitude,
+                        longitude: item.environment.sector.longitude
+                    } : null,
+                    ppe: item?.ppe || [],
+                    tools: item?.tools || [],
+                    products: item?.products || [],
+                    transports: item?.transports || [],
+                    activityFiles: item?.activityFiles[0],
+                    userActivities: item?.userActivities || [],
+                    file: item?.justification?.justificationFiles?.[0]?.file.url || null,
+                    userJustification: data3[1]?.[0]?.description || null,
                     dateTime: new Date(item.dateTime).toLocaleString('pt-BR', {
                         year: 'numeric',
                         month: '2-digit',
@@ -102,9 +117,8 @@ export const useGetActivity = ({ page = 1, pageSize = null, query = null, superv
                         second: '2-digit',
                         hour12: false
                     })
-                })
+                };
             }) || [];
-
 
             setData(refactory);
         } catch (error) {

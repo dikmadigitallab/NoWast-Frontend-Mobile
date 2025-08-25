@@ -9,8 +9,8 @@ import { userTypes } from "@/types/user";
 import { AntDesign, FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-import { useRouter } from "expo-router";
-import React, { useRef, useState } from "react";
+import { usePathname, useRouter } from "expo-router";
+import React, { useEffect, useRef, useState } from "react";
 import { Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import { Modalize } from 'react-native-modalize';
 import { ActivityIndicator, TextInput } from "react-native-paper";
@@ -25,6 +25,7 @@ export default function DetalharAtividade() {
 
     const { user } = useAuth();
     const router = useRouter();
+    const pathname = usePathname();
     const { items } = useItemsStore();
     const { setData } = useDataStore()
     const modalizeDescricaoRef = useRef<Modalize | null>(null);
@@ -48,7 +49,7 @@ export default function DetalharAtividade() {
         name: ""
     })
 
-    const openModelizeDescricao = (data: any) => {
+    const openModelizeDescricao = (data: { activityId: string, userId: string, reason: string, name: string }): void => {
         setUserDescricao(data)
         modalizeDescricaoRef.current?.open()
     }
@@ -86,7 +87,7 @@ export default function DetalharAtividade() {
     }
 
     const handleFinalizeActivity = (status: string) => {
-        updateStatus({
+        updateStatus(status, {
             id: String(items.id),
             approvalStatus: status,
             approvalUpdatedByUserId: String(user?.id),
@@ -94,14 +95,16 @@ export default function DetalharAtividade() {
     };
 
     const handleJustification = () => {
-        close(form)
+        close(form, "Atividade justificada com sucesso")
     };
 
     if (!items) {
         return (<LoadingScreen />)
     }
 
-    console.log("items", items)
+    useEffect(() => {
+        deleteChanges()
+    }, [pathname])
 
     return (
         <View style={styles.mainContainer}>
@@ -162,8 +165,8 @@ export default function DetalharAtividade() {
                                         <View style={{ flexDirection: "column", gap: 5 }}>
                                             <Text style={styles.textBold}>Justificativa:</Text>
                                             <Text style={styles.text}>{items?.justification?.description}</Text>
-
                                             {items?.activityFiles?.map((url: string, index: number) => (
+
                                                 <View key={index} style={{ width: 200, height: "100%", marginRight: 10 }}>
                                                     <Image
                                                         source={{ uri: url }}
@@ -209,18 +212,22 @@ export default function DetalharAtividade() {
                                                         <Text style={{ fontSize: 12, color: "#999" }}>{userTypes[data.user.userType]}</Text>
                                                         <Text style={{ fontSize: 14, color: "#43575F" }}>{data.user.person.name}</Text>
                                                     </View>
-                                                    <View>
-                                                        <Text style={{ fontSize: 12, color: "#999" }}>Justificativa:</Text>
-                                                        <Text style={{ fontSize: 12, color: "#43575F" }}>{items?.userJustification}</Text>
-                                                    </View>
-
+                                                    {
+                                                        items?.userJustification && (
+                                                            <View>
+                                                                <Text style={{ fontSize: 12, color: "#999" }}>Justificativa:</Text>
+                                                                <Text style={{ fontSize: 12, color: "#43575F" }}>{items?.userJustification}</Text>
+                                                            </View>
+                                                        )
+                                                    }
                                                 </View>
                                                 {
                                                     !items?.userJustification &&
                                                     <TouchableOpacity
                                                         onPress={() => openModelizeDescricao({
-                                                            activityId: items.id,
-                                                            userId: data.user.id,
+                                                            activityId: String(items.id),
+                                                            userId: String(data.user.id),
+                                                            reason: "",
                                                             name: data.user.person.name
                                                         })}
                                                         style={{ flexDirection: "row", alignItems: "center", gap: 5, borderWidth: 1, borderRadius: 100, borderColor: "#43575F", padding: 5 }}>
@@ -504,18 +511,15 @@ export default function DetalharAtividade() {
 const styles = StyleSheet.create({
     mainContainer: {
         flex: 1,
+        backgroundColor: "#f7f9fb"
     },
     scrollContent: {
         flexGrow: 1,
     },
     fixedButtonsContainer: {
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
         padding: 16,
-        borderTopColor: '#eee',
-        backgroundColor: '#f7f9fb',
+        elevation: 4,
+        backgroundColor: '#fff',
         borderTopLeftRadius: 12,
         borderTopRightRadius: 12,
     },

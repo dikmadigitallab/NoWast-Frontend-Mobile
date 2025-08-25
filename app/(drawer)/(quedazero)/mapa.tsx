@@ -2,13 +2,16 @@ import AprovacoStatus from "@/components/aprovacaoStatus";
 import LoadingScreen from "@/components/carregamento";
 import StatusIndicator from "@/components/StatusIndicator";
 import { useGetActivity } from "@/hooks/atividade/get";
+import { StyledMainContainer } from "@/styles/StyledComponents";
 import { AntDesign, Entypo, FontAwesome, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Picker } from "@react-native-picker/picker";
 import { useFocusEffect } from "expo-router";
 import moment from "moment";
 import "moment/locale/pt-br";
 import React, { useCallback, useRef, useState } from "react";
 import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import MapView, { Marker, Region } from "react-native-maps";
+import { DatePickerModal } from 'react-native-paper-dates';
 import { getStatusImage } from "../../../utils/getStatusImage";
 
 interface ActivityData {
@@ -50,10 +53,14 @@ const initialRegion: Region = {
 };
 
 export default function Mapa() {
+
+  const mapRef = useRef<MapView>(null);
+  const pickerRef = useRef<any>(null);
+  const [filter, setFilter] = useState("Todos");
+  const [open, setOpen] = useState(false);
   const { data, refetch, loading } = useGetActivity({});
   const [selectedLocation, setSelectedLocation] = useState<ActivityData | null>(null);
-  const [mapLoaded, setMapLoaded] = useState(false);
-  const mapRef = useRef<MapView>(null);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>();
 
   useFocusEffect(
     useCallback(() => {
@@ -63,10 +70,6 @@ export default function Mapa() {
       }
     }, [refetch])
   );
-
-  const handleMapLoaded = () => {
-    setMapLoaded(true);
-  };
 
   const formatApprovalDate = (approvalDate: string | null) => {
     if (!approvalDate) return { date: "", time: "" };
@@ -96,20 +99,65 @@ export default function Mapa() {
     }
   };
 
+  const onDismiss = () => setOpen(false);
+
+  const onConfirm = (params: { date: any }) => {
+    setOpen(false);
+    setSelectedDate(params.date);
+  };
+
+  if (data?.length === 0) {
+    return (
+      <StyledMainContainer>
+        <View style={styles.emptyContainer}>
+          <Image
+            style={{ width: 130, height: 130, marginBottom: -20 }}
+            source={require("../../../assets/images/adaptive-icon.png")}
+          />
+          <Text style={styles.emptyTitle}>Nenhum dado encontrado</Text>
+          <Text style={styles.emptySubtitle}>
+            Não há atividades ou ocorrências cadastradas
+          </Text>
+        </View>
+      </StyledMainContainer>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      {loading && <LoadingScreen />}
 
+      <DatePickerModal
+        locale="pt-BR"
+        mode="single"
+        visible={open}
+        onDismiss={onDismiss}
+        date={selectedDate}
+        onConfirm={onConfirm}
+        presentationStyle="pageSheet"
+        label="Selecione uma data"
+        saveLabel="Confirmar"
+      />
+
+      <Picker
+        style={{ display: "none" }}
+        ref={pickerRef}
+        selectedValue={filter}
+        onValueChange={(itemValue) => {
+          setFilter(itemValue);
+        }}
+      >
+        <Picker.Item label="Todos" value="" />
+        <Picker.Item label="Atividade" value="Atividade" />
+        <Picker.Item label="Ocorrência" value="Ocorrência" />
+      </Picker>
+      {loading && <LoadingScreen />}
 
       <MapView
         ref={mapRef}
         style={styles.map}
         initialRegion={initialRegion}
-        onMapLoaded={handleMapLoaded}
-        onLayout={handleMapLoaded}
       >
-        {data?.map((activity: ActivityData) => {
+        {data?.map((activity: any) => {
           const lat = Number(activity.local?.latitude);
           const lng = Number(activity.local?.longitude);
 
@@ -137,25 +185,74 @@ export default function Mapa() {
         })}
       </MapView>
 
-      <View style={{ position: 'absolute', top: 10, left: 10, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 5 }}>
-        <TouchableOpacity style={styles.filterButton}>
-          <Entypo name="calendar" size={15} color="#186B53" />
-          <Text>Data</Text>
-          <AntDesign name="caretdown" size={10} color="black" />
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.filterButton}>
-          <Text>Ocorrências</Text>
-          <AntDesign name="caretdown" size={10} color="black" />
-        </TouchableOpacity>
+      <View style={{ position: 'absolute', top: 10, left: 10, flexDirection: 'row', justifyContent: 'space-between', gap: 5 }}>
+
+        <View style={{ width: 130, flexDirection: "column", gap: 5, position: "relative", height: 55 }}>
+          <TouchableOpacity onPress={() => setOpen(true)} style={[styles.filterButton, { justifyContent: "flex-start" }]}>
+            <Entypo name="calendar" size={15} color="#385866" style={{ marginRight: 5 }} />
+            {selectedDate ? (
+              <Text style={{ color: '#000', fontWeight: '500', fontSize: 12 }}>
+                {moment(selectedDate).format('DD/MM/YYYY')}
+              </Text>
+            )
+              :
+              (<Text style={{ color: '#000', fontWeight: '500', fontSize: 12 }}>Data</Text>)}
+          </TouchableOpacity>
+
+          {selectedDate && (
+            <TouchableOpacity
+              style={{
+                position: "absolute",
+                bottom: -10,
+                left: 0,
+                flexDirection: "row",
+                alignItems: "center",
+                borderRadius: 5,
+                borderWidth: 1,
+                borderColor: "#cdcdcd",
+                padding: 4,
+                gap: 5
+              }}
+              onPress={() => setSelectedDate(undefined)}
+            >
+              <Text style={{ color: '#000', fontWeight: '500', fontSize: 8 }}>
+                {moment(selectedDate).format('DD/MM/YYYY')}
+              </Text>
+              <AntDesign name="close" size={10} color="black" />
+            </TouchableOpacity>
+          )}
+        </View>
+
+        <View style={{ width: 130, flexDirection: "column", gap: 5, position: "relative", height: 55 }}>
+          <TouchableOpacity style={styles.filterButton} onPress={() => pickerRef.current?.focus()}>
+            <Text style={{ color: '#000', fontWeight: '500', fontSize: 12 }}>{filter}</Text>
+            <AntDesign name="caretdown" size={10} color="black" />
+          </TouchableOpacity>
+          {filter && filter !== "Todos" && (
+            <TouchableOpacity style={{
+              position: "absolute",
+              bottom: -10,
+              left: 0,
+              flexDirection: "row",
+              alignItems: "center",
+              borderRadius: 5,
+              borderWidth: 1,
+              borderColor: "#cdcdcd",
+              padding: 4,
+              gap: 5
+            }} onPress={() => setFilter("Todos")}>
+              <Text style={{ color: '#000', fontWeight: '500', fontSize: 8 }}>{filter}</Text>
+              <AntDesign name="close" size={10} color="black" />
+            </TouchableOpacity>
+          )}
+        </View>
       </View>
 
       {selectedLocation && (
         <View style={styles.infoBox}>
-
           <View style={styles.mainInfoContainer}>
-
             <View style={{
-              width: "20%",
+              width: "25%",
               height: '100%',
               backgroundColor: '#f0f0f0',
               borderRadius: 10,
@@ -166,11 +263,16 @@ export default function Mapa() {
             </View>
 
             <View style={styles.infoContent}>
-              <View style={styles.row}>
-                <Entypo name="calendar" size={15} color="black" />
-                <Text style={styles.text}>
-                  {extractDateTime(selectedLocation.dateTime).date} / {extractDateTime(selectedLocation.dateTime).time}
-                </Text>
+              <View style={[styles.row, { justifyContent: "space-between", width: "100%" }]}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+                  <Entypo name="calendar" size={15} color="black" />
+                  <Text style={styles.text}>
+                    {extractDateTime(selectedLocation.dateTime).date} / {extractDateTime(selectedLocation.dateTime).time}
+                  </Text>
+                </View>
+                <TouchableOpacity onPress={() => setSelectedLocation(null)}>
+                  <AntDesign name="close" size={30} color="#385866" />
+                </TouchableOpacity>
               </View>
               <View style={styles.row}>
                 <FontAwesome name="user" size={15} color="#385866" />
@@ -201,15 +303,23 @@ export default function Mapa() {
 const styles = StyleSheet.create({
   filterButton: {
     height: 40,
-    width: 120,
+    gap: 10,
+    justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 10,
-    borderRadius: 8,
+    paddingHorizontal: 20,
+    borderRadius: 10,
     borderWidth: 0.5,
     flexDirection: "row",
-    justifyContent: "space-between",
     borderColor: "#d9d9d9",
-    backgroundColor: "#fff"
+    backgroundColor: "#eff5f0",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.23,
+    shadowRadius: 2.62,
+    elevation: 4,
   },
   container: {
     flex: 1,
@@ -276,4 +386,38 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "600",
   },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    gap: 15
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#385866',
+    textAlign: 'center'
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 20
+  },
+  emptyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: '#186B53',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 10,
+    marginTop: 10
+  },
+  emptyButtonText: {
+    color: '#fff',
+    fontWeight: '600',
+    fontSize: 14
+  }
 });

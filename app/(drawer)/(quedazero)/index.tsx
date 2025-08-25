@@ -375,7 +375,6 @@ export default function Dashboard() {
         </TouchableOpacity>
       </View>
 
-      {/* Renderização condicional baseada na tab ativa */}
       {activeTab === "atividades" ? renderAtividades() : renderColaboradores()}
 
       {(user?.userType === "ADM_DIKMA" || user?.userType === "OPERATIONAL") && (
@@ -417,7 +416,6 @@ const styles = StyleSheet.create({
   filterButtonsContainer: {
     gap: 10,
     height: "100%",
-    paddingHorizontal: 10,
   },
   filterButton: {
     height: 40,
@@ -471,7 +469,7 @@ const styles = StyleSheet.create({
     borderRadius: 2
   },
   contentCard: {
-    padding: 20,
+    padding: 10,
     gap: 20,
     width: Dimensions.get('window').width - 20
   },

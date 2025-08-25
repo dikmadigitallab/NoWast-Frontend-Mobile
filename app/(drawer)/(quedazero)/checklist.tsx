@@ -8,39 +8,59 @@ import { Checkbox, TextInput } from 'react-native-paper';
 import AudioRecorderPlayer from '../../../components/gravadorAudio';
 import { StyledMainContainer } from '../../../styles/StyledComponents';
 
+interface IFormData {
+    id: number;
+    status: string;
+    observation: string;
+    completedChecklistIds: number[];
+    pendingChecklistIds: number[];
+    audio: string;
+    images: string[];
+}
+
+interface IChecklist {
+    id: number,
+    name: string
+}
+
 export default function Checklist() {
 
     const { data } = useDataStore();
 
-    const [form, setForm] = useState({
-        id: data?.[0]?.id,
+    const defaultForm: IFormData = {
+        id: data?.[0]?.id || 0,
         status: "COMPLETED",
         observation: "",
-        completedChecklistIds: [] as number[],
-        pendingChecklistIds: [] as number[],
+        completedChecklistIds: [],
+        pendingChecklistIds: [],
         audio: "",
         images: []
-    });
+    };
 
-    const { close } = useCloseActivity();
+    const [form, setForm] = useState<IFormData | null>(defaultForm);
+
+    const { close, error } = useCloseActivity();
 
     const handleCheckboxChange = (id: number) => {
-        setForm(prev => {
-            const isChecked = prev.completedChecklistIds.includes(id);
+        setForm((prevState: IFormData | null) => {
+            if (!prevState) return null;
+
+            const isChecked = prevState.completedChecklistIds.includes(id);
             return {
-                ...prev,
+                ...prevState,
                 completedChecklistIds: isChecked
-                    ? prev.completedChecklistIds.filter(itemId => itemId !== id)
-                    : [...prev.completedChecklistIds, id]
+                    ? prevState.completedChecklistIds.filter((itemId: number) => itemId !== id)
+                    : [...prevState.completedChecklistIds, id]
             };
         });
     };
 
+    //Função responsável por enviar os dados
     const handleSubmit = () => {
-        const allIds = data?.[0]?.checklist?.map((item: any) => item.id) || [];
+        const allIds = data?.[0]?.checklist?.map((item: IChecklist) => item.id) || [];
 
         const pendingChecklistIds = allIds.filter(
-            (id: number) => !form.completedChecklistIds.includes(id)
+            (id: number) => !form?.completedChecklistIds.includes(id)
         );
 
         const finalForm = {
@@ -48,7 +68,11 @@ export default function Checklist() {
             pendingChecklistIds,
         };
 
-        close(finalForm);
+        close(finalForm, "Atividade finalizada com sucesso");
+
+        if (!error) {
+            setForm(null)
+        }
     };
 
     return (
@@ -69,8 +93,8 @@ export default function Checklist() {
                     </View>
 
                     <View style={styles.checklistContainer}>
-                        {data?.[0]?.checklist?.map((item: any) => {
-                            const isChecked = form.completedChecklistIds.includes(item.id);
+                        {data?.[0]?.checklist?.map((item: IChecklist) => {
+                            const isChecked = form?.completedChecklistIds.includes(item.id);
                             return (
                                 <TouchableOpacity
                                     key={item.id}
@@ -106,10 +130,10 @@ export default function Checklist() {
                             <CapturaImagens
                                 texto="Adicionar fotos"
                                 qtsImagens={3}
-                                setForm={(uris) => setForm(prev => ({ ...prev, images: uris }))}
+                                setForm={(uris) => setForm((prev) => prev ? { ...prev, images: uris } : { ...defaultForm, images: uris })}
                             />
                             <AudioRecorderPlayer
-                                setForm={(uri) => setForm(prev => ({ ...prev, audio: uri }))}
+                                setForm={(uri) => setForm((prev) => prev ? { ...prev, audio: uri } : { ...defaultForm, audio: uri })}
                             />
                         </View>
                     </View>
@@ -117,8 +141,8 @@ export default function Checklist() {
                     <View style={styles.observationsSection}>
                         <Text style={styles.sectionTitle}>Observações</Text>
                         <TextInput
-                            value={form.observation}
-                            onChangeText={(value) => setForm({ ...form, observation: value })}
+                            value={form?.observation || ''}
+                            onChangeText={(value) => setForm((prev) => prev ? { ...prev, observation: value } : { ...defaultForm, observation: value })}
                             mode="outlined"
                             placeholder="Digite suas observações aqui..."
                             outlineColor="#E8EDEC"
@@ -136,6 +160,7 @@ export default function Checklist() {
                             }}
                         />
                     </View>
+
                 </ScrollView>
             </StyledMainContainer>
 

@@ -20,6 +20,7 @@ const STATUS_MAPPING: Record<string, { color: string; translation: string }> = {
 };
 
 export function getStatusColor(status?: string): string {
+
     return STATUS_MAPPING[status?.toUpperCase() || '']?.color || "#81A8B8";
 }
 
