@@ -26,21 +26,11 @@ interface IChecklist {
 export default function Checklist() {
 
     const { data } = useDataStore();
-
-    const defaultForm: IFormData = {
-        id: data?.[0]?.id || 0,
-        status: "COMPLETED",
-        observation: "",
-        completedChecklistIds: [],
-        pendingChecklistIds: [],
-        audio: "",
-        images: []
-    };
-
+    const { close, error } = useCloseActivity();
+    const defaultForm: IFormData = { id: data?.[0]?.id || 0, status: "COMPLETED", observation: "", completedChecklistIds: [], pendingChecklistIds: [], audio: "", images: [] };
     const [form, setForm] = useState<IFormData | null>(defaultForm);
 
-    const { close, error } = useCloseActivity();
-
+    // Função responsável por atualizar o estado do checkbox ela verifica se o item já está na lista de itens completos se estiver, remove o item da lista se não estiver, adiciona o item  lista
     const handleCheckboxChange = (id: number) => {
         setForm((prevState: IFormData | null) => {
             if (!prevState) return null;

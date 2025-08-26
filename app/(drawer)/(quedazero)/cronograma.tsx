@@ -1,4 +1,5 @@
 import AprovacoStatus from '@/components/aprovacaoStatus';
+import LoadingScreen from "@/components/carregamento";
 import { useGetActivity } from '@/hooks/atividade/get';
 import { useGet } from '@/hooks/crud/get/get';
 import { useGetUsuario } from '@/hooks/usuarios/get';
@@ -9,18 +10,7 @@ import { useFocusEffect } from 'expo-router';
 import moment from 'moment';
 import 'moment/locale/pt-br';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  Animated,
-  Dimensions,
-  Image,
-  ImageBackground,
-  ScrollView,
-  SectionList,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
-} from 'react-native';
+import { Animated, Dimensions, Image, ImageBackground, ScrollView, SectionList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { DatePickerModal } from 'react-native-paper-dates';
 import { CalendarDate } from 'react-native-paper-dates/lib/typescript/Date/Calendar';
 import Calendario from '../../../components/calendario';
@@ -35,11 +25,13 @@ interface PickerRef {
   getValue: () => string;
 }
 
+//Formata a data no padrão 'dddd [ - ] DD [de] MMMM' e deixa a primeira letra da semana em maiúscula
 const formatDateHeader = (dateStr: string) => {
   const date = moment(dateStr, 'DD/MM/YYYY');
   return date.format('dddd [ - ] DD [de] MMMM').replace(/^\w/, c => c.toUpperCase());
 };
 
+//Extrai a data e hora de uma string no formato 'DD/MM/YYYY HH:mm'
 const extractDateTime = (dateTime: string) => {
   const [date, fullTime] = dateTime.split(' ');
   const [hours, minutes] = fullTime.split(':');
@@ -49,27 +41,16 @@ const extractDateTime = (dateTime: string) => {
 
 export default function Cronograma() {
 
-  const enviromentPickerRef = useRef<PickerRef>(null);
-  const supervisorPickerRef = useRef<PickerRef>(null);
   const [open, setOpen] = useState(false);
   const { data: supervisores } = useGetUsuario({})
-  const { data: environment } = useGet({ url: "environment" })
-  const { data, refetch, loading } = useGetActivity({});
+  const enviromentPickerRef = useRef<PickerRef>(null);
+  const supervisorPickerRef = useRef<PickerRef>(null);
   const [showCalendar, setShowCalendar] = useState(true);
+  const { data: environment } = useGet({ url: "environment" });
   const animatedHeight = useRef(new Animated.Value(360)).current;
-  const [range, setRange] = useState<{ startDate?: Date; endDate?: Date }>({});
-
-  const [filter, setFilter] = useState({
-    supervisor: {
-      id: 0,
-      label: ""
-    },
-    date: "",
-    environment: {
-      id: 0,
-      label: ""
-    }
-  });
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [filter, setFilter] = useState({ supervisor: { id: 0, label: "" }, environment: { id: 0, label: "" } });
+  const { data, refetch } = useGetActivity({ dateTimeFrom: selectedDate ? moment(selectedDate).format("YYYY-MM-DD") : null, supervisorId: filter.supervisor.id, environmentId: filter.environment.id });
 
   useFocusEffect(
     useCallback(() => {
@@ -80,14 +61,16 @@ export default function Cronograma() {
   );
 
   useEffect(() => {
-    Animated.timing(animatedHeight, {
-      toValue: showCalendar ? 360 : 100,
-      duration: 300,
-      useNativeDriver: false
-    }).start();
+    Animated.timing(animatedHeight, { toValue: showCalendar ? 360 : 100, duration: 300, useNativeDriver: false }).start();
   }, [showCalendar]);
 
   const onDismiss = () => setOpen(false);
+
+  // Callback invocado quando o usuário seleciona uma data única
+  const onConfirmSingle = (params: { date: CalendarDate }) => {
+    setOpen(false);
+    setSelectedDate(params.date || undefined);
+  };
 
   interface GroupedData {
     id: string;
@@ -106,11 +89,7 @@ export default function Cronograma() {
     foto: string[];
   }
 
-  const onConfirm = ({ startDate, endDate }: { startDate: CalendarDate; endDate: CalendarDate }) => {
-    setOpen(false);
-    setRange({ startDate, endDate });
-  };
-
+  // Agrupa as atividades por data e as ordena por hora.
   const sections = useMemo(() => {
     if (!data || !Array.isArray(data)) return [];
 
@@ -151,35 +130,20 @@ export default function Cronograma() {
   }, [data]);
 
 
-  if (data?.length === 0) {
-    return (
-      <StyledMainContainer>
-        <View style={styles.emptyContainer}>
-          <Image
-            style={{ width: 130, height: 130, marginBottom: -20 }}
-            source={require("../../../assets/images/adaptive-icon.png")}
-          />
-          <Text style={styles.emptyTitle}>Nenhum dado encontrado</Text>
-          <Text style={styles.emptySubtitle}>
-            Não há atividades ou ocorrências cadastradas
-          </Text>
-        </View>
-      </StyledMainContainer>
-    );
+  if (!data) {
+    return (<LoadingScreen />)
   }
-
 
   return (
     <View style={{ flex: 1 }}>
 
       <DatePickerModal
         locale="pt-BR"
-        mode="range"
+        mode="single"
         visible={open}
         onDismiss={onDismiss}
-        startDate={range.startDate}
-        endDate={range.endDate}
-        onConfirm={onConfirm}
+        date={selectedDate}
+        onConfirm={onConfirmSingle}
         presentationStyle="pageSheet"
         label="Selecione uma data"
         saveLabel="Confirmar"
@@ -242,8 +206,8 @@ export default function Cronograma() {
       </TouchableOpacity>
 
       <StyledMainContainer>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingVertical: 10 }}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 5 }}>
+        <View style={{ flexDirection: "column", gap: 10 }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, height: 50 }}>
             <TouchableOpacity style={styles.filterButton} onPress={() => enviromentPickerRef.current?.focus()} >
               <FontAwesome6 name="location-dot" size={15} color="#43575F" />
               <Text style={styles.filterButtonText}>{filter.environment.label ? filter.environment.label : "Ambiente"}</Text>
@@ -255,91 +219,91 @@ export default function Cronograma() {
               <AntDesign name="caretdown" size={10} color="black" />
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setOpen(true)} style={[styles.filterButton]}>
-              {range.startDate ? (
-                range.endDate ? (
-                  <Text style={{ color: '#000', fontWeight: '500', fontSize: 12 }}>
-                    {moment(range.startDate).format('DD/MM/YYYY')} - {moment(range.endDate).format('DD/MM/YYYY')}
-                  </Text>
-                ) : (
-                  <Text style={{ color: '#000', fontWeight: '500', fontSize: 12 }}>
-                    {moment(range.startDate).format('DD/MM/YYYY')}
-                  </Text>
-                )
-              )
-                : (<Text style={{ color: '#000', fontWeight: '500', fontSize: 12 }}>Selecione um período</Text>)
-              }
+              {selectedDate ? (
+                <Text style={{ color: '#000', fontWeight: '500', fontSize: 12 }}>
+                  {moment(selectedDate).format('DD/MM/YYYY')}
+                </Text>
+              ) : (
+                <Text style={{ color: '#000', fontWeight: '500', fontSize: 12 }}>Selecione uma data</Text>
+              )}
               <Entypo name="calendar" size={15} color="#186B53" />
             </TouchableOpacity>
-          </View>
-        </ScrollView>
+          </ScrollView>
 
-        {sections.length === 0 && (
-          <SectionList
-            sections={sections}
-            keyExtractor={(item) => item.id}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ gap: 10, paddingBottom: Dimensions.get('window').height - 750 }}
-            renderSectionHeader={({ section: { title } }) => (
-              <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}>
-                <Text style={styles.sectionHeader}>{title}</Text>
-                <View style={{ flex: 1, height: 1, marginLeft: 10, backgroundColor: "#81A8B8" }} />
-              </View>
-            )}
-            renderItem={({ item }) => (
-              <View style={styles.itemContainer}>
-                <Text style={styles.horaText}>{item.hora}</Text>
-
-                <View style={styles.mainOccurrenceItem}>
-
-                  <View style={styles.occurrenceItem}>
-
-                    <View style={styles.contentInfoConteiner}>
-                      <View style={styles.photoContainer}>
-                        {item?.foto?.[0] ? (
-                          <ImageBackground
-                            source={{ uri: item.foto[0] }}
-                            style={{ width: "100%", height: "100%" }}
-                            resizeMode="cover"
-                            imageStyle={styles.imageStyle}
-                          />
-                        ) : (
-                          <View style={styles.placeholderImage}>
-                            <FontAwesome6 name="image" size={24} color="#ccc" />
+          {sections.length > 0 ? (
+            <SectionList
+              sections={sections}
+              keyExtractor={(item) => item.id}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={{ gap: 10, paddingBottom: Dimensions.get('window').height - 750 }}
+              renderSectionHeader={({ section: { title } }) => (
+                <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}>
+                  <Text style={styles.sectionHeader}>{title}</Text>
+                  <View style={{ flex: 1, height: 1, marginLeft: 10, backgroundColor: "#81A8B8" }} />
+                </View>
+              )}
+              renderItem={({ item }) => (
+                <View >
+                  <Text style={styles.horaText}>{item.hora}</Text>
+                  <View style={styles.mainOccurrenceItem}>
+                    <View style={styles.occurrenceItem}>
+                      <View style={styles.contentInfoConteiner}>
+                        <View style={styles.photoContainer}>
+                          {item?.foto?.[0] ? (
+                            <ImageBackground
+                              source={{ uri: item.foto[0] }}
+                              style={{ width: "100%", height: "100%" }}
+                              resizeMode="cover"
+                              imageStyle={styles.imageStyle}
+                            />
+                          ) : (
+                            <View style={styles.placeholderImage}>
+                              <FontAwesome6 name="image" size={24} color="#ccc" />
+                            </View>
+                          )}
+                        </View>
+                        <View style={styles.detailsSection}>
+                          <View style={styles.dateSection}>
+                            <Text style={styles.dateTimeText}>{item?.data} / {item?.hora}</Text>
                           </View>
-                        )}
+                          <View style={styles.locationSection}>
+                            <Text style={styles.locationText}>
+                              {item?.localizacao?.local} - {item?.localizacao?.origem}
+                            </Text>
+                          </View>
+                          <View style={styles.locationSection}>
+                            <Text style={styles.locationText}>{item?.nome}</Text>
+                          </View>
+                          <StatusContainer backgroundColor={getStatusColor(item?.status)}>
+                            <Text style={[styles.statusText, { color: "#fff" }]}>
+                              {item?.status === "Concluído" ?
+                                `Concluído em ${item?.dataConclusao} / ${item?.horaConclusao}` :
+                                item?.status}
+                            </Text>
+                          </StatusContainer>
+                        </View>
                       </View>
-                      <View style={styles.detailsSection}>
-                        <View style={styles.dateSection}>
-                          <Text style={styles.dateTimeText}>{item?.data} / {item?.hora}</Text>
-                        </View>
-                        <View style={styles.locationSection}>
-                          <Text style={styles.locationText}>
-                            {item?.localizacao?.local} - {item?.localizacao?.origem}
-                          </Text>
-                        </View>
-                        <View style={styles.locationSection}>
-                          <Text style={styles.locationText}>{item?.nome}</Text>
-                        </View>
-                        <StatusContainer backgroundColor={getStatusColor(item?.status)}>
-                          <Text style={[styles.statusText, { color: "#fff" }]}>
-                            {item?.status === "Concluído" ?
-                              `Concluído em ${item?.dataConclusao} / ${item?.horaConclusao}` :
-                              item?.status}
-                          </Text>
-                        </StatusContainer>
+                      <View style={styles.approvalContainer}>
+                        <AprovacoStatus status={item.aprovacao ?? "Sem Aprovacao"} date={item.dataAprovacao ?? undefined} />
                       </View>
                     </View>
-
-                    <View style={styles.approvalContainer}>
-                      <AprovacoStatus status={item.aprovacao ?? "Sem Aprovacao"} date={item.dataAprovacao ?? undefined} />
-                    </View>
-
                   </View>
                 </View>
-              </View>
-            )}
-          />
-        )}
+              )}
+            />
+          ) : (
+            <View style={styles.emptyContainer}>
+              <Image
+                style={{ width: 130, height: 130, marginBottom: -20 }}
+                source={require("../../../assets/images/adaptive-icon.png")}
+              />
+              <Text style={styles.emptyTitle}>Nenhum dado encontrado</Text>
+              <Text style={styles.emptySubtitle}>
+                Não há atividades ou ocorrências cadastradas
+              </Text>
+            </View>
+          )}
+        </View>
       </StyledMainContainer>
     </View>
   );
@@ -353,10 +317,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff'
   },
   emptyContainer: {
-    flex: 1,
+    marginTop: 50,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 50
   },
   emptyText: {
     fontSize: 16,
@@ -405,9 +368,6 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '400',
     color: '#404944',
-  },
-  itemContainer: {
-    marginBottom: 15,
   },
   horaText: {
     fontSize: 15,

@@ -12,12 +12,15 @@ export default function TabLayout() {
     const pathname = usePathname();
     const history = useRef<string[]>([]);
 
+    //Efeito para rastrear o histórico de navegaçãoAdiciona a rota atual ao histórico sempre que pathname mudar
     useEffect(() => {
         if (history.current[history.current.length - 1] !== pathname) {
             history.current.push(pathname);
         }
     }, [pathname]);
 
+
+    //Função personalizada para lidar com o botão voltar, navega para a rota anterior no histórico ou para a raiz se não houver histórico
     const customBack = useCallback(() => {
         if (history.current.length > 1) {
             history.current.pop();
@@ -30,13 +33,18 @@ export default function TabLayout() {
         }
     }, [router]);
 
+
+    //Hook para lidar com o botão físico de voltar do dispositivo ,só é ativado quando a tela está em foco
     useFocusEffect(
         useCallback(() => {
+
+            // Adiciona listener para o botão físico de voltar
             const backHandler = BackHandler.addEventListener(
                 'hardwareBackPress',
                 customBack
             );
 
+            // Cleanup: remove o listener quando o componente perde o foco
             return () => backHandler.remove();
         }, [customBack])
     );

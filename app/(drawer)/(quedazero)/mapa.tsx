@@ -58,9 +58,9 @@ export default function Mapa() {
   const pickerRef = useRef<any>(null);
   const [filter, setFilter] = useState("Todos");
   const [open, setOpen] = useState(false);
-  const { data, refetch, loading } = useGetActivity({});
   const [selectedLocation, setSelectedLocation] = useState<ActivityData | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
+  const { data, refetch, loading } = useGetActivity({ dateTimeFrom: selectedDate ? moment(selectedDate).format("YYYY-MM-DD") : null });
 
   useFocusEffect(
     useCallback(() => {

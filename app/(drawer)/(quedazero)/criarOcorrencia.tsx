@@ -1,45 +1,151 @@
 import CapturaImagens from "@/components/capturaImagens";
 import AudioRecorderPlayer from "@/components/gravadorAudio";
+import { useGet } from "@/hooks/crud/get/get";
+import { useGetUsuario } from "@/hooks/usuarios/get";
+import UserData from "@/types/user";
 import { toast } from "@backpackapp-io/react-native-toast";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { TextInput } from "react-native-paper";
-import { DatePickerInput } from 'react-native-paper-dates';
 import { Dropdown } from 'react-native-paper-dropdown';
 import { StyledMainContainer } from "../../../styles/StyledComponents";
 
 interface IFormData {
-    data: string;
-    hora: string;
-    colaborador: string;
-    material: string;
     status: string;
-    peso: string;
-    origem: string;
-    origem_detalhada: string;
-    destino_final: string;
-    causa_queda: string;
-    trans_ult_para_recolhimento: string;
-    fotos: string[];
+    weight: string;
+    userId: string;
+    buildingId: string;
+    materialId: string;
+    occurrenceOriginId: string;
+    detailedOccurrenceOriginId: string;
+    finalDestinationOccurrenceId: string;
+    fallCauseId: string;
+    collectionTransportUsedId: string;
+    approvalStatus: string;
+    images: string[];
     audio: string;
+    transcription: string;
 }
 
-const OPTIONS = [
-    { label: 'Opção 1', value: 'option1' },
-    { label: 'Opção 2', value: 'option2' },
-    { label: 'Opção 3', value: 'option3' },
-];
+interface IOptions {
+    [key: string]: Array<{ label: string; value: string }>;
+}
 
 export default function CadastroOcorrencia() {
 
-    const { control, handleSubmit, formState: { errors } } = useForm({
-        defaultValues: { data: "", hora: "", colaborador: "", material: "", status: "", peso: "", origem: "", origem_detalhada: "", destino_final: "", causa_queda: "", trans_ult_para_recolhimento: "", fotos: [""], audio: "" },
+    const [loading, setLoading] = useState(true);
+    const [options, setOptions] = useState<IOptions>({});
+    const [files, setForm] = useState<IFormData | null>(null);
+    const { data: usuarios } = useGetUsuario({})
+    const { data: predios } = useGet({ url: 'building' });
+    const { data: material } = useGet({ url: 'material' });
+    const { data: transporte } = useGet({ url: 'collectionTransportUsed' });
+
+    useEffect(() => {
+        const loadOptions = async () => {
+            try {
+                await new Promise(resolve => setTimeout(resolve, 500));
+
+                const mockOptions = {
+                    materialId: [
+                        { label: 'Material 1', value: '1' },
+                        { label: 'Material 2', value: '2' },
+                        { label: 'Material 3', value: '3' }
+                    ],
+                    occurrenceOriginId: [
+                        { label: 'Origem 1', value: '1' },
+                        { label: 'Origem 2', value: '2' },
+                        { label: 'Origem 3', value: '3' }
+                    ],
+                    detailedOccurrenceOriginId: [
+                        { label: 'Origem Detalhada 1', value: '1' },
+                        { label: 'Origem Detalhada 2', value: '2' },
+                        { label: 'Origem Detalhada 3', value: '3' }
+                    ],
+                    finalDestinationOccurrenceId: [
+                        { label: 'Destino Final 1', value: '1' },
+                        { label: 'Destino Final 2', value: '2' },
+                        { label: 'Destino Final 3', value: '3' }
+                    ],
+                    fallCauseId: [
+                        { label: 'Causa 1', value: '1' },
+                        { label: 'Causa 2', value: '2' },
+                        { label: 'Causa 3', value: '3' }
+                    ],
+                    collectionTransportUsedId: [
+                        { label: 'Transporte 1', value: '1' },
+                        { label: 'Transporte 2', value: '2' },
+                        { label: 'Transporte 3', value: '3' }
+                    ],
+                };
+
+                setOptions(mockOptions);
+                setLoading(false);
+            } catch (error) {
+                console.error('Erro ao carregar opções:', error);
+                toast.error('Erro ao carregar opções');
+                setLoading(false);
+            }
+        };
+
+        loadOptions();
+    }, []);
+
+    const { control, handleSubmit, formState: { errors }, watch, setValue } = useForm<IFormData>({
+        defaultValues: {
+            status: "",
+            weight: "",
+            userId: "",
+            buildingId: "",
+            materialId: "",
+            occurrenceOriginId: "",
+            detailedOccurrenceOriginId: "",
+            finalDestinationOccurrenceId: "",
+            fallCauseId: "",
+            collectionTransportUsedId: "",
+            approvalStatus: "",
+            transcription: ""
+        },
+        mode: "onChange"
     });
+
     const onSubmit = (data: IFormData): void => {
-        toast.success('Cadastro realizado com sucesso', { duration: 3000 })
+
     };
 
+    const validateWeight = (value: string) => {
+        if (value && value.trim() !== '') {
+            const numValue = parseFloat(value);
+            if (isNaN(numValue)) {
+                return 'Peso deve ser um número válido';
+            }
+            if (numValue < 0) {
+                return 'Peso não pode ser negativo';
+            }
+            if (numValue > 1000) {
+                return 'Peso não pode ser maior que 1000kg';
+            }
+        }
+        return true;
+    };
+
+    const validateImages = (value: string[]) => {
+        if (!value || value.length === 0) {
+            return 'É necessário adicionar pelo menos uma imagem';
+        }
+        return true;
+    };
+
+    if (loading) {
+        return (
+            <StyledMainContainer>
+                <View style={styles.loadingContainer}>
+                    <Text>Carregando opções...</Text>
+                </View>
+            </StyledMainContainer>
+        );
+    }
 
     return (
         <StyledMainContainer>
@@ -49,38 +155,47 @@ export default function CadastroOcorrencia() {
 
                         <Controller
                             control={control}
-                            name="data"
-                            rules={{ required: 'Digite a data' }}
+                            name="status"
+                            rules={{
+                                required: 'Selecione o status da ocorrência',
+                                validate: (value) => value !== "" || 'Status é obrigatório'
+                            }}
                             render={({ field: { onChange, value }, fieldState: { error } }) => (
                                 <View>
-                                    <DatePickerInput
-                                        locale="pt-BR"
+                                    <Dropdown
                                         mode="outlined"
-                                        presentationStyle="pageSheet"
-                                        label="Selecione uma data"
-                                        saveLabel="Confirmar"
-                                        value={value ? new Date(value) : undefined}
-                                        onChange={onChange}
-                                        style={{ backgroundColor: '#fff', height: 56 }}
-                                        inputMode="start"
-                                        outlineColor="#707974"
-                                        activeOutlineColor="#707974"
+                                        label="Status da Ocorrência*"
+                                        options={[
+                                            { label: 'Grave', value: 'SEVERE' },
+                                            { label: 'Leve', value: 'MILD' },
+                                            { label: 'Nenhuma', value: 'None' }
+                                        ]}
+                                        value={value}
+                                        onSelect={onChange}
+                                        CustomMenuHeader={() => <View></View>}
+                                        menuContentStyle={{ backgroundColor: '#fff' }}
                                         error={!!error}
                                     />
-                                    {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
+                                    {error && (
+                                        <Text style={{ color: 'red', fontSize: 12, marginTop: 4 }}>
+                                            {error.message}
+                                        </Text>
+                                    )}
                                 </View>
                             )}
                         />
 
                         <Controller
                             control={control}
-                            name="hora"
-                            rules={{ required: 'Digite a hora' }}
+                            name="weight"
+                            rules={{
+                                validate: validateWeight
+                            }}
                             render={({ field: { onChange, value }, fieldState: { error } }) => (
                                 <View>
                                     <TextInput
                                         mode="outlined"
-                                        label="Hora"
+                                        label="Peso do Material (kg)"
                                         value={value}
                                         onChangeText={onChange}
                                         outlineColor="#707974"
@@ -88,188 +203,331 @@ export default function CadastroOcorrencia() {
                                         style={{ backgroundColor: '#fff', height: 56 }}
                                         error={!!error}
                                         keyboardType="numeric"
-                                        placeholder="HH:MM"
-                                        maxLength={5}
                                     />
-                                    {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
+                                    {error && (
+                                        <Text style={{ color: 'red', fontSize: 12, marginTop: 4 }}>
+                                            {error.message}
+                                        </Text>
+                                    )}
                                 </View>
                             )}
                         />
 
                         <Controller
                             control={control}
-                            name="material"
-                            rules={{ required: 'Selecione o Material' }}
+                            name="userId"
+                            rules={{
+                                required: 'Selecione o usuário',
+                                validate: (value) => value !== "" || 'Usuário é obrigatório'
+                            }}
                             render={({ field: { onChange, value }, fieldState: { error } }) => (
                                 <View>
                                     <Dropdown
                                         mode="outlined"
-                                        label="Material"
-                                        options={OPTIONS}
+                                        label="Usuário Associado*"
+                                        options={usuarios?.map((user: UserData) => ({ label: user.name, value: user.id?.toString() })) || []}
                                         value={value}
                                         onSelect={onChange}
                                         CustomMenuHeader={() => <View></View>}
                                         menuContentStyle={{ backgroundColor: '#fff' }}
+                                        error={!!error}
                                     />
-                                    {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
+                                    {error && (
+                                        <Text style={{ color: 'red', fontSize: 12, marginTop: 4 }}>
+                                            {error.message}
+                                        </Text>
+                                    )}
                                 </View>
                             )}
                         />
 
                         <Controller
                             control={control}
-                            name="status"
-                            rules={{ required: 'Selecione o Status' }}
+                            name="buildingId"
+                            rules={{
+                                required: 'Selecione o prédio',
+                                validate: (value) => value !== "" || 'Prédio é obrigatório'
+                            }}
                             render={({ field: { onChange, value }, fieldState: { error } }) => (
                                 <View>
                                     <Dropdown
                                         mode="outlined"
-                                        label="Status"
-                                        options={OPTIONS}
+                                        label="Prédio Associado*"
+                                        options={predios?.map((predio: any) => ({ label: predio.name, value: predio.id?.toString() })) || []}
                                         value={value}
                                         onSelect={onChange}
                                         CustomMenuHeader={() => <View></View>}
                                         menuContentStyle={{ backgroundColor: '#fff' }}
+                                        error={!!error}
                                     />
-                                    {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
+                                    {error && (
+                                        <Text style={{ color: 'red', fontSize: 12, marginTop: 4 }}>
+                                            {error.message}
+                                        </Text>
+                                    )}
                                 </View>
                             )}
                         />
 
                         <Controller
                             control={control}
-                            name="peso"
-                            rules={{ required: 'Digite o peso' }}
+                            name="materialId"
+                            rules={{
+                                validate: (value) => !value || value === "" || value !== "0" || 'Material inválido'
+                            }}
+                            render={({ field: { onChange, value }, fieldState: { error } }) => (
+                                <View>
+                                    <Dropdown
+                                        mode="outlined"
+                                        label="Material Associado (Opcional)"
+                                        options={material?.map((material: any) => ({ label: material.description, value: material.id?.toString() })) || []}
+                                        value={value}
+                                        onSelect={onChange}
+                                        CustomMenuHeader={() => <View></View>}
+                                        menuContentStyle={{ backgroundColor: '#fff' }}
+                                        error={!!error}
+                                    />
+                                    {error && (
+                                        <Text style={{ color: 'red', fontSize: 12, marginTop: 4 }}>
+                                            {error.message}
+                                        </Text>
+                                    )}
+                                </View>
+                            )}
+                        />
+
+                        <Controller
+                            control={control}
+                            name="occurrenceOriginId"
+                            rules={{
+                                validate: (value) => !value || value === "" || value !== "0" || 'Origem inválida'
+                            }}
+                            render={({ field: { onChange, value }, fieldState: { error } }) => (
+                                <View>
+                                    <Dropdown
+                                        mode="outlined"
+                                        label="Origem da Ocorrência (Opcional)"
+                                        options={options.occurrenceOriginId || []}
+                                        value={value}
+                                        onSelect={onChange}
+                                        CustomMenuHeader={() => <View></View>}
+                                        menuContentStyle={{ backgroundColor: '#fff' }}
+                                        error={!!error}
+                                    />
+                                    {error && (
+                                        <Text style={{ color: 'red', fontSize: 12, marginTop: 4 }}>
+                                            {error.message}
+                                        </Text>
+                                    )}
+                                </View>
+                            )}
+                        />
+
+                        <Controller
+                            control={control}
+                            name="detailedOccurrenceOriginId"
+                            rules={{
+                                validate: (value) => !value || value === "" || value !== "0" || 'Origem detalhada inválida'
+                            }}
+                            render={({ field: { onChange, value }, fieldState: { error } }) => (
+                                <View>
+                                    <Dropdown
+                                        mode="outlined"
+                                        label="Origem Detalhada (Opcional)"
+                                        options={options.detailedOccurrenceOriginId || []}
+                                        value={value}
+                                        onSelect={onChange}
+                                        CustomMenuHeader={() => <View></View>}
+                                        menuContentStyle={{ backgroundColor: '#fff' }}
+                                        error={!!error}
+                                    />
+                                    {error && (
+                                        <Text style={{ color: 'red', fontSize: 12, marginTop: 4 }}>
+                                            {error.message}
+                                        </Text>
+                                    )}
+                                </View>
+                            )}
+                        />
+
+                        <Controller
+                            control={control}
+                            name="finalDestinationOccurrenceId"
+                            rules={{
+                                required: 'Selecione o destino final',
+                                validate: (value) => value !== "" || 'Destino final é obrigatório'
+                            }}
+                            render={({ field: { onChange, value }, fieldState: { error } }) => (
+                                <View>
+                                    <Dropdown
+                                        mode="outlined"
+                                        label="Destino Final da Ocorrência*"
+                                        options={options.finalDestinationOccurrenceId || []}
+                                        value={value}
+                                        onSelect={onChange}
+                                        CustomMenuHeader={() => <View></View>}
+                                        menuContentStyle={{ backgroundColor: '#fff' }}
+                                        error={!!error}
+                                    />
+                                    {error && (
+                                        <Text style={{ color: 'red', fontSize: 12, marginTop: 4 }}>
+                                            {error.message}
+                                        </Text>
+                                    )}
+                                </View>
+                            )}
+                        />
+
+                        <Controller
+                            control={control}
+                            name="fallCauseId"
+                            rules={{
+                                validate: (value) => !value || value === "" || value !== "0" || 'Causa da queda inválida'
+                            }}
+                            render={({ field: { onChange, value }, fieldState: { error } }) => (
+                                <View>
+                                    <Dropdown
+                                        mode="outlined"
+                                        label="Causa da Queda (Opcional)"
+                                        options={options.fallCauseId || []}
+                                        value={value}
+                                        onSelect={onChange}
+                                        CustomMenuHeader={() => <View></View>}
+                                        menuContentStyle={{ backgroundColor: '#fff' }}
+                                        error={!!error}
+                                    />
+                                    {error && (
+                                        <Text style={{ color: 'red', fontSize: 12, marginTop: 4 }}>
+                                            {error.message}
+                                        </Text>
+                                    )}
+                                </View>
+                            )}
+                        />
+
+                        <Controller
+                            control={control}
+                            name="collectionTransportUsedId"
+                            rules={{
+                                validate: (value) => !value || value === "" || value !== "0" || 'Transporte inválido'
+                            }}
+                            render={({ field: { onChange, value }, fieldState: { error } }) => (
+                                <View>
+                                    <Dropdown
+                                        mode="outlined"
+                                        label="Transporte para Recolhimento (Opcional)"
+                                        options={transporte?.map((transport: any) => ({ label: transport.description, value: transport.id?.toString() })) || []}
+                                        value={value}
+                                        onSelect={onChange}
+                                        CustomMenuHeader={() => <View></View>}
+                                        menuContentStyle={{ backgroundColor: '#fff' }}
+                                        error={!!error}
+                                    />
+                                    {error && (
+                                        <Text style={{ color: 'red', fontSize: 12, marginTop: 4 }}>
+                                            {error.message}
+                                        </Text>
+                                    )}
+                                </View>
+                            )}
+                        />
+
+                        <Controller
+                            control={control}
+                            name="approvalStatus"
+                            rules={{
+                                required: 'Selecione o status de aprovação',
+                                validate: (value) => value !== "" || 'Status de aprovação é obrigatório'
+                            }}
+                            render={({ field: { onChange, value }, fieldState: { error } }) => (
+                                <View>
+                                    <Dropdown
+                                        mode="outlined"
+                                        label="Status de Aprovação*"
+                                        options={
+                                            [{ label: 'Pendente', value: 'pending' },
+                                            { label: 'Aprovado', value: 'approved' },
+                                            { label: 'Rejeitado', value: 'rejected' }]
+                                        }
+                                        value={value}
+                                        onSelect={onChange}
+                                        CustomMenuHeader={() => <View></View>}
+                                        menuContentStyle={{ backgroundColor: '#fff' }}
+                                        error={!!error}
+                                    />
+                                    {error && (
+                                        <Text style={{ color: 'red', fontSize: 12, marginTop: 4 }}>
+                                            {error.message}
+                                        </Text>
+                                    )}
+                                </View>
+                            )}
+                        />
+
+                        <Controller
+                            control={control}
+                            name="transcription"
+                            rules={{
+                                maxLength: {
+                                    value: 1000,
+                                    message: 'Transcrição não pode ter mais de 1000 caracteres'
+                                }
+                            }}
                             render={({ field: { onChange, value }, fieldState: { error } }) => (
                                 <View>
                                     <TextInput
                                         mode="outlined"
-                                        label="Peso"
+                                        label="Transcrição do Áudio (Opcional)"
                                         value={value}
                                         onChangeText={onChange}
                                         outlineColor="#707974"
                                         activeOutlineColor="#707974"
-                                        style={{ backgroundColor: '#fff', height: 56 }}
+                                        style={{ backgroundColor: '#fff', minHeight: 100 }}
+                                        multiline
+                                        numberOfLines={4}
                                         error={!!error}
                                     />
-                                    {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
-                                </View>
-                            )}
-                        />
-
-                        <Controller
-                            control={control}
-                            name="origem"
-                            rules={{ required: 'Selecione o Origem' }}
-                            render={({ field: { onChange, value }, fieldState: { error } }) => (
-                                <View>
-                                    <Dropdown
-                                        mode="outlined"
-                                        label="Origem"
-                                        options={OPTIONS}
-                                        value={value}
-                                        onSelect={onChange}
-                                        CustomMenuHeader={() => <View></View>}
-                                        menuContentStyle={{ backgroundColor: '#fff' }}
-                                    />
-                                    {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
-                                </View>
-                            )}
-                        />
-
-                        <Controller
-                            control={control}
-                            name="origem_detalhada"
-                            rules={{ required: 'Selecione o origem detalhada' }}
-                            render={({ field: { onChange, value }, fieldState: { error } }) => (
-                                <View>
-                                    <Dropdown
-                                        mode="outlined"
-                                        label="Origem detalhada"
-                                        options={OPTIONS}
-                                        value={value}
-                                        onSelect={onChange}
-                                        CustomMenuHeader={() => <View></View>}
-                                        menuContentStyle={{ backgroundColor: '#fff' }}
-                                    />
-                                    {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
-                                </View>
-                            )}
-                        />
-
-                        <Controller
-                            control={control}
-                            name="destino_final"
-                            rules={{ required: 'Selecione o destino final' }}
-                            render={({ field: { onChange, value }, fieldState: { error } }) => (
-                                <View>
-                                    <Dropdown
-                                        mode="outlined"
-                                        label="Destino final"
-                                        options={OPTIONS}
-                                        value={value}
-                                        onSelect={onChange}
-                                        CustomMenuHeader={() => <View></View>}
-                                        menuContentStyle={{ backgroundColor: '#fff' }}
-                                    />
-                                    {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
-                                </View>
-                            )}
-                        />
-
-                        <Controller
-                            control={control}
-                            name="causa_queda"
-                            rules={{ required: 'Digite o causa da queda' }}
-                            render={({ field: { onChange, value }, fieldState: { error } }) => (
-                                <View>
-                                    <TextInput
-                                        mode="outlined"
-                                        label="Causa da queda"
-                                        value={value}
-                                        onChangeText={onChange}
-                                        outlineColor="#707974"
-                                        activeOutlineColor="#707974"
-                                        style={{ backgroundColor: '#fff', height: 56 }}
-                                        error={!!error}
-                                    />
-                                    {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
-                                </View>
-                            )}
-                        />
-
-                        <Controller
-                            control={control}
-                            name="trans_ult_para_recolhimento"
-                            rules={{ required: 'Selecione o Trans. Ult. p/ Recolhimento' }}
-                            render={({ field: { onChange, value }, fieldState: { error } }) => (
-                                <View>
-                                    <Dropdown
-                                        mode="outlined"
-                                        label="Trans. Ult. p/ Recolhimento"
-                                        options={OPTIONS}
-                                        value={value}
-                                        onSelect={onChange}
-                                        CustomMenuHeader={() => <View></View>}
-                                        menuContentStyle={{ backgroundColor: '#fff' }}
-                                    />
-                                    {error && (<Text style={{ color: 'red', fontSize: 12, backgroundColor: 'transparent' }}>{error.message}</Text>)}
+                                    {error && (
+                                        <Text style={{ color: 'red', fontSize: 12, marginTop: 4 }}>
+                                            {error.message}
+                                        </Text>
+                                    )}
+                                    {value && (
+                                        <Text style={{ color: '#666', fontSize: 12, marginTop: 4 }}>
+                                            {value.length}/1000 caracteres
+                                        </Text>
+                                    )}
                                 </View>
                             )}
                         />
 
                     </View>
 
-                    <CapturaImagens texto="Adicionar fotos" qtsImagens={3} />
-                    <AudioRecorderPlayer />
 
-                    <TouchableOpacity style={styles.buttons} onPress={handleSubmit(onSubmit)}>
-                        <Text style={{ color: "#fff", fontSize: 16 }}>Cadastrar</Text>
+                    <CapturaImagens
+                        texto="Adicionar fotos*"
+                        qtsImagens={3}
+                        setForm={(uris) => setValue("images", uris)}
+                    />
+
+                    <AudioRecorderPlayer setForm={(audioUri) => setForm((prevState) => ({ ...prevState, audio: audioUri } as IFormData))} />
+
+                    <TouchableOpacity
+                        style={[
+                            styles.buttons,
+                            Object.keys(errors).length > 0 && styles.buttonDisabled
+                        ]}
+                        onPress={handleSubmit(onSubmit)}
+                        disabled={Object.keys(errors).length > 0}
+                    >
+                        <Text style={{ color: "#fff", fontSize: 16 }}>
+                            {Object.keys(errors).length > 0 ? 'Corrija os erros' : 'Cadastrar Ocorrência'}
+                        </Text>
                     </TouchableOpacity>
+
                 </View>
             </ScrollView>
-        </StyledMainContainer>
-
+        </StyledMainContainer >
     );
 }
 
@@ -286,66 +544,30 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         backgroundColor: "#186B53",
     },
-    containerFile: {
-        width: "100%",
-        flexDirection: "column",
-        marginVertical: 10
+    buttonDisabled: {
+        backgroundColor: "#ccc",
+        borderColor: "#999",
     },
-    headerFoto: {
-        gap: 10,
-        flexDirection: "row",
-        alignItems: "center",
-    },
-    textFoto: {
-        fontSize: 14,
-        color: "#43575F",
-        fontWeight: "600"
-    },
-    fotoInfoText: {
-        fontSize: 12,
-        color: "#666",
-        marginLeft: 34,
-    },
-    containerAddFoto: {
-        gap: 7,
-        height: 95,
-        width: "90%",
-        borderWidth: 1,
-        alignSelf: "center",
-        borderStyle: 'dashed',
-        borderRadius: 4,
-        paddingVertical: 20,
-        flexDirection: "column",
-        alignItems: "center",
-        borderColor: "#0B6780",
-        justifyContent: "center",
-        backgroundColor: "transparent"
-    },
-    thumbnailsContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 10,
-        marginVertical: 10,
-    },
-    thumbnailWrapper: {
-        position: 'relative',
-        width: 100,
-        height: 100,
-    },
-    thumbnail: {
-        width: '100%',
-        height: '100%',
-        borderRadius: 8,
-    },
-    removeButton: {
-        position: 'absolute',
-        top: 5,
-        right: 5,
-        backgroundColor: 'rgba(0,0,0,0.5)',
-        borderRadius: 10,
-        width: 20,
-        height: 20,
+    loadingContainer: {
+        flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        padding: 20
     },
+    errorSummary: {
+        backgroundColor: '#ffebee',
+        padding: 12,
+        borderRadius: 8,
+        marginTop: 10,
+    },
+    errorSummaryTitle: {
+        color: '#c62828',
+        fontWeight: 'bold',
+        marginBottom: 8,
+    },
+    errorSummaryItem: {
+        color: '#c62828',
+        fontSize: 12,
+        marginLeft: 8,
+    }
 });

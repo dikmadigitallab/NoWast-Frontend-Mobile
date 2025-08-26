@@ -14,9 +14,12 @@ interface TopBarProps {
 }
 
 export function TopBar({ customBack, router, pathname }: TopBarProps) {
-
+  // All hooks must be called unconditionally at the top level
   const [open, setOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const { user } = useAuth(); // Moved to top level
+  const navigation = useNavigation() as DrawerNavigationProp<any>;
+
   const title = formatRouteNameQuedaZero(pathname);
 
   const handleBack = () => {
@@ -24,16 +27,7 @@ export function TopBar({ customBack, router, pathname }: TopBarProps) {
   };
 
   const isHomeOrDashboard = pathname === "/";
-
-  if (pathname === "/cronograma") {
-    return null;
-  }
-
-  const { user } = useAuth();
-  const navigation = useNavigation() as DrawerNavigationProp<any>;
-  const showIcons = ["/mapa", "/detalharOcorrencia", "/detalharAtividade", "/checklist", "/notificacoes", "/criarOcorrencia", "/tag"]
-
-  console.log(open)
+  const showIcons = ["/mapa", "/detalharOcorrencia", "/detalharAtividade", "/checklist", "/notificacoes", "/criarOcorrencia", "/tag"];
 
   const onDismiss = () => setOpen(false);
 
@@ -41,6 +35,11 @@ export function TopBar({ customBack, router, pathname }: TopBarProps) {
     setOpen(false);
     setSelectedDate(params.date);
   };
+
+  if (pathname === "/cronograma") {
+    return null;
+  }
+
   return (
     <View style={[
       styles.container,

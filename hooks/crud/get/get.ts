@@ -17,7 +17,7 @@ export interface UseGetParams {
     managerId?: number | null,
     responsibleManagerId?: number | null
     buildingId?: number | null,
-    environmentId?: number | null
+    environmentId?: number | null,
 }
 
 export const useGet = ({ url, page = 1, pageSize = null, query = null, supervisorId = null, positionId = null, managerId = null, responsibleManagerId = null, buildingId = null, environmentId = null }: UseGetParams) => {

@@ -20,25 +20,46 @@ export interface UserActivity {
     activityId: number;
 }
 
-export interface ActivityData {
+
+export interface IItem {
     id: number;
-    environment: string | null;
-    dimension: number | null;
-    supervisor: string | null;
-    manager: string | null;
-    statusEnum: string | null;
-    justification: string | null;
-    approvalDate: string | null;
-    checklist: ChecklistItem[];
-    approvalStatus: string | null;
-    local: Local | null;
-    ppe: any[];
-    tools: any[];
-    products: any[];
-    transports: any[];
-    activityFiles: string[];
-    userActivities: UserActivity[];
-    file: string | null;
-    userJustification: string | null;
+    name: string;
+    description: string;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    responsibleManagerId: number;
+}
+
+
+export interface IAtividade {
+    id: number;
+    approvalStatus: "PENDING" | "APPROVED" | "REJECTED" | "PENDING_JUSTIFIED" | "JUSTIFIED";
     dateTime: string;
+    dimension: number;
+    environment: string;
+    manager: string;
+    supervisor: string;
+    ppes?: string;
+    products: IItem[];
+    tools: IItem[];
+    transports: IItem[];
+    activityFiles: string[];
+    userActivities: string[];
+    approvalDate?: string;
+    statusEnum?: string;
+    justifications?: any;
+    justification?: any;
+    supervisorId?: number;
+    positionId?: number;
+    managerId?: number;
+    responsibleManagerId?: number;
+    buildingId?: number;
+    environmentId?: number;
+    createdAt: string;
+    updatedAt: string;
+    deletedAt: string | null;
+    activityId: number;
+    userJustification?: string;
+
 }

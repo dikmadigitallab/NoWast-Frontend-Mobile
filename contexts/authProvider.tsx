@@ -2,6 +2,7 @@ import api from "@/hooks/api";
 import UserData from "@/types/user";
 import { toast } from "@backpackapp-io/react-native-toast";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useRouter } from "expo-router";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 interface AuthContextProps {
@@ -16,6 +17,7 @@ const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<UserData | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -89,6 +91,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await AsyncStorage.removeItem("user");
     setIsAuthenticated(false);
     setUser(null);
+    router.push("/authRoute");
   };
 
   return (

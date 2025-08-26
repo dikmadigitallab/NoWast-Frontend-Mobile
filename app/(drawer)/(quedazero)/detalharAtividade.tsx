@@ -20,7 +20,6 @@ import { useAuth } from "../../../contexts/authProvider";
 import { useItemsStore } from "../../../store/storeOcorrencias";
 import { StyledMainContainer } from "../../../styles/StyledComponents";
 
-
 export default function DetalharAtividade() {
 
     const { user } = useAuth();
@@ -268,68 +267,66 @@ export default function DetalharAtividade() {
                                 <Text style={styles.text}>{items?.dimension}</Text>
                             </View>
 
-                            {
-                                items?.ppe && (
-                                    <View style={styles.linha}>
-                                        <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
-                                            <FontAwesome6 name="helmet-safety" size={15} color="#43575F" />
-                                            <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
-                                        </View>
-                                        <Text style={styles.textBold}>EPI:</Text>
-                                        <Text style={styles.text}>{items?.ppe ?? "Nenhum"}</Text>
+                            <View style={styles.linha}>
+                                <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
+                                    <FontAwesome6 name="helmet-safety" size={15} color="#43575F" />
+                                    <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+                                </View>
+                                <Text style={styles.textBold}>EPI:</Text>
+                                <View style={{ flexDirection: "row" }}>
+                                    <View style={{ flexDirection: "row" }}>
+                                        {items?.ppes.length > 0 ? items?.ppes.map((ppe: any) => (
+                                            <Text key={ppe.id} style={styles.text}> - {ppe.name}</Text>
+                                        )) : <Text style={styles.text}> - Nenhum ppe</Text>}
                                     </View>
-                                )
-                            }
+                                </View>
+                            </View>
 
-                            {
-                                items?.tools.length > 0 && (
-                                    <View style={styles.linha}>
-                                        <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
-                                            <Entypo name="tools" size={15} color="#43575F" />
-                                            <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
-                                        </View>
-                                        <Text style={styles.textBold}>Ferramentas:</Text>
-                                        <View style={{ flexDirection: "row" }}>
-                                            {items?.tools.map((tool) => (
-                                                <Text key={tool.id} style={styles.text}> - {tool.name}</Text>
-                                            ))}
-                                        </View>
-                                    </View>
-                                )
-                            }
 
-                            {
-                                items?.products.length > 0 && (
-                                    <View style={styles.linha}>
-                                        <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
-                                            <FontAwesome5 name="box-open" size={12} color="#43575F" />
-                                            <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
-                                        </View>
-                                        <Text style={styles.textBold}>Produtos:</Text>
-                                        <View style={{ flexDirection: "row" }}>
-                                            {items?.products.map((prod) => (
-                                                <Text key={prod.id} style={styles.text}> - {prod.name}</Text>
-                                            ))}
-                                        </View>
-                                    </View>
-                                )
-                            }
+                            <View style={styles.linha}>
+                                <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
+                                    <Entypo name="tools" size={15} color="#43575F" />
+                                    <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+                                </View>
+                                <Text style={styles.textBold}>Ferramentas:</Text>
+                                <View style={{ flexDirection: "row" }}>
+                                    {items?.tools.length > 0 ? items?.tools.map((tool: any) => (
+                                        <Text key={tool.id} style={styles.text}> - {tool.name}</Text>
+                                    )) : <Text style={styles.text}> - Nenhuma ferramenta</Text>}
+                                </View>
+                            </View>
 
-                            {
-                                items?.transports.length > 0 && (
-                                    <View style={styles.linha}>
-                                        <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
-                                            <FontAwesome6 name="truck" size={15} color="#43575F" />
-                                        </View>
-                                        <Text style={styles.textBold}>Transportes:</Text>
-                                        <View style={{ flexDirection: "row" }}>
-                                            {items?.transports.map((t) => (
-                                                <Text key={t.id} style={styles.text}> - {t.name}</Text>
-                                            ))}
-                                        </View>
+
+                            <View style={styles.linha}>
+                                <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
+                                    <FontAwesome5 name="box-open" size={12} color="#43575F" />
+                                    <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+                                </View>
+                                <Text style={styles.textBold}>Produtos:</Text>
+                                <View style={{ flexDirection: "row" }}>
+                                    <View style={{ flexDirection: "row" }}>
+                                        {items?.products.length > 0 ? items?.products.map((product: any) => (
+                                            <Text key={product.id} style={styles.text}> - {product.name}</Text>
+                                        )) : <Text style={styles.text}> - Nenhum produto</Text>}
                                     </View>
-                                )
-                            }
+                                </View>
+                            </View>
+
+
+
+                            <View style={styles.linha}>
+                                <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
+                                    <FontAwesome6 name="truck" size={15} color="#43575F" />
+                                </View>
+                                <Text style={styles.textBold}>Transportes:</Text>
+                                <View style={{ flexDirection: "row" }}>
+                                    <View style={{ flexDirection: "row" }}>
+                                        {items?.transports.length > 0 ? items?.transports.map((transport: any) => (
+                                            <Text key={transport.id} style={styles.text}> - {transport.name}</Text>
+                                        )) : <Text style={styles.text}> - Nenhum transporte</Text>}
+                                    </View>
+                                </View>
+                            </View>
                         </View>
                     </View>
                 </StyledMainContainer>

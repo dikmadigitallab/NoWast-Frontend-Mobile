@@ -1,4 +1,3 @@
-// Ocorrencias.tsx
 import AprovacoStatus from "@/components/aprovacaoStatus";
 import LoadingScreen from "@/components/carregamento";
 import StatusIndicator from "@/components/StatusIndicator";

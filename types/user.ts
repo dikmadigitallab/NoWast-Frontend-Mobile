@@ -1,4 +1,4 @@
-interface UserData {
+interface IUser {
     id?: string | number;
     userType?: string;
     email?: string | null;
@@ -19,4 +19,4 @@ export const userTypes: { [key: string]: string } = {
     OPERATIONAL: 'Operacional'
 }
 
-export default UserData;
+export default IUser;
