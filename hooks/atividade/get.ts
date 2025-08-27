@@ -133,7 +133,20 @@ export const useGetActivity = ({ type, page = 1, pageSize = null, query = null, 
             setData(refactory);
             setLoading(false);
         } else {
-            setData(response.data.data.items || []);
+
+            const refactory: IAtividade[] = response.data.data.items?.map((item: any) => {
+                const occurrenceFiles = item.occurrenceFiles || [];
+
+                return {
+                    ...item,
+                    imageUrls: occurrenceFiles
+                        .filter((f: any) => f.fileType === 'IMAGE' && f.file?.url)
+                        .map((f: any) => f.file.url),
+                    audioUrl: occurrenceFiles
+                        .find((f: any) => f.fileType === 'AUDIO' && f.file?.url)?.file.url || null
+                };
+            }) || [];
+            setData(refactory);
             setLoading(false);
         }
 

@@ -6,7 +6,7 @@ interface DataStore {
     setData: (data: Array<any>) => void;
 }
 
-export const useDataStore = create<DataStore>((set) => ({
+export const useChecklistStore = create<DataStore>((set) => ({
     data: null,
     setData: (data) => set({ data })
 }));

@@ -2,7 +2,6 @@ import { useAuth } from '@/contexts/authProvider';
 import { useModuleStore } from '@/store/moduleStore';
 import { userTypes } from '@/types/user';
 import { FontAwesome, FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import React, { useState } from 'react';
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -15,7 +14,6 @@ export default function SelecionarStack() {
     const [loading, setLoading] = useState(false);
     const { user } = useAuth();
 
-
     const handleSelecionarStack = (stack: 'quedazero' | 'coleta' | 'residuos') => {
         setModuleType(stack);
         setTimeout(() => {
@@ -25,11 +23,9 @@ export default function SelecionarStack() {
 
     const handleLogout = async () => {
         setLoading(true);
-        await AsyncStorage.removeItem("authToken");
-
         setTimeout(() => {
-            logout();
             setModuleType(null);
+            logout();
         }, 500);
     }
 

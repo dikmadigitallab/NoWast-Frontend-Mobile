@@ -7,6 +7,7 @@ import api from '../api';
 export const useUserJustification = () => {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
+    const [data, setData] = useState<any>(null);
     const [error, setError] = useState<string | null>(null);
 
     const justification = async (data: any) => {
@@ -60,10 +61,10 @@ export const useUserJustification = () => {
                     },
                 }
             );
-
+            setData(response.data.data);
             if (response.status >= 200 && response.status < 300) {
                 toast.success("Ausência justificada com sucesso");
-                setTimeout(() => router.push("/main" as never), 1000);
+                // setTimeout(() => router.push("/main" as never), 1000);
             } else {
                 throw new Error(response.data?.messages?.[0] || "Erro ao justificar atividade");
             }
@@ -82,6 +83,7 @@ export const useUserJustification = () => {
     };
 
     return {
+        data,
         justification,
         loading,
         error,

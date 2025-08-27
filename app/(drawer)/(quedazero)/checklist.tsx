@@ -1,6 +1,6 @@
 import CapturaImagens from '@/components/capturaImagens';
 import { useCloseActivity } from '@/hooks/atividade/update';
-import { useDataStore } from '@/store/dataStore';
+import { useChecklistStore } from '@/store/dataStore';
 import { AntDesign } from '@expo/vector-icons';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -23,7 +23,7 @@ interface IChecklist {
 
 export default function Checklist() {
 
-    const { data } = useDataStore();
+    const { data } = useChecklistStore();
     const { close, error } = useCloseActivity();
     const defaultForm: IFormData = { id: data?.[0]?.id || 0, status: "COMPLETED", observation: "", completedChecklistIds: [], pendingChecklistIds: [], images: [] };
     const [form, setForm] = useState<IFormData | null>(defaultForm);

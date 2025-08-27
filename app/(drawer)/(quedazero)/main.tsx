@@ -168,7 +168,7 @@ export default function Mainpage() {
         const time = dateTime.toLocaleTimeString();
 
         return (
-            <TouchableOpacity onPress={() => onSelected(item, "detalharAtividade")} style={styles.mainOccurrenceItem}>
+            <TouchableOpacity onPress={() => onSelected(item, "detalharOcorrencia")} style={styles.mainOccurrenceItem}>
                 <View style={styles.occurrenceItem}>
                     <View style={styles.photoContainer}>
                         <View style={{
@@ -178,9 +178,9 @@ export default function Mainpage() {
                             justifyContent: 'center',
                             alignItems: 'center'
                         }}>
-                            {item.activityFiles?.length > 0 ? (
+                            {item.imageUrls?.length > 0 ? (
                                 <Image
-                                    source={{ uri: item.activityFiles[0].file.url }}
+                                    source={{ uri: item.imageUrls[0] }}
                                     style={{ width: "100%", height: "100%", borderRadius: 10 }}
                                 />
                             ) : item.justification?.justificationFiles?.length > 0 ? (
@@ -235,33 +235,31 @@ export default function Mainpage() {
     return (
         <StyledMainContainer>
             <View style={{ flex: 1 }}>
-                {user?.userType === "ADM_DIKMA" && (
-                    <View style={{ height: 50, marginBottom: 10 }}>
-                        <ScrollView
-                            horizontal
-                            showsHorizontalScrollIndicator={false}
-                            contentContainerStyle={styles.filterButtonsContainer}
+                <View style={{ height: 50, marginBottom: 10 }}>
+                    <ScrollView
+                        horizontal
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.filterButtonsContainer}
+                    >
+                        <TouchableOpacity
+                            style={styles.filterButton}
+                            onPress={() => setOpenDate(true)}
                         >
-                            <TouchableOpacity
-                                style={styles.filterButton}
-                                onPress={() => setOpenDate(true)}
-                            >
-                                <MaterialCommunityIcons name="calendar" size={24} color="black" />
-                                <Text>Data</Text>
-                                <AntDesign name="caretdown" size={10} color="black" />
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                onPress={() => open()}
-                                style={styles.filterButton}
-                            >
-                                <Text>
-                                    {type === "Atividade" ? "Atividades" : "Ocorrências"}
-                                </Text>
-                                <AntDesign name="caretdown" size={10} color="black" />
-                            </TouchableOpacity>
-                        </ScrollView>
-                    </View>
-                )}
+                            <MaterialCommunityIcons name="calendar" size={24} color="black" />
+                            <Text>Data</Text>
+                            <AntDesign name="caretdown" size={10} color="black" />
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            onPress={() => open()}
+                            style={styles.filterButton}
+                        >
+                            <Text>
+                                {type === "Atividade" ? "Atividades" : "Ocorrências"}
+                            </Text>
+                            <AntDesign name="caretdown" size={10} color="black" />
+                        </TouchableOpacity>
+                    </ScrollView>
+                </View>
 
                 <FlatList
                     data={data || []}

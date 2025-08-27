@@ -4,7 +4,7 @@ import StatusIndicator from "@/components/StatusIndicator";
 import { useUpdateActivityStatus } from "@/hooks/atividade/aprove";
 import { useCloseActivity } from "@/hooks/atividade/update";
 import { useUserJustification } from "@/hooks/atividade/userJustification";
-import { useDataStore } from "@/store/dataStore";
+import { useChecklistStore } from "@/store/dataStore";
 import { userTypes } from "@/types/user";
 import { AntDesign, FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
 import Entypo from "@expo/vector-icons/Entypo";
@@ -26,40 +26,29 @@ export default function DetalharAtividade() {
     const router = useRouter();
     const pathname = usePathname();
     const { items } = useItemsStore();
-    const { setData } = useDataStore()
+    const { close } = useCloseActivity();
+    const { setData } = useChecklistStore();
+    const { updateStatus } = useUpdateActivityStatus();
     const modalizeDescricaoRef = useRef<Modalize | null>(null);
     const [modalVisible, setModalizeVisible] = useState(false);
     const modalizeJustificativaRef = useRef<Modalize | null>(null);
-    const { updateStatus } = useUpdateActivityStatus()
-    const { close } = useCloseActivity()
-    const { justification, loading } = useUserJustification()
-
-    const [form, setForm] = useState({
-        id: items?.id,
-        status: "JUSTIFIED",
-        justification: "",
-        images: []
-    });
-
-    const [userDescricao, setUserDescricao] = useState({
-        activityId: "",
-        userId: "",
-        reason: "",
-        name: ""
-    })
+    const { data: justification, loading } = useUserJustification();
+    const [form, setForm] = useState({ id: items?.id, status: "JUSTIFIED", justification: "", images: [] });
+    const [userDescricao, setUserDescricao] = useState({ activityId: "", userId: "", reason: "", name: "" });
 
     const openModelizeDescricao = (data: { activityId: string, userId: string, reason: string, name: string }): void => {
         setUserDescricao(data)
         modalizeDescricaoRef.current?.open()
     }
 
-    const sendDescricao = () => {
+    const sendUserJustification = () => {
         const newData = {
             activityId: userDescricao?.activityId,
             userId: userDescricao?.userId,
             reason: userDescricao?.reason,
         }
         justification(newData)
+        deleteChanges()
     }
 
     const closeModal = () => {
@@ -105,13 +94,12 @@ export default function DetalharAtividade() {
         deleteChanges()
     }, [pathname])
 
-
     return (
         <View style={styles.mainContainer}>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} >
                 <StyledMainContainer>
                     <View style={{ padding: 10, marginBottom: 10, }}>
-                        <Text style={{ fontSize: 15 }}>Descrição da atividade, aqui vai ficar a descrição que foi digitada da atividade.</Text>
+                        <Text style={{ fontSize: 15 }}>Descrição da items.</Text>
                     </View>
                     <View style={styles.wrapper}>
                         <View style={styles.container}>
@@ -139,11 +127,7 @@ export default function DetalharAtividade() {
                                             >
                                                 {items?.activityFiles?.map((url: any, index: number) => (
                                                     <View key={index} style={{ width: 200, height: "100%", marginRight: 10 }}>
-                                                        <Image
-                                                            source={{ uri: url?.file?.url }}
-                                                            style={styles.image}
-                                                            resizeMode="cover"
-                                                        />
+                                                        <Image source={{ uri: url?.file?.url }} style={styles.image} resizeMode="cover" />
                                                     </View>
                                                 ))}
                                             </ScrollView>
@@ -167,11 +151,7 @@ export default function DetalharAtividade() {
                                             <Text style={styles.text}>{items?.justification?.description}</Text>
                                             {items.justification?.justificationFiles?.map((url: any, index: number) => (
                                                 <View key={index} style={{ width: 200, height: 120, marginRight: 10 }}>
-                                                    <Image
-                                                        source={{ uri: url?.file?.url }}
-                                                        style={styles.image}
-                                                        resizeMode="cover"
-                                                    />
+                                                    <Image source={{ uri: url?.file?.url }} style={styles.image} resizeMode="cover" />
                                                 </View>
                                             ))}
                                         </View>
@@ -203,8 +183,8 @@ export default function DetalharAtividade() {
                                     <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                                 </View>
                                 <View style={{ flexDirection: "column", gap: 10 }}>
-                                    {items?.userActivities.map((data: any, index: number) => {
-                                        const justification = data?.justification?.reason || null;
+                                    {items?.userActivities?.map((data: any, index: number) => {
+                                        let justification = data?.justification?.reason || null;
 
                                         return (
                                             <View
@@ -214,10 +194,10 @@ export default function DetalharAtividade() {
                                                 <View style={{ flexDirection: "column", alignItems: "flex-start", gap: 5 }}>
                                                     <View>
                                                         <Text style={{ fontSize: 12, color: "#999" }}>
-                                                            {userTypes[data.user.userType]}
+                                                            {userTypes[data.user?.userType]}
                                                         </Text>
                                                         <Text style={{ fontSize: 14, color: "#43575F" }}>
-                                                            {data.user.person.name}
+                                                            {data?.user?.person?.name}
                                                         </Text>
                                                     </View>
 
@@ -235,10 +215,10 @@ export default function DetalharAtividade() {
                                                     <TouchableOpacity
                                                         onPress={() =>
                                                             openModelizeDescricao({
-                                                                activityId: String(items.id),
-                                                                userId: String(data.user.id),
+                                                                activityId: String(items?.id),
+                                                                userId: String(data.user?.id),
                                                                 reason: "",
-                                                                name: data.user.person.name,
+                                                                name: data?.user?.person?.name,
                                                             })
                                                         }
                                                         style={{
@@ -296,7 +276,7 @@ export default function DetalharAtividade() {
                                 <Text style={styles.textBold}>EPI:</Text>
                                 <View style={{ flexDirection: "row" }}>
                                     <View style={{ flexDirection: "row" }}>
-                                        {items?.ppes.length > 0 ? items?.ppes.map((ppe: any) => (
+                                        {items?.ppes?.length > 0 ? items?.ppes?.map((ppe: any) => (
                                             <Text key={ppe.id} style={styles.text}> - {ppe.name}</Text>
                                         )) : <Text style={styles.text}> - Nenhum ppe</Text>}
                                     </View>
@@ -353,7 +333,13 @@ export default function DetalharAtividade() {
                 </StyledMainContainer>
             </ScrollView>
 
-            <View style={styles.fixedButtonsContainer}>
+            <View style={[styles.fixedButtonsContainer, {
+                display:
+                    items.approvalStatus === "APPROVED"
+                        || items.approvalStatus === "REJECTED"
+                        || items?.statusEnum !== "COMPLETED"
+                        ? "flex" : "none"
+            }]}>
                 {
                     (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE" || user?.userType === "OPERATIONAL") && items.approvalStatus === "APPROVED" && (
                         <View style={{ width: "100%", height: 90, borderRadius: 5, overflow: "hidden", marginBottom: 10 }}>
@@ -371,7 +357,7 @@ export default function DetalharAtividade() {
                 }
 
                 {
-                    (user?.userType === "OPERATIONAL" && items.approvalStatus === "PENDING") && items?.statusEnum !== "COMPLETED" && (
+                    user?.userType === "OPERATIONAL" && (items.approvalStatus === "PENDING" && items?.statusEnum !== "COMPLETED") && (
                         <View style={styles.buttonsContainer}>
                             <TouchableOpacity onPress={() => modalizeJustificativaRef.current?.open()} style={styles.justifyButton}>
                                 <Text style={{ color: "#404944", fontSize: 16 }}>JUSTIFICAR</Text>
@@ -493,7 +479,7 @@ export default function DetalharAtividade() {
                     </View>
                 </View>
                 <View style={styles.fotosContainer}>
-                    <TouchableOpacity style={styles.sendButton} onPress={sendDescricao}>
+                    <TouchableOpacity style={styles.sendButton} onPress={sendUserJustification}>
                         <Text style={{ color: "#fff", fontSize: 15 }}>
                             {loading ? (<ActivityIndicator size="small" color="#fff" />) : "Enviar"}
                         </Text>
@@ -537,7 +523,7 @@ const styles = StyleSheet.create({
     fixedButtonsContainer: {
         padding: 16,
         elevation: 4,
-        backgroundColor: '#fff',
+        backgroundColor: "#fff",
         borderTopLeftRadius: 12,
         borderTopRightRadius: 12,
     },

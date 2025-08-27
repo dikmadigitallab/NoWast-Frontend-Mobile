@@ -1,4 +1,5 @@
 import api from "@/hooks/api";
+import { useModuleStore } from "@/store/moduleStore";
 import UserData from "@/types/user";
 import { toast } from "@backpackapp-io/react-native-toast";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -18,6 +19,7 @@ const AuthContext = createContext<AuthContextProps | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const router = useRouter();
+  const { setModuleType } = useModuleStore();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<UserData | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -91,6 +93,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await AsyncStorage.removeItem("user");
     setIsAuthenticated(false);
     setUser(null);
+    setModuleType(null);
     router.push("/authRoute");
   };
 
