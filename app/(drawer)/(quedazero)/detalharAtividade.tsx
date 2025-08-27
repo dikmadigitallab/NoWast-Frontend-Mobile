@@ -105,6 +105,7 @@ export default function DetalharAtividade() {
         deleteChanges()
     }, [pathname])
 
+
     return (
         <View style={styles.mainContainer}>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} >
@@ -136,10 +137,10 @@ export default function DetalharAtividade() {
                                                 showsHorizontalScrollIndicator={false}
                                                 contentContainerStyle={{ paddingRight: 50 }}
                                             >
-                                                {items?.activityFiles?.map((url: string, index: number) => (
+                                                {items?.activityFiles?.map((url: any, index: number) => (
                                                     <View key={index} style={{ width: 200, height: "100%", marginRight: 10 }}>
                                                         <Image
-                                                            source={{ uri: url }}
+                                                            source={{ uri: url?.file?.url }}
                                                             style={styles.image}
                                                             resizeMode="cover"
                                                         />
@@ -156,7 +157,7 @@ export default function DetalharAtividade() {
 
                             {
                                 (items?.statusEnum === "INTERNAL_JUSTIFICATION" || items?.statusEnum === "JUSTIFIED") && (
-                                    <View style={[styles.linha, { height: 150, alignItems: "flex-start" }]}>
+                                    <View style={[styles.linha, { height: 180, alignItems: "flex-start" }]}>
                                         <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 10 }]}>
                                             <AntDesign name="camera" size={15} color="#43575F" />
                                             <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
@@ -164,11 +165,10 @@ export default function DetalharAtividade() {
                                         <View style={{ flexDirection: "column", gap: 5 }}>
                                             <Text style={styles.textBold}>Justificativa:</Text>
                                             <Text style={styles.text}>{items?.justification?.description}</Text>
-                                            {items?.activityFiles?.map((url: string, index: number) => (
-
-                                                <View key={index} style={{ width: 200, height: "100%", marginRight: 10 }}>
+                                            {items.justification?.justificationFiles?.map((url: any, index: number) => (
+                                                <View key={index} style={{ width: 200, height: 120, marginRight: 10 }}>
                                                     <Image
-                                                        source={{ uri: url }}
+                                                        source={{ uri: url?.file?.url }}
                                                         style={styles.image}
                                                         resizeMode="cover"
                                                     />
@@ -204,41 +204,62 @@ export default function DetalharAtividade() {
                                 </View>
                                 <View style={{ flexDirection: "column", gap: 10 }}>
                                     {items?.userActivities.map((data: any, index: number) => {
+                                        const justification = data?.justification?.reason || null;
+
                                         return (
-                                            <View key={index} style={{ flexDirection: "row", alignItems: "flex-start", gap: 10 }}>
+                                            <View
+                                                key={index}
+                                                style={{ flexDirection: "row", alignItems: "flex-start", gap: 10 }}
+                                            >
                                                 <View style={{ flexDirection: "column", alignItems: "flex-start", gap: 5 }}>
                                                     <View>
-                                                        <Text style={{ fontSize: 12, color: "#999" }}>{userTypes[data.user.userType]}</Text>
-                                                        <Text style={{ fontSize: 14, color: "#43575F" }}>{data.user.person.name}</Text>
+                                                        <Text style={{ fontSize: 12, color: "#999" }}>
+                                                            {userTypes[data.user.userType]}
+                                                        </Text>
+                                                        <Text style={{ fontSize: 14, color: "#43575F" }}>
+                                                            {data.user.person.name}
+                                                        </Text>
                                                     </View>
-                                                    {
-                                                        items?.userJustification && (
-                                                            <View>
-                                                                <Text style={{ fontSize: 12, color: "#999" }}>Justificativa:</Text>
-                                                                <Text style={{ fontSize: 12, color: "#43575F" }}>{items?.userJustification}</Text>
-                                                            </View>
-                                                        )
-                                                    }
+
+                                                    {justification && (
+                                                        <View>
+                                                            <Text style={{ fontSize: 12, color: "#999" }}>Justificativa:</Text>
+                                                            <Text style={{ fontSize: 12, color: "#43575F" }}>
+                                                                {justification}
+                                                            </Text>
+                                                        </View>
+                                                    )}
                                                 </View>
-                                                {
-                                                    !items?.userJustification &&
+
+                                                {!justification && (
                                                     <TouchableOpacity
-                                                        onPress={() => openModelizeDescricao({
-                                                            activityId: String(items.id),
-                                                            userId: String(data.user.id),
-                                                            reason: "",
-                                                            name: data.user.person.name
-                                                        })}
-                                                        style={{ flexDirection: "row", alignItems: "center", gap: 5, borderWidth: 1, borderRadius: 100, borderColor: "#43575F", padding: 5 }}>
+                                                        onPress={() =>
+                                                            openModelizeDescricao({
+                                                                activityId: String(items.id),
+                                                                userId: String(data.user.id),
+                                                                reason: "",
+                                                                name: data.user.person.name,
+                                                            })
+                                                        }
+                                                        style={{
+                                                            flexDirection: "row",
+                                                            alignItems: "center",
+                                                            gap: 5,
+                                                            borderWidth: 1,
+                                                            borderRadius: 100,
+                                                            borderColor: "#43575F",
+                                                            padding: 5,
+                                                        }}
+                                                    >
                                                         <AntDesign name="plus" size={15} color="#404944" />
                                                         <Text style={{ fontSize: 12, color: "#404944" }}>Descrição</Text>
                                                     </TouchableOpacity>
-                                                }
+                                                )}
                                             </View>
-
-                                        )
+                                        );
                                     })}
                                 </View>
+
                             </View>
 
                             <View style={[styles.linha, { alignItems: "flex-start" }]}>

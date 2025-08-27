@@ -1,98 +1,30 @@
 import CapturaImagens from "@/components/capturaImagens";
 import AudioRecorderPlayer from "@/components/gravadorAudio";
+import { useCreate } from "@/hooks/crud/create/create";
 import { useGet } from "@/hooks/crud/get/get";
 import { useGetUsuario } from "@/hooks/usuarios/get";
+import { IFormOccurrence } from "@/types/IOcorrencias";
 import UserData from "@/types/user";
-import { toast } from "@backpackapp-io/react-native-toast";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Controller, useForm } from "react-hook-form";
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { TextInput } from "react-native-paper";
 import { Dropdown } from 'react-native-paper-dropdown';
 import { StyledMainContainer } from "../../../styles/StyledComponents";
 
-interface IFormData {
-    status: string;
-    weight: string;
-    userId: string;
-    buildingId: string;
-    materialId: string;
-    occurrenceOriginId: string;
-    detailedOccurrenceOriginId: string;
-    finalDestinationOccurrenceId: string;
-    fallCauseId: string;
-    collectionTransportUsedId: string;
-    approvalStatus: string;
-    images: string[];
-    audio: string;
-    transcription: string;
-}
-
-interface IOptions {
-    [key: string]: Array<{ label: string; value: string }>;
-}
-
 export default function CadastroOcorrencia() {
 
-    const [loading, setLoading] = useState(true);
-    const [options, setOptions] = useState<IOptions>({});
-    const [files, setForm] = useState<IFormData | null>(null);
+    const { create } = useCreate()
     const { data: usuarios } = useGetUsuario({})
     const { data: predios } = useGet({ url: 'building' });
     const { data: material } = useGet({ url: 'material' });
+    const { data: causa_queda } = useGet({ url: 'fallCause' });
+    const { data: destino } = useGet({ url: 'occurrenceOrigin' });
     const { data: transporte } = useGet({ url: 'collectionTransportUsed' });
+    const { data: destino_final } = useGet({ url: 'finalDestinationOccurrence' });
+    const { data: destino_detalhada } = useGet({ url: 'detailedOccurrenceOrigin' });
 
-    useEffect(() => {
-        const loadOptions = async () => {
-            try {
-                await new Promise(resolve => setTimeout(resolve, 500));
-
-                const mockOptions = {
-                    materialId: [
-                        { label: 'Material 1', value: '1' },
-                        { label: 'Material 2', value: '2' },
-                        { label: 'Material 3', value: '3' }
-                    ],
-                    occurrenceOriginId: [
-                        { label: 'Origem 1', value: '1' },
-                        { label: 'Origem 2', value: '2' },
-                        { label: 'Origem 3', value: '3' }
-                    ],
-                    detailedOccurrenceOriginId: [
-                        { label: 'Origem Detalhada 1', value: '1' },
-                        { label: 'Origem Detalhada 2', value: '2' },
-                        { label: 'Origem Detalhada 3', value: '3' }
-                    ],
-                    finalDestinationOccurrenceId: [
-                        { label: 'Destino Final 1', value: '1' },
-                        { label: 'Destino Final 2', value: '2' },
-                        { label: 'Destino Final 3', value: '3' }
-                    ],
-                    fallCauseId: [
-                        { label: 'Causa 1', value: '1' },
-                        { label: 'Causa 2', value: '2' },
-                        { label: 'Causa 3', value: '3' }
-                    ],
-                    collectionTransportUsedId: [
-                        { label: 'Transporte 1', value: '1' },
-                        { label: 'Transporte 2', value: '2' },
-                        { label: 'Transporte 3', value: '3' }
-                    ],
-                };
-
-                setOptions(mockOptions);
-                setLoading(false);
-            } catch (error) {
-                console.error('Erro ao carregar opções:', error);
-                toast.error('Erro ao carregar opções');
-                setLoading(false);
-            }
-        };
-
-        loadOptions();
-    }, []);
-
-    const { control, handleSubmit, formState: { errors }, watch, setValue } = useForm<IFormData>({
+    const { control, handleSubmit, formState: { errors }, watch, setValue } = useForm<IFormOccurrence>({
         defaultValues: {
             status: "",
             weight: "",
@@ -105,13 +37,14 @@ export default function CadastroOcorrencia() {
             fallCauseId: "",
             collectionTransportUsedId: "",
             approvalStatus: "",
+            approvalDate: "",
             transcription: ""
         },
         mode: "onChange"
     });
 
-    const onSubmit = (data: IFormData): void => {
-
+    const onSubmit = (data: IFormOccurrence): void => {
+        create(data, 'ocorrencia criada com sucesso!');
     };
 
     const validateWeight = (value: string) => {
@@ -129,23 +62,6 @@ export default function CadastroOcorrencia() {
         }
         return true;
     };
-
-    const validateImages = (value: string[]) => {
-        if (!value || value.length === 0) {
-            return 'É necessário adicionar pelo menos uma imagem';
-        }
-        return true;
-    };
-
-    if (loading) {
-        return (
-            <StyledMainContainer>
-                <View style={styles.loadingContainer}>
-                    <Text>Carregando opções...</Text>
-                </View>
-            </StyledMainContainer>
-        );
-    }
 
     return (
         <StyledMainContainer>
@@ -307,7 +223,7 @@ export default function CadastroOcorrencia() {
                                     <Dropdown
                                         mode="outlined"
                                         label="Origem da Ocorrência (Opcional)"
-                                        options={options.occurrenceOriginId || []}
+                                        options={destino?.map((destino: any) => ({ label: destino.description, value: destino.id?.toString() })) || []}
                                         value={value}
                                         onSelect={onChange}
                                         CustomMenuHeader={() => <View></View>}
@@ -334,7 +250,7 @@ export default function CadastroOcorrencia() {
                                     <Dropdown
                                         mode="outlined"
                                         label="Origem Detalhada (Opcional)"
-                                        options={options.detailedOccurrenceOriginId || []}
+                                        options={destino_detalhada?.map((finalDes: any) => ({ label: finalDes.description, value: finalDes.id?.toString() })) || []}
                                         value={value}
                                         onSelect={onChange}
                                         CustomMenuHeader={() => <View></View>}
@@ -362,7 +278,7 @@ export default function CadastroOcorrencia() {
                                     <Dropdown
                                         mode="outlined"
                                         label="Destino Final da Ocorrência*"
-                                        options={options.finalDestinationOccurrenceId || []}
+                                        options={destino_final?.map((finalDes: any) => ({ label: finalDes.description, value: finalDes.id?.toString() })) || []}
                                         value={value}
                                         onSelect={onChange}
                                         CustomMenuHeader={() => <View></View>}
@@ -389,7 +305,7 @@ export default function CadastroOcorrencia() {
                                     <Dropdown
                                         mode="outlined"
                                         label="Causa da Queda (Opcional)"
-                                        options={options.fallCauseId || []}
+                                        options={causa_queda?.map((queda: any) => ({ label: queda.description, value: queda.id?.toString() })) || []}
                                         value={value}
                                         onSelect={onChange}
                                         CustomMenuHeader={() => <View></View>}
@@ -445,9 +361,9 @@ export default function CadastroOcorrencia() {
                                         mode="outlined"
                                         label="Status de Aprovação*"
                                         options={
-                                            [{ label: 'Pendente', value: 'pending' },
-                                            { label: 'Aprovado', value: 'approved' },
-                                            { label: 'Rejeitado', value: 'rejected' }]
+                                            [{ label: 'Pendente', value: 'PENDING' },
+                                            { label: 'Aprovado', value: 'APPROVED' },
+                                            { label: 'Rejeitado', value: 'REJECTED' }]
                                         }
                                         value={value}
                                         onSelect={onChange}
@@ -503,14 +419,8 @@ export default function CadastroOcorrencia() {
 
                     </View>
 
-
-                    <CapturaImagens
-                        texto="Adicionar fotos*"
-                        qtsImagens={3}
-                        setForm={(uris) => setValue("images", uris)}
-                    />
-
-                    <AudioRecorderPlayer setForm={(audioUri) => setForm((prevState) => ({ ...prevState, audio: audioUri } as IFormData))} />
+                    <CapturaImagens texto="Adicionar fotos*" qtsImagens={3} setForm={(uris) => setValue("images", uris)} />
+                    <AudioRecorderPlayer setForm={(audioUri) => setValue("audio", audioUri)} />
 
                     <TouchableOpacity
                         style={[

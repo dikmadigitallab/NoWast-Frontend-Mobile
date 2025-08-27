@@ -3,7 +3,7 @@ import LoadingScreen from "@/components/carregamento";
 import { useGetActivity } from '@/hooks/atividade/get';
 import { useGet } from '@/hooks/crud/get/get';
 import { useGetUsuario } from '@/hooks/usuarios/get';
-import { ActivityData } from '@/types/IAtividade';
+import { IAtividade } from '@/types/IAtividade';
 import { AntDesign, Entypo, FontAwesome6 } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { useFocusEffect } from 'expo-router';
@@ -50,7 +50,7 @@ export default function Cronograma() {
   const animatedHeight = useRef(new Animated.Value(360)).current;
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [filter, setFilter] = useState({ supervisor: { id: 0, label: "" }, environment: { id: 0, label: "" } });
-  const { data, refetch } = useGetActivity({ dateTimeFrom: selectedDate ? moment(selectedDate).format("YYYY-MM-DD") : null, supervisorId: filter.supervisor.id, environmentId: filter.environment.id });
+  const { data, refetch } = useGetActivity({ type: "Atividade", dateTimeFrom: selectedDate ? moment(selectedDate).format("YYYY-MM-DD") : null, supervisorId: filter.supervisor.id, environmentId: filter.environment.id });
 
   useFocusEffect(
     useCallback(() => {
@@ -95,7 +95,7 @@ export default function Cronograma() {
 
     const grouped: Record<string, GroupedData[]> = {};
 
-    data.forEach((item: ActivityData) => {
+    data.forEach((item: IAtividade) => {
       const { date } = extractDateTime(item.dateTime);
       const key = formatDateHeader(date);
 

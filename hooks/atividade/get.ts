@@ -17,9 +17,10 @@ export interface UseGetParams {
     buildingId?: number | null;
     environmentId?: number | null;
     dateTimeFrom?: string | null;
+    type: string;
 }
 
-export const useGetActivity = ({ page = 1, pageSize = null, query = null, supervisorId = null, positionId = null, managerId = null, responsibleManagerId = null, buildingId = null, environmentId = null, dateTimeFrom = null }: UseGetParams) => {
+export const useGetActivity = ({ type, page = 1, pageSize = null, query = null, supervisorId = null, positionId = null, managerId = null, responsibleManagerId = null, buildingId = null, environmentId = null, dateTimeFrom = null }: UseGetParams) => {
 
     const { logout } = useAuth();
     const [loading, setLoading] = useState<boolean>(false);
@@ -27,6 +28,7 @@ export const useGetActivity = ({ page = 1, pageSize = null, query = null, superv
     const [data, setData] = useState<IAtividade[] | null>(null);
 
     const get = useCallback(async () => {
+
         setError(null);
 
         const authToken = await AsyncStorage.getItem("authToken");
@@ -55,14 +57,12 @@ export const useGetActivity = ({ page = 1, pageSize = null, query = null, superv
         if (environmentId !== null) params.append("environmentId", String(environmentId).trim());
         if (dateTimeFrom !== null) params.append("dateTimeFrom", String(dateTimeFrom).trim());
 
-        const paramUrl = `/activity?${params.toString()}`;
-
-        const bearerToken = authToken.includes("=") ? authToken.split("=")[1] : authToken;
+        const paramUrl = type === "Atividade" ? `/activity?${params.toString()}` : `/occurrence?${params.toString()}`;
 
         const response = await api.get(paramUrl, {
             headers: {
-                Authorization: `Bearer ${bearerToken}`,
-                "Content-Type": "application/json",
+                Authorization: `Bearer ${authToken}`,
+                'Content-Type': 'application/x-www-form-urlencoded',
             },
         }).catch((error) => {
             if (error.response?.status === 401) {
@@ -83,53 +83,64 @@ export const useGetActivity = ({ page = 1, pageSize = null, query = null, superv
             return;
         }
 
-        const refactory: IAtividade[] = response.data.data.items?.map((item: any) => {
+        if (type === "Atividade") {
+            const refactory: IAtividade[] = response.data.data.items?.map((item: any) => {
 
-            const data = item.userActivities.map((userActivity: any) => userActivity);
-            const data2 = data.map((userActivity: any) => userActivity.user);
-            const data3 = data2.map((userActivity: any) => userActivity.justifications);
+                const userJustification = item?.userActivities.map((userActivity: any) => ({
+                    name: userActivity?.user?.person?.name || null,
+                    justification: userActivity?.justification?.reason || null,
+                    id: userActivity?.user?.id
+                }));
 
-            return {
-                id: item.id,
-                environment: item.environment?.name || null,
-                dimension: item.environment?.areaM2 || null,
-                supervisor: item?.supervisor?.person?.name || null,
-                manager: item?.manager?.person?.name || null,
-                statusEnum: item?.statusEnum || null,
-                justification: item?.justification || null,
-                approvalDate: item?.approvalDate || null,
-                checklist: item?.checklists?.map((checklist: any) => ({
-                    id: checklist.serviceItem.id,
-                    name: checklist.serviceItem.name
-                })) || [],
-                approvalStatus: filterStatusActivity(item?.approvalStatus),
-                local: item?.environment?.sector ? {
-                    latitude: item.environment.sector.latitude,
-                    longitude: item.environment.sector.longitude
-                } : null,
-                ppes: item?.ppes || [],
-                tools: item?.tools || [],
-                products: item?.products || [],
-                transports: item?.transports || [],
-                activityFiles: item?.activityFiles[0],
-                userActivities: item?.userActivities || [],
-                file: item?.justification?.justificationFiles?.[0]?.file.url || null,
-                userJustification: data3[1]?.[0]?.description || null,
-                dateTime: new Date(item.dateTime).toLocaleString('pt-BR', {
-                    year: 'numeric',
-                    month: '2-digit',
-                    day: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                    second: '2-digit',
-                    hour12: false
-                })
-            };
-        }) || [];
+                return {
+                    id: item.id,
+                    environment: item.environment?.name || null,
+                    dimension: item.environment?.areaM2 || null,
+                    supervisor: item?.supervisor?.person?.name || null,
+                    manager: item?.manager?.person?.name || null,
+                    statusEnum: item?.statusEnum || null,
+                    justification: item?.justification || null,
+                    approvalDate: item?.approvalDate || null,
+                    checklist: item?.checklists?.map((checklist: any) => ({
+                        id: checklist.serviceItem.id,
+                        name: checklist.serviceItem.name
+                    })) || [],
+                    approvalStatus: filterStatusActivity(item?.approvalStatus),
+                    local: item?.environment?.sector ? {
+                        latitude: item.environment.sector.latitude,
+                        longitude: item.environment.sector.longitude
+                    } : null,
+                    ppes: item?.ppes || [],
+                    tools: item?.tools || [],
+                    products: item?.products || [],
+                    transports: item?.transports || [],
+                    activityFiles: item?.activityFiles.map((file: any) => file) || [],
+                    userActivities: item?.userActivities || [],
+                    file: item?.justification?.justificationFiles?.[0]?.file.url || null,
+                    userJustification: userJustification || [],
+                    dateTime: new Date(item.dateTime).toLocaleString('pt-BR', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        second: '2-digit',
+                        hour12: false
+                    })
+                };
+            }) || [];
 
-        setData(refactory);
-        setLoading(false);
-    }, [logout, page, pageSize, query, supervisorId, positionId, managerId, responsibleManagerId, buildingId, environmentId, dateTimeFrom]);
+            setData(refactory);
+            setLoading(false);
+        } else {
+            setData(response.data.data.items || []);
+            setLoading(false);
+        }
+
+
+
+
+    }, [type, logout, page, pageSize, query, supervisorId, positionId, managerId, responsibleManagerId, buildingId, environmentId, dateTimeFrom]);
 
     const refetch = useCallback(() => {
         get();

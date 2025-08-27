@@ -60,7 +60,7 @@ export default function Mapa() {
   const [open, setOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<ActivityData | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
-  const { data, refetch, loading } = useGetActivity({ dateTimeFrom: selectedDate ? moment(selectedDate).format("YYYY-MM-DD") : null });
+  const { data, refetch, loading } = useGetActivity({ type: "Atividade", dateTimeFrom: selectedDate ? moment(selectedDate).format("YYYY-MM-DD") : null });
 
   useFocusEffect(
     useCallback(() => {

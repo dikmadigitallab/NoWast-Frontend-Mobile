@@ -3,6 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Platform } from 'react-native';
+import ImageResizer from 'react-native-image-resizer';
 import api from "../api";
 
 export const useCloseActivity = () => {
@@ -10,6 +11,17 @@ export const useCloseActivity = () => {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Função para comprimir uma imagem
+    const compressImage = async (imageUri: string): Promise<string> => {
+        try {
+            const compressedImage = await ImageResizer.createResizedImage(imageUri, 1024, 1024, 'JPEG', 70, 0,);
+            return compressedImage.uri;
+        } catch (error) {
+            console.warn('Falha ao comprimir imagem, usando original:', error);
+            return imageUri;
+        }
+    };
 
     const close = async (data: any, message: string) => {
         setError(null);
@@ -26,18 +38,45 @@ export const useCloseActivity = () => {
 
             const formData = new FormData();
 
-            Object.entries(data).forEach(([key, value]) => {
-                if (value !== undefined && value !== null && value !== "") {
-                    if (key === "images" && Array.isArray(value)) {
-                        const imageArray = value.map((uri, index) => ({
-                            uri: Platform.OS === 'android' ? uri : uri.replace('file://', ''),
-                            type: "image/jpeg",
-                            name: `photo_${index}.jpg`,
-                        }));
+            // Processa e comprime as imagens
+            if (data.images && Array.isArray(data.images) && data.images.length > 0) {
+                const compressedImages = await Promise.all(
+                    data.images.map(async (imageUri: any, index: any) => {
+                        if (imageUri && typeof imageUri === 'string') {
+                            try {
+                                const compressedUri = await compressImage(imageUri);
+                                return {
+                                    uri: Platform.OS === 'android' ? compressedUri : compressedUri.replace('file://', ''),
+                                    type: "image/jpeg",
+                                    name: `photo_${index}.jpg`,
+                                };
+                            } catch (error) {
+                                console.warn(`Erro ao comprimir imagem ${index}:`, error);
+                                return {
+                                    uri: Platform.OS === 'android' ? imageUri : imageUri.replace('file://', ''),
+                                    type: "image/jpeg",
+                                    name: `photo_${index}.jpg`,
+                                };
+                            }
+                        }
+                        return null;
+                    })
+                );
 
-                        formData.append("images", JSON.stringify(imageArray));
+                // Adiciona apenas as imagens válidas
+                compressedImages.forEach((image) => {
+                    if (image) {
+                        formData.append("images", image as any);
                     }
-                    else if (key === "audio" && typeof value === "string" && value) {
+                });
+            }
+
+            // Processa os outros campos
+            Object.entries(data).forEach(([key, value]) => {
+                if (key === "images") return;
+
+                if (value !== undefined && value !== null && value !== "") {
+                    if (key === "audio" && typeof value === "string" && value) {
                         formData.append("audio", {
                             uri: Platform.OS === 'android' ? value : value.replace('file://', ''),
                             type: "audio/mpeg",
@@ -60,7 +99,7 @@ export const useCloseActivity = () => {
                         Authorization: `Bearer ${authToken}`,
                         'Content-Type': 'multipart/form-data',
                     },
-                    timeout: 30000,
+                    timeout: 60000,
                 }
             );
 
@@ -77,6 +116,10 @@ export const useCloseActivity = () => {
 
             setError(errorMessage);
             toast.error(errorMessage);
+
+            if (err.response?.status === 413) {
+                toast.error("Tamanho total dos dados muito grande. Tente reduzir o tamanho das imagens ou do áudio.");
+            }
         } finally {
             setLoading(false);
         }

@@ -5,7 +5,6 @@ import { AntDesign } from '@expo/vector-icons';
 import { useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Checkbox, TextInput } from 'react-native-paper';
-import AudioRecorderPlayer from '../../../components/gravadorAudio';
 import { StyledMainContainer } from '../../../styles/StyledComponents';
 
 interface IFormData {
@@ -14,7 +13,6 @@ interface IFormData {
     observation: string;
     completedChecklistIds: number[];
     pendingChecklistIds: number[];
-    audio: string;
     images: string[];
 }
 
@@ -27,7 +25,7 @@ export default function Checklist() {
 
     const { data } = useDataStore();
     const { close, error } = useCloseActivity();
-    const defaultForm: IFormData = { id: data?.[0]?.id || 0, status: "COMPLETED", observation: "", completedChecklistIds: [], pendingChecklistIds: [], audio: "", images: [] };
+    const defaultForm: IFormData = { id: data?.[0]?.id || 0, status: "COMPLETED", observation: "", completedChecklistIds: [], pendingChecklistIds: [], images: [] };
     const [form, setForm] = useState<IFormData | null>(defaultForm);
 
     // Função responsável por atualizar o estado do checkbox ela verifica se o item já está na lista de itens completos se estiver, remove o item da lista se não estiver, adiciona o item  lista
@@ -60,7 +58,7 @@ export default function Checklist() {
 
         close(finalForm, "Atividade finalizada com sucesso");
 
-        if (!error) {
+        if (error) {
             setForm(null)
         }
     };
@@ -121,9 +119,6 @@ export default function Checklist() {
                                 texto="Adicionar fotos"
                                 qtsImagens={3}
                                 setForm={(uris) => setForm((prev) => prev ? { ...prev, images: uris } : { ...defaultForm, images: uris })}
-                            />
-                            <AudioRecorderPlayer
-                                setForm={(uri) => setForm((prev) => prev ? { ...prev, audio: uri } : { ...defaultForm, audio: uri })}
                             />
                         </View>
                     </View>

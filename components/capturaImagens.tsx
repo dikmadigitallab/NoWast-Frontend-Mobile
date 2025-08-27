@@ -1,5 +1,6 @@
 import { AntDesign, MaterialCommunityIcons } from "@expo/vector-icons";
 import { CameraView, useCameraPermissions } from "expo-camera";
+import * as ImageManipulator from 'expo-image-manipulator';
 import React, { useRef, useState } from "react";
 import { Alert, Image, Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
@@ -9,6 +10,7 @@ export default function CapturaImagens({ texto, qtsImagens, setForm }: { texto: 
     const [permission, requestPermission] = useCameraPermissions();
     const [cameraOpen, setCameraOpen] = useState(false);
     const [takenCount, setTakenCount] = useState(0);
+    const [isProcessing, setIsProcessing] = useState(false);
     const cameraRef = useRef<any>(null);
 
     const openCamera = async () => {
@@ -27,16 +29,51 @@ export default function CapturaImagens({ texto, qtsImagens, setForm }: { texto: 
         setCameraOpen(true);
     };
 
-    const takePicture = async () => {
-        if (cameraRef.current) {
-            const photo = await cameraRef.current.takePictureAsync({ quality: 0.7 });
-            const newImages = [...images, photo.uri];
-            setImages(newImages);
-            setForm && setForm(newImages);
-            setTakenCount(prev => prev + 1);
+    const compressImage = async (uri: string): Promise<string> => {
+        try {
+            // Comprime a imagem para 70% de qualidade e redimensiona se necessário
+            const result = await ImageManipulator.manipulateAsync(
+                uri,
+                [{ resize: { width: 1080 } }], // Redimensiona para largura máxima de 1080px
+                {
+                    compress: 0.7, // 70% de compressão
+                    format: ImageManipulator.SaveFormat.JPEG,
+                    base64: false
+                }
+            );
+            return result.uri;
+        } catch (error) {
+            console.error('Erro ao comprimir imagem:', error);
+            return uri; // Retorna a imagem original em caso de erro
+        }
+    };
 
-            if (takenCount + 1 >= qtsImagens || images.length + 1 >= qtsImagens) {
-                setCameraOpen(false);
+    const takePicture = async () => {
+        if (cameraRef.current && !isProcessing) {
+            setIsProcessing(true);
+
+            try {
+                const photo = await cameraRef.current.takePictureAsync({
+                    quality: 0.8, // Qualidade inicial da captura
+                    exif: false // Desativa dados EXIF para economizar espaço
+                });
+
+                // Comprime a imagem
+                const compressedUri = await compressImage(photo.uri);
+
+                const newImages = [...images, compressedUri];
+                setImages(newImages);
+                setForm && setForm(newImages);
+                setTakenCount(prev => prev + 1);
+
+                if (takenCount + 1 >= qtsImagens || images.length + 1 >= qtsImagens) {
+                    setCameraOpen(false);
+                }
+            } catch (error) {
+                console.error('Erro ao tirar foto:', error);
+                Alert.alert("Erro", "Não foi possível processar a imagem.");
+            } finally {
+                setIsProcessing(false);
             }
         }
     };
@@ -81,10 +118,17 @@ export default function CapturaImagens({ texto, qtsImagens, setForm }: { texto: 
             <Modal visible={cameraOpen} animationType="slide">
                 <CameraView ref={cameraRef} style={{ flex: 1 }}>
                     <View style={styles.cameraOverlay}>
-                        <TouchableOpacity style={styles.snapButton} onPress={takePicture}>
+                        <TouchableOpacity
+                            style={[styles.snapButton, isProcessing && styles.snapButtonDisabled]}
+                            onPress={takePicture}
+                            disabled={isProcessing}
+                        >
                             <View style={styles.innerSnapButton} />
                         </TouchableOpacity>
                         <Text style={styles.counterText}>{images.length} / {qtsImagens}</Text>
+                        {isProcessing && (
+                            <Text style={styles.processingText}>Processando...</Text>
+                        )}
                         <TouchableOpacity style={styles.closeButton} onPress={() => setCameraOpen(false)}>
                             <AntDesign name="closecircle" size={32} color="white" />
                         </TouchableOpacity>
@@ -175,6 +219,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: 10
     },
+    snapButtonDisabled: {
+        opacity: 0.5,
+        borderColor: '#ccc',
+    },
     innerSnapButton: {
         width: 50,
         height: 50,
@@ -186,6 +234,11 @@ const styles = StyleSheet.create({
         marginTop: 10,
         fontSize: 18,
         fontWeight: '600'
+    },
+    processingText: {
+        color: '#fff',
+        marginTop: 5,
+        fontSize: 14,
     },
     closeButton: {
         position: 'absolute',
