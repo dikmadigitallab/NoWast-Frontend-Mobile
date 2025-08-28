@@ -94,6 +94,7 @@ export const useGetActivity = ({ type, page = 1, pageSize = null, query = null, 
 
                 return {
                     id: item.id,
+                    environmentId: item.environment?.id || null,
                     environment: item.environment?.name || null,
                     dimension: item.environment?.areaM2 || null,
                     supervisor: item?.supervisor?.person?.name || null,

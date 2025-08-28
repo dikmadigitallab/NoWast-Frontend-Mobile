@@ -59,7 +59,7 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <StatusBar barStyle="dark-content" backgroundColor="#186B53" />
+      <StatusBar barStyle="light-content" backgroundColor="#186B53" />
       <SafeAreaProvider>
         <Toasts />
         <RootSiblingParent>

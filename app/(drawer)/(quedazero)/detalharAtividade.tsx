@@ -1,12 +1,14 @@
 import AprovacoStatus from "@/components/aprovacaoStatus";
 import LoadingScreen from "@/components/carregamento";
+import LeituraNFC from "@/components/leitorNFC";
+import MapScreen from "@/components/renderMap";
 import StatusIndicator from "@/components/StatusIndicator";
 import { useUpdateActivityStatus } from "@/hooks/atividade/aprove";
 import { useCloseActivity } from "@/hooks/atividade/update";
 import { useUserJustification } from "@/hooks/atividade/userJustification";
 import { useChecklistStore } from "@/store/dataStore";
 import { userTypes } from "@/types/user";
-import { AntDesign, FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
+import { AntDesign, Feather, FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import { usePathname, useRouter } from "expo-router";
@@ -32,7 +34,7 @@ export default function DetalharAtividade() {
     const modalizeDescricaoRef = useRef<Modalize | null>(null);
     const [modalVisible, setModalizeVisible] = useState(false);
     const modalizeJustificativaRef = useRef<Modalize | null>(null);
-    const { data: justification, loading } = useUserJustification();
+    const { justification, loading } = useUserJustification();
     const [form, setForm] = useState({ id: items?.id, status: "JUSTIFIED", justification: "", images: [] });
     const [userDescricao, setUserDescricao] = useState({ activityId: "", userId: "", reason: "", name: "" });
 
@@ -81,6 +83,7 @@ export default function DetalharAtividade() {
             approvalUpdatedByUserId: String(user?.id),
         });
     };
+
 
     const handleJustification = () => {
         close(form, "Atividade justificada com sucesso")
@@ -141,7 +144,11 @@ export default function DetalharAtividade() {
 
                             {
                                 (items?.statusEnum === "INTERNAL_JUSTIFICATION" || items?.statusEnum === "JUSTIFIED") && (
-                                    <View style={[styles.linha, { height: 180, alignItems: "flex-start" }]}>
+                                    <View style={[styles.linha, {
+                                        height: items.justification?.justificationFiles.length > 0 ? 180 : "auto",
+                                        marginBottom: items.justification?.justificationFiles.length > 0 ? 0 : 10,
+                                        alignItems: "flex-start"
+                                    }]}>
                                         <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 10 }]}>
                                             <AntDesign name="camera" size={15} color="#43575F" />
                                             <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
@@ -167,7 +174,6 @@ export default function DetalharAtividade() {
                                 <Text style={styles.textBold}>Encarregado:</Text>
                                 <Text style={styles.text}>{items?.manager}</Text>
                             </View>
-
                             <View style={styles.linha}>
                                 <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
                                     <FontAwesome6 name="user-check" size={15} color="#43575F" />
@@ -176,7 +182,6 @@ export default function DetalharAtividade() {
                                 <Text style={styles.textBold}>Supervisor:</Text>
                                 <Text style={styles.text}>{items?.supervisor}</Text>
                             </View>
-
                             <View style={[styles.linha, { alignItems: "flex-start", height: "auto", marginBottom: 10 }]}>
                                 <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 10 }]}>
                                     <FontAwesome6 name="helmet-safety" size={15} color="#43575F" />
@@ -203,7 +208,7 @@ export default function DetalharAtividade() {
 
                                                     {justification && (
                                                         <View>
-                                                            <Text style={{ fontSize: 12, color: "#999" }}>Justificativa:</Text>
+                                                            <Text style={{ fontSize: 12, color: "#00b288", fontWeight: "bold" }}>Ausência justificada:</Text>
                                                             <Text style={{ fontSize: 12, color: "#43575F" }}>
                                                                 {justification}
                                                             </Text>
@@ -211,7 +216,7 @@ export default function DetalharAtividade() {
                                                     )}
                                                 </View>
 
-                                                {!justification && (
+                                                {!justification && user?.userType === "OPERATIONAL" && (
                                                     <TouchableOpacity
                                                         onPress={() =>
                                                             openModelizeDescricao({
@@ -239,9 +244,7 @@ export default function DetalharAtividade() {
                                         );
                                     })}
                                 </View>
-
                             </View>
-
                             <View style={[styles.linha, { alignItems: "flex-start" }]}>
                                 <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
                                     <Entypo name="flag" size={15} color="#43575F" />
@@ -249,7 +252,6 @@ export default function DetalharAtividade() {
                                 </View>
                                 <StatusIndicator status={items.statusEnum} />
                             </View>
-
                             <View style={styles.linha}>
                                 <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
                                     <FontAwesome5 name="building" size={15} color="#43575F" />
@@ -258,7 +260,6 @@ export default function DetalharAtividade() {
                                 <Text style={styles.textBold}>Ambiente:</Text>
                                 <Text style={styles.text}>{items?.environment}</Text>
                             </View>
-
                             <View style={styles.linha}>
                                 <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
                                     <Entypo name="resize-full-screen" size={15} color="#43575F" />
@@ -267,7 +268,6 @@ export default function DetalharAtividade() {
                                 <Text style={styles.textBold}>Dimensão:</Text>
                                 <Text style={styles.text}>{items?.dimension}</Text>
                             </View>
-
                             <View style={styles.linha}>
                                 <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
                                     <FontAwesome6 name="helmet-safety" size={15} color="#43575F" />
@@ -282,8 +282,6 @@ export default function DetalharAtividade() {
                                     </View>
                                 </View>
                             </View>
-
-
                             <View style={styles.linha}>
                                 <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
                                     <Entypo name="tools" size={15} color="#43575F" />
@@ -296,8 +294,6 @@ export default function DetalharAtividade() {
                                     )) : <Text style={styles.text}> - Nenhuma ferramenta</Text>}
                                 </View>
                             </View>
-
-
                             <View style={styles.linha}>
                                 <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
                                     <FontAwesome5 name="box-open" size={12} color="#43575F" />
@@ -312,9 +308,6 @@ export default function DetalharAtividade() {
                                     </View>
                                 </View>
                             </View>
-
-
-
                             <View style={styles.linha}>
                                 <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
                                     <FontAwesome6 name="truck" size={15} color="#43575F" />
@@ -328,6 +321,18 @@ export default function DetalharAtividade() {
                                     </View>
                                 </View>
                             </View>
+                            <View style={[styles.linha, { height: 180, alignItems: "flex-start" }]}>
+                                <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 10 }]}>
+                                    <Feather name="map-pin" size={15} color="#43575F" />
+                                    <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+                                </View>
+                                <View style={{ flexDirection: "column", gap: 5, width: "80%", height: "100%", borderRadius: 10, overflow: "hidden" }}>
+                                    <MapScreen location={items.local} />
+                                </View>
+                            </View>
+                            {user?.userType === "OPERATIONAL" &&
+                                <LeituraNFC items={items} environmentId={items.environmentId} />
+                            }
                         </View>
                     </View>
                 </StyledMainContainer>

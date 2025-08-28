@@ -1,6 +1,7 @@
 import { AntDesign } from '@expo/vector-icons';
 import Slider from '@react-native-community/slider';
 import { Audio, AVPlaybackStatus, AVPlaybackStatusSuccess } from 'expo-av';
+import { usePathname } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
@@ -10,18 +11,35 @@ interface AudioPlayerProps {
 
 export const AudioPlayer = ({ source }: AudioPlayerProps) => {
 
-  const [sound, setSound] = useState<Audio.Sound | null>(null);
+  const pathname = usePathname();
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isSeeking, setIsSeeking] = useState(false);
   const [duration, setDuration] = useState<number>(0);
   const [position, setPosition] = useState<number>(0);
-  const [isSeeking, setIsSeeking] = useState(false);
+  const [sound, setSound] = useState<Audio.Sound | null>(null);
 
+  // Limpa o áudio quando o componente é desmontado
   useEffect(() => {
     return () => {
       sound?.unloadAsync();
     };
   }, [sound]);
+
+  // Limpa o áudio quando o pathname muda
+  useEffect(() => {
+    const cleanupAudio = async () => {
+      if (sound) {
+        await sound.stopAsync();
+        await sound.unloadAsync();
+        setSound(null);
+        setIsPlaying(false);
+        setPosition(0);
+        setDuration(0);
+      }
+    };
+
+    cleanupAudio();
+  }, [pathname]); // Executa quando o pathname muda
 
   const handlePlaybackStatusUpdate = (status: AVPlaybackStatus) => {
     if (!status.isLoaded) return;
@@ -39,7 +57,6 @@ export const AudioPlayer = ({ source }: AudioPlayerProps) => {
   const handlePlayPause = async () => {
     try {
       if (!sound) {
-        setIsLoading(true);
         const { sound: newSound } = await Audio.Sound.createAsync(
           typeof source === 'string' ? { uri: source } : source,
           { shouldPlay: true }
@@ -47,7 +64,6 @@ export const AudioPlayer = ({ source }: AudioPlayerProps) => {
         newSound.setOnPlaybackStatusUpdate(handlePlaybackStatusUpdate);
         setSound(newSound);
         setIsPlaying(true);
-        setIsLoading(false);
       } else {
         if (isPlaying) {
           await sound.pauseAsync();
@@ -59,7 +75,6 @@ export const AudioPlayer = ({ source }: AudioPlayerProps) => {
       }
     } catch (error) {
       console.error('Erro ao reproduzir o áudio:', error);
-      setIsLoading(false);
     }
   };
 

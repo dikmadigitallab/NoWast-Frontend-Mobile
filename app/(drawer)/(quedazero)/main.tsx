@@ -1,5 +1,6 @@
 import AprovacoStatus from "@/components/aprovacaoStatus";
 import LoadingScreen from "@/components/carregamento";
+import MapScreen from "@/components/renderMap";
 import StatusIndicator from "@/components/StatusIndicator";
 import { useGetActivity } from "@/hooks/atividade/get";
 import { AntDesign, FontAwesome, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -8,7 +9,6 @@ import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useRef, useState } from "react";
 import { FlatList, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { DatePickerModal } from "react-native-paper-dates";
-import MapScreen from "../../../components/renderMapOcorrencias";
 import { useAuth } from "../../../contexts/authProvider";
 import { useItemsStore } from "../../../store/storeOcorrencias";
 import { StyledMainContainer } from "../../../styles/StyledComponents";

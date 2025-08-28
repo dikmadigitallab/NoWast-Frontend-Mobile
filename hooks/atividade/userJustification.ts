@@ -1,14 +1,13 @@
+import { useItemsStore } from "@/store/storeOcorrencias";
 import { toast } from "@backpackapp-io/react-native-toast";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter } from "expo-router";
 import { useState } from "react";
 import api from '../api';
 
 export const useUserJustification = () => {
-    const router = useRouter();
     const [loading, setLoading] = useState(false);
-    const [data, setData] = useState<any>(null);
     const [error, setError] = useState<string | null>(null);
+    const { items, setitems } = useItemsStore();
 
     const justification = async (data: any) => {
         setError(null);
@@ -52,7 +51,8 @@ export const useUserJustification = () => {
                 }
             });
 
-            const response = await api.post(`/activity/${data?.activityId}/users/${data?.userId}/justify-absence`,
+            const response = await api.post(
+                `/activity/${data?.activityId}/users/${data?.userId}/justify-absence`,
                 formData,
                 {
                     headers: {
@@ -61,10 +61,42 @@ export const useUserJustification = () => {
                     },
                 }
             );
-            setData(response.data.data);
+
+            const updatedResponse = response.data.data;
+
+            // Transformar a response na estrutura do userJustification
+            const transformedUserJustification = {
+                id: updatedResponse.userId,
+                justification: updatedResponse.justification?.reason,
+                name: "" // Precisamos obter o nome de outra forma, pois não está na response
+            };
+
+            // Atualizar o userJustification no store
+            if (items && items.userActivities) {
+                const updatedActivities = items.userActivities.map((activity: any) => {
+                    if (activity.user?.id === transformedUserJustification.id) {
+                        return {
+                            ...activity,
+                            justification: {
+                                ...activity.justification,
+                                reason: transformedUserJustification.justification
+                            }
+                        };
+                    }
+                    return activity;
+                });
+
+                const newData = {
+                    ...items,
+                    userActivities: updatedActivities
+                };
+
+                setitems(newData);
+            }
+
+
             if (response.status >= 200 && response.status < 300) {
                 toast.success("Ausência justificada com sucesso");
-                // setTimeout(() => router.push("/main" as never), 1000);
             } else {
                 throw new Error(response.data?.messages?.[0] || "Erro ao justificar atividade");
             }
@@ -83,7 +115,6 @@ export const useUserJustification = () => {
     };
 
     return {
-        data,
         justification,
         loading,
         error,

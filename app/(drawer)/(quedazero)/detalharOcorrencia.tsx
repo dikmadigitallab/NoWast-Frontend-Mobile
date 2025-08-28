@@ -5,7 +5,7 @@ import { AntDesign, MaterialCommunityIcons, MaterialIcons } from "@expo/vector-i
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
 import React from "react";
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useAuth } from "../../../contexts/authProvider";
 import { useItemsStore } from "../../../store/storeOcorrencias";
 import { StyledMainContainer } from "../../../styles/StyledComponents";
@@ -129,16 +129,16 @@ export default function DetalharOcorrência() {
                   <MaterialIcons name="keyboard-voice" size={20} color="#43575F" />
                   <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                 </View>
-                <AudioPlayer source={items?.audioUrl} />
+                <View style={{ marginTop: 5, width: "80%" }}>
+                  <AudioPlayer source={items?.audioUrl} />
+                </View>
               </View>
-
-
             </View>
           </View>
         </StyledMainContainer>
       </ScrollView>
 
-      <View style={styles.fixedButtonsContainer}>
+      {/* <View style={styles.fixedButtonsContainer}>
         {
           (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE") && items.approvalStatus === "PENDING" && (
             <View style={styles.buttonsContainer}>
@@ -155,7 +155,9 @@ export default function DetalharOcorrência() {
             </View>
           )
         }
-      </View>
+      </View> */}
+
+
     </View>
   );
 }
