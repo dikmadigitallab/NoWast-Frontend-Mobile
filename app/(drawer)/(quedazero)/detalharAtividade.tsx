@@ -330,7 +330,7 @@ export default function DetalharAtividade() {
                                     <MapScreen location={items.local} />
                                 </View>
                             </View>
-                            {user?.userType === "OPERATIONAL" &&
+                            {user?.userType === "OPERATIONAL" && items?.statusEnum !== "COMPLETED" &&
                                 <LeituraNFC items={[items]} environmentId={items.environmentId} />
                             }
                         </View>

@@ -89,7 +89,7 @@ export default function LeituraNFC({ items, environmentId }: LeituraNFCProps) {
                     setReadResult('id_mismatch');
                     Alert.alert(
                         'ID não corresponde',
-                        `O ID lido (${recordedId}) não corresponde ao esperado (${environmentId}).`,
+                        `Atividade não está vinculada a este ambiente.`,
                         [{ text: 'OK', onPress: () => NfcManager.cancelTechnologyRequest() }]
                     );
                 }
