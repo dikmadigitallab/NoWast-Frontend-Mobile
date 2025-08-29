@@ -331,7 +331,7 @@ export default function DetalharAtividade() {
                                 </View>
                             </View>
                             {user?.userType === "OPERATIONAL" &&
-                                <LeituraNFC items={items} environmentId={items.environmentId} />
+                                <LeituraNFC items={[items]} environmentId={items.environmentId} />
                             }
                         </View>
                     </View>

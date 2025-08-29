@@ -2,8 +2,8 @@ import { useChecklistStore } from '@/store/dataStore';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, AppState, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import NfcManager, { NfcTech } from 'react-native-nfc-manager';
+import { ActivityIndicator, Alert, AppState, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import NfcManager, { Ndef, NfcTech } from 'react-native-nfc-manager';
 
 interface LeituraNFCProps {
     items: any;
@@ -11,139 +11,144 @@ interface LeituraNFCProps {
 }
 
 export default function LeituraNFC({ items, environmentId }: LeituraNFCProps) {
+
     const router = useRouter();
     const { setData } = useChecklistStore();
     const [isLoading, setIsLoading] = useState(false);
-    const [tagId, setTagId] = useState<null | number>(null);
-    const [error, setError] = useState<string | null>(null);
-    const isMounted = useRef(true);
-    const isReading = useRef(false);
+    const [nfcSupported, setNfcSupported] = useState<boolean | null>(null);
+    const [readResult, setReadResult] = useState<'success' | 'error' | 'id_mismatch' | null>(null);
+    const appState = useRef(AppState.currentState);
 
-    // Inicializar NFC
+    // Verificar se o NFC está disponível
     useEffect(() => {
-        NfcManager.start()
-            .then(() => console.log('NFC iniciado'))
-            .catch(err => console.warn('Erro ao iniciar NFC:', err));
+        const checkNfcSupport = async () => {
+            try {
+                const supported = await NfcManager.isSupported();
+                setNfcSupported(supported);
+
+                if (supported) {
+                    await NfcManager.start();
+                }
+            } catch (error) {
+                console.error('Erro ao verificar suporte NFC:', error);
+                setNfcSupported(false);
+            }
+        };
+
+        checkNfcSupport();
 
         return () => {
-            isMounted.current = false;
-            NfcManager.cancelTechnologyRequest().catch(() => null);
+            NfcManager.cancelTechnologyRequest().catch(() => { });
         };
     }, []);
 
-    // Controlar leitura baseado no foco da tela
-    useFocusEffect(
-        useCallback(() => {
-            isMounted.current = true;
-            startNfcReading();
-
-            return () => {
-                isMounted.current = false;
-                stopNfcReading();
-            };
-        }, [environmentId, items])
-    );
-
-    // Controlar leitura baseado no estado do app
+    // Gerenciar estado do app para pausar/retomar leitura NFC
     useEffect(() => {
-        const subscription = AppState.addEventListener('change', handleAppStateChange);
+        const subscription = AppState.addEventListener('change', nextAppState => {
+            if (appState.current.match(/inactive|background/) && nextAppState === 'active') {
+                // App voltou ao foreground, pode reiniciar leitura
+            }
+            appState.current = nextAppState;
+        });
 
         return () => {
             subscription.remove();
         };
     }, []);
 
-    const handleAppStateChange = (nextAppState: string) => {
-        if (nextAppState === 'active') {
-            startNfcReading();
-        } else {
-            stopNfcReading();
-        }
-    };
-
-    const startNfcReading = () => {
-        if (!isReading.current && isMounted.current) {
-            isReading.current = true;
-            readTag();
-        }
-    };
-
-    const stopNfcReading = () => {
-        isReading.current = false;
-        NfcManager.cancelTechnologyRequest().catch(() => null);
-    };
-
-    const readTag = useCallback(async () => {
-        if (!isMounted.current || !isReading.current) return;
-
+    // Ler tag NFC
+    const readNdef = async () => {
         setIsLoading(true);
-        setError(null);
+        setReadResult(null);
 
         try {
             await NfcManager.requestTechnology(NfcTech.Ndef);
+
+            // Ler a mensagem NDEF gravada na tag
             const tag = await NfcManager.getTag();
 
-            if (tag && tag.id) {
-                const parsedTagId = parseInt(tag.id, 16);
-                setTagId(parsedTagId);
+            if (tag?.ndefMessage && tag.ndefMessage.length > 0) {
+                // Extrair o conteúdo gravado (ambienteId)
+                const ndefRecord = tag.ndefMessage[0];
 
-                // Verifica se o ID da tag é igual ao environmentId
-                if (parsedTagId === parseInt(environmentId, 10)) {
-                    // Se for igual, seta os items e redireciona
+                // Converter bytes para string (o ambienteId que foi gravado)
+                const recordedId = Ndef.text.decodePayload(Uint8Array.from(ndefRecord.payload as any as number[]));
+
+                console.log('ID gravado na tag:', recordedId);
+                console.log('Environment ID esperado:', environmentId);
+
+                // Verificar se o ID corresponde
+                if (recordedId === environmentId.toString()) {
+                    setReadResult('success');
                     setData(items);
-                    stopNfcReading();
-                    router.push('/checklist');
-                } else {
-                    setError(`Tag NFC (${parsedTagId}) não corresponde ao ambiente esperado (${environmentId})`);
-                    // Continua lendo mesmo com erro de correspondência
+
                     setTimeout(() => {
-                        if (isMounted.current && isReading.current) {
-                            readTag();
-                        }
-                    }, 1000);
+                        router.push("/checklist");
+                    }, 1500);
+                } else {
+                    setReadResult('id_mismatch');
+                    Alert.alert(
+                        'ID não corresponde',
+                        `O ID lido (${recordedId}) não corresponde ao esperado (${environmentId}).`,
+                        [{ text: 'OK', onPress: () => NfcManager.cancelTechnologyRequest() }]
+                    );
                 }
             } else {
-                setError('Tag NFC não identificada');
-                // Continua tentando ler
-                setTimeout(() => {
-                    if (isMounted.current && isReading.current) {
-                        readTag();
-                    }
-                }, 1000);
+                setReadResult('error');
+                Alert.alert('Erro', 'Tag não contém dados ou está vazia.');
             }
-
-        } catch (err) {
-            console.warn('Erro na leitura NFC:', err);
-            setError('Erro ao ler a tag NFC. Aproxime novamente.');
-
-            // Continua tentando ler após erro
-            setTimeout(() => {
-                if (isMounted.current && isReading.current) {
-                    readTag();
-                }
-            }, 1000);
+        } catch (ex) {
+            console.warn('Erro na leitura NFC:', ex);
+            setReadResult('error');
+            Alert.alert('Erro', 'Falha ao ler a tag NFC.');
         } finally {
-            NfcManager.cancelTechnologyRequest().catch(() => null);
             setIsLoading(false);
-        }
-    }, [environmentId, items, router, setData]);
-
-    const handleManualRetry = () => {
-        setError(null);
-        setTagId(null);
-        if (!isReading.current) {
-            isReading.current = true;
-            readTag();
+            NfcManager.cancelTechnologyRequest().catch(() => { });
         }
     };
+
+    // Reiniciar leitura quando a tela receber foco
+    useFocusEffect(
+        useCallback(() => {
+            if (nfcSupported) {
+                readNdef();
+            }
+
+            return () => {
+                NfcManager.cancelTechnologyRequest().catch(() => { });
+            };
+        }, [nfcSupported, environmentId])
+    );
+
+    // Tentar novamente
+    const handleRetry = () => {
+        readNdef();
+    };
+
+    if (nfcSupported === false) {
+        return (
+            <View style={styles.container}>
+                <View style={styles.nfc}>
+                    <MaterialCommunityIcons
+                        name="cellphone-off"
+                        size={60}
+                        color="#FF3B30"
+                    />
+                    <Text style={styles.errorText}>
+                        NFC não suportado neste dispositivo
+                    </Text>
+                </View>
+            </View>
+        );
+    }
 
     return (
         <View style={styles.container}>
             <View style={styles.nfc}>
                 <MaterialCommunityIcons
-                    name="cellphone-nfc"
+                    name={readResult === 'success' ? 'check-circle' : 'cellphone-nfc'}
                     size={60}
-                    color={error ? "#FF3B30" : "#186B53"}
+                    color={readResult === 'success' ? '#186B53' : '#333'}
                 />
 
                 {isLoading ? (
@@ -152,25 +157,31 @@ export default function LeituraNFC({ items, environmentId }: LeituraNFCProps) {
                         <Text style={styles.loadingText}>Lendo tag NFC...</Text>
                         <Text style={styles.infoText}>Aproxime a tag do dispositivo</Text>
                     </View>
-                ) : error ? (
+                ) : readResult === 'success' ? (
+                    <View style={styles.successContainer}>
+                        <Text style={styles.successText}>Leitura realizada com sucesso!</Text>
+                        <Text style={styles.infoText}>ID verificado e dados carregados</Text>
+                    </View>
+                ) : readResult === 'id_mismatch' ? (
                     <View style={styles.errorContainer}>
-                        <Text style={styles.errorText}>{error}</Text>
-                        <Text style={styles.infoText}>A leitura continuará automaticamente</Text>
-                        <TouchableOpacity onPress={handleManualRetry} style={styles.retryButton}>
-                            <Text style={styles.retryButtonText}>Forçar nova leitura</Text>
+                        <Text style={styles.errorText}>ID da tag não corresponde</Text>
+                        <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
+                            <Text style={styles.retryButtonText}>Tentar Novamente</Text>
                         </TouchableOpacity>
                     </View>
-                ) : tagId ? (
-                    <View style={styles.successContainer}>
-                        <Text style={styles.nfcText}>
-                            ID da tag: {tagId}
-                        </Text>
-                        <Text style={styles.successText}>Tag identificada com sucesso!</Text>
+                ) : readResult === 'error' ? (
+                    <View style={styles.errorContainer}>
+                        <Text style={styles.errorText}>Erro na leitura</Text>
+                        <TouchableOpacity style={styles.retryButton} onPress={handleRetry}>
+                            <Text style={styles.retryButtonText}>Tentar Novamente</Text>
+                        </TouchableOpacity>
                     </View>
                 ) : (
-                    <Text style={styles.nfcText}>
-                        Aproxime a tag ou cartão para iniciar a atividade.
-                    </Text>
+                    <View style={styles.loadingContainer}>
+                        <Text style={styles.nfcText}>
+                            Aproxime a tag NFC do dispositivo para leitura
+                        </Text>
+                    </View>
                 )}
             </View>
         </View>
