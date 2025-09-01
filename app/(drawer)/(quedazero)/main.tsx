@@ -18,13 +18,12 @@ export default function Mainpage() {
     const router = useRouter();
     const { user } = useAuth();
     const { setitems } = useItemsStore();
+    const [pageSize, setPageSize] = useState(20);
     const [type, setType] = useState("Atividade");
     const [openDate, setOpenDate] = useState(false);
-    const [date, setDate] = useState<Date | undefined>(undefined);
-    const [pageSize, setPageSize] = useState(20);
-    const { data, refetch } = useGetActivity({ type: type, pagination: false, pageSize: pageSize });
-
     const [isLoadingMore, setIsLoadingMore] = useState(false);
+    const [date, setDate] = useState<Date | undefined>(undefined);
+    const { data, refetch } = useGetActivity({ type: type, pagination: false, pageSize: pageSize });
 
     const loadMoreItems = async () => {
         if (isLoadingMore) return;

@@ -1,10 +1,13 @@
 import Donut from "@/components/charts/donut/donut";
+import ExecutionPie from "@/components/charts/executionPie/executionPie";
+import JustifyPie from "@/components/charts/justifyPie/justifyPie";
+import OcurrencePie from "@/components/charts/ocurrencePie/ocurrencePie";
 import Pie from "@/components/charts/pie/pie";
 import { useAuth } from "@/contexts/authProvider";
 import { useGetDashboard } from "@/hooks/dashboard/useGet";
 import { AntDesign, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useRef, useState } from "react";
+import React, { useCallback, useRef, useState } from "react";
 import {
   Animated,
   Dimensions,
@@ -15,6 +18,7 @@ import {
   View,
 } from "react-native";
 import { PieChart } from "react-native-gifted-charts";
+import { DatePickerModal } from "react-native-paper-dates";
 
 const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
 const endOfMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0];
@@ -24,11 +28,13 @@ export default function Dashboard() {
   const { user } = useAuth();
   const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
-  const { data } = useGetDashboard({})
+  const [openDate, setOpenDate] = useState(false);
+  const [dateRange, setDateRange] = useState<{ startDate: Date | undefined; endDate: Date | undefined; }>({ startDate: undefined, endDate: undefined });
   const animation = useRef(new Animated.Value(0)).current;
   const [activeTab, setActiveTab] = useState<"atividades" | "colaboradores">("atividades");
   const [filters, setFilters] = useState({ endDate: endOfMonth, startDate: startOfMonth, userId: '', sectorId: '', environmentId: '', buildingId: '' });
-  const { data: justifications } = useGetDashboard({
+
+  const { data: justificativas } = useGetDashboard({
     url: 'dashboard/justifications',
     startDate: filters.startDate,
     endDate: filters.endDate,
@@ -37,6 +43,7 @@ export default function Dashboard() {
     environmentId: filters.environmentId,
     buildingId: filters.buildingId
   });
+
   const { data: atividades } = useGetDashboard({
     url: 'dashboard/activities',
     startDate: filters.startDate,
@@ -47,7 +54,44 @@ export default function Dashboard() {
     buildingId: filters.buildingId
   });
 
-  console.log(atividades)
+  const { data: ocorrencias } = useGetDashboard({
+    url: 'dashboard/occurrences',
+    startDate: filters.startDate,
+    endDate: filters.endDate,
+    userId: filters.userId,
+    sectorId: filters.sectorId,
+    environmentId: filters.environmentId,
+    buildingId: filters.buildingId
+  });
+
+  const onDismiss = useCallback(() => {
+    setOpenDate(false);
+  }, [setOpenDate]);
+
+  const onConfirm = useCallback(
+    (params: { startDate: any; endDate: any }) => {
+      setOpenDate(false);
+      setDateRange({
+        startDate: params.startDate,
+        endDate: params.endDate
+      });
+
+      // Corrected way to format Date objects
+      if (params.startDate && params.endDate) {
+        const startDateStr = `${params.startDate.getFullYear()}-${String(params.startDate.getMonth() + 1).padStart(2, '0')}-${String(params.startDate.getDate()).padStart(2, '0')}`;
+        const endDateStr = `${params.endDate.getFullYear()}-${String(params.endDate.getMonth() + 1).padStart(2, '0')}-${String(params.endDate.getDate()).padStart(2, '0')}`;
+
+        setFilters(prev => ({
+          ...prev,
+          startDate: startDateStr,
+          endDate: endDateStr
+        }));
+      }
+    },
+    [setOpenDate, setDateRange, setFilters]
+  );
+
+
 
   const toggleButtons = () => {
     Animated.spring(animation, {
@@ -83,25 +127,13 @@ export default function Dashboard() {
     opacity: animation,
   };
 
-
-  const pieData3 = [
-    { value: 80, prazo: "Dentro do prazo", percent: 56, color: '#28A745' },
-    { value: 20, prazo: "Fora do prazo", percent: 40, color: '#DC3545' }
-  ];
-
-  const pieDataJustificativas = [
+  const pieDataJustificativass = [
     { value: 54, color: '#177AD5', title: 'Falta' },
     { value: 40, color: '#79D2DE', title: 'Atestado' },
     { value: 20, color: '#ED6665', title: 'Falta de Máquina' },
     { value: 15, color: '#FFC107', title: 'Mud. Prior. Dikma' },
     { value: 10, color: '#8BC34A', title: 'Mud. Prior. Cliente' },
     { value: 8, color: '#9C27B0', title: 'Quebra' },
-  ];
-
-  const pieDataOcorrencias = [
-    { value: 39, color: '#4CAF50', title: 'Nenhum' },
-    { value: 38, color: '#FFC107', title: 'Leve' },
-    { value: 27, color: '#F44336', title: 'Grave' },
   ];
 
   const colaboradores = [
@@ -133,7 +165,7 @@ export default function Dashboard() {
       <View style={styles.contentCard}>
         <View style={{ height: 50 }}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterButtonsContainer}>
-            <TouchableOpacity style={styles.filterButton}>
+            <TouchableOpacity style={styles.filterButton} onPress={() => setOpenDate(true)}>
               <MaterialCommunityIcons name="calendar" size={24} color="black" />
               <Text>Data</Text>
               <AntDesign name="caretdown" size={10} color="black" />
@@ -159,71 +191,10 @@ export default function Dashboard() {
 
         <Pie data={atividades} />
         <Donut data={atividades} />
+        <ExecutionPie data={atividades} />
+        <JustifyPie data={justificativas} />
+        <OcurrencePie data={ocorrencias} />
 
-        <View style={styles.chartColumn}>
-          <Text style={{ alignSelf: "center", fontSize: 22, color: "#43575F", fontWeight: "bold" }}>Execuções</Text>
-          <View style={[styles.pieWrapper, { width: '100%' }]}>
-            <PieChart data={pieData3} donut showGradient sectionAutoFocus radius={80} innerRadius={70} innerCircleColor={"#fff"} strokeColor={"#f7f9fb"} centerLabelComponent={() => (
-              <View style={styles.centerLabel}>
-                <Text style={styles.percentageText}>132</Text>
-                <Text style={styles.centerLabelText}>Total</Text>
-              </View>
-            )}
-            />
-          </View>
-          <View style={[styles.pieLegend, { width: '100%', flexDirection: 'row', gap: 50 }]}>
-            {pieData3.map((item, index) => (
-              <View key={index} style={{ flexDirection: 'column', justifyContent: 'space-between' }}>
-                <View style={styles.legendRow}>
-                  <View style={[styles.legendDot, { backgroundColor: item.color }]} />
-                  <Text style={[styles.legendText, { fontSize: 14, letterSpacing: -0.5 }]}>{item.prazo}</Text>
-                </View>
-                <Text style={[styles.legendValue, { fontSize: 20, color: item.color }]}>{item.value} | {item.percent}%</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-        <View style={styles.chartColumn}>
-          <View style={[styles.pieWrapper, { width: '100%' }]}>
-            <Text style={styles.pieTitle}>Motivos das justificativas</Text>
-            <PieChart data={pieDataJustificativas} showText textColor="black" radius={150} textSize={20} focusOnPress showValuesAsLabels showTextBackground textBackgroundRadius={26}
-            />
-          </View>
-          <View style={[styles.pieLegend, { width: '100%', flexDirection: 'column', gap: 15 }]}>
-            {pieDataJustificativas.map((item, index) => (
-              <View key={index} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '90%' }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <View style={[styles.legendDot, { backgroundColor: item.color }]} />
-                  <Text style={styles.legendText}>{item.title}</Text>
-                </View>
-                <Text style={[styles.legendValue, { fontSize: 18, color: item.color }]}>{item.value}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-        <View style={styles.chartColumn}>
-          <Text style={{ alignSelf: "center", fontSize: 22, color: "#43575F", fontWeight: "bold" }}>Ocorrências</Text>
-          <View style={[styles.pieWrapper, { width: '100%' }]}>
-            <PieChart data={pieDataOcorrencias} donut radius={80} innerRadius={65} innerCircleColor={"#F7F9FB"} strokeColor={"#f7f9fb"} showGradient sectionAutoFocus centerLabelComponent={() => (
-              <View style={styles.centerLabel}>
-                <Text style={styles.percentageText}>100%</Text>
-                <Text style={styles.centerLabelText}>Total</Text>
-              </View>
-            )}
-            />
-          </View>
-          <View style={[styles.pieLegend, { width: '100%', flexDirection: 'column', gap: 15 }]}>
-            {pieDataOcorrencias.map((item, index) => (
-              <View key={index} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '90%' }}>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <View style={[styles.legendDot, { backgroundColor: item.color }]} />
-                  <Text style={styles.legendText}>{item.title}</Text>
-                </View>
-                <Text style={[styles.legendValue, { fontSize: 18, color: item.color }]}>{item.value}%</Text>
-              </View>
-            ))}
-          </View>
-        </View>
       </View>
     </ScrollView >
   );
@@ -280,10 +251,10 @@ export default function Dashboard() {
           <View style={styles.chartColumn}>
             <View style={[styles.pieWrapper, { width: '100%' }]}>
               <Text style={styles.pieTitle}>QTD. M² Limpo por Setor</Text>
-              <PieChart data={pieDataJustificativas} showText textColor="black" radius={150} textSize={20} focusOnPress showValuesAsLabels showTextBackground textBackgroundRadius={26} />
+              <PieChart data={pieDataJustificativass} showText textColor="black" radius={150} textSize={20} focusOnPress showValuesAsLabels showTextBackground textBackgroundRadius={26} />
             </View>
             <View style={[styles.pieLegend, { width: '100%', flexDirection: 'column', gap: 15 }]}>
-              {pieDataJustificativas.map((item, index) => (
+              {pieDataJustificativass.map((item, index) => (
                 <View key={index} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '90%' }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                     <View style={[styles.legendDot, { backgroundColor: item.color }]} />
@@ -297,10 +268,10 @@ export default function Dashboard() {
           <View style={styles.chartColumn}>
             <View style={[styles.pieWrapper, { width: '100%' }]}>
               <Text style={styles.pieTitle}>QTD. M² Limpo por Ambiente</Text>
-              <PieChart data={pieDataJustificativas} showText textColor="black" radius={150} textSize={20} focusOnPress showValuesAsLabels showTextBackground textBackgroundRadius={26} />
+              <PieChart data={pieDataJustificativass} showText textColor="black" radius={150} textSize={20} focusOnPress showValuesAsLabels showTextBackground textBackgroundRadius={26} />
             </View>
             <View style={[styles.pieLegend, { width: '100%', flexDirection: 'column', gap: 15 }]}>
-              {pieDataJustificativas.map((item, index) => (
+              {pieDataJustificativass.map((item, index) => (
                 <View key={index} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '90%' }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                     <View style={[styles.legendDot, { backgroundColor: item.color }]} />
@@ -314,10 +285,10 @@ export default function Dashboard() {
           <View style={styles.chartColumn}>
             <View style={[styles.pieWrapper, { width: '100%' }]}>
               <Text style={styles.pieTitle}>QTD. M² Limpo por Tipo</Text>
-              <PieChart data={pieDataJustificativas} showText textColor="black" radius={150} textSize={20} focusOnPress showValuesAsLabels showTextBackground textBackgroundRadius={26} />
+              <PieChart data={pieDataJustificativass} showText textColor="black" radius={150} textSize={20} focusOnPress showValuesAsLabels showTextBackground textBackgroundRadius={26} />
             </View>
             <View style={[styles.pieLegend, { width: '100%', flexDirection: 'column', gap: 15 }]}>
-              {pieDataJustificativas.map((item, index) => (
+              {pieDataJustificativass.map((item, index) => (
                 <View key={index} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '90%' }}>
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                     <View style={[styles.legendDot, { backgroundColor: item.color }]} />
@@ -388,10 +359,25 @@ export default function Dashboard() {
           </TouchableOpacity>
         </View>
       )}
+
+      <DatePickerModal
+        locale="pt-BR"
+        mode="range"
+        visible={openDate}
+        onDismiss={onDismiss}
+        startDate={dateRange.startDate}
+        endDate={dateRange.endDate}
+        onConfirm={onConfirm}
+        presentationStyle="pageSheet"
+        label="Selecione um período"
+        saveLabel="Confirmar"
+      />
+
     </View>
   );
 }
 
+// Os estilos permanecem os mesmos
 const styles = StyleSheet.create({
   filterButtonsContainer: {
     gap: 10,
@@ -458,35 +444,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#F7F9FB",
   },
-
-  contentWrapper: {
-    width: "100%",
-    gap: 10
-  },
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 20,
-    alignSelf: "center",
-    width: "95%",
-    overflow: "hidden"
-  },
-  pageTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#43575F",
-    marginBottom: 20
-  },
   pieTitle: {
     fontSize: 20,
     fontWeight: "600",
     color: "#43575F",
     marginBottom: 10
   },
-  chartRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    width: "100%"
-  },
+
   chartColumn: {
     flexDirection: "column",
     alignItems: "center",
@@ -499,28 +463,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center"
   },
-  centerLabel: {
-    justifyContent: "center",
-    alignItems: "center"
-  },
-  percentageText: {
-    fontSize: 22,
-    color: "#000",
-    fontWeight: "bold"
-  },
-  centerLabelText: {
-    fontSize: 14,
-    color: "#000"
-  },
   pieLegend: {
     width: "50%",
     justifyContent: "center",
     alignItems: "center"
-  },
-  legendRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 10
   },
   legendDot: {
     width: 10,
@@ -548,27 +494,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 8
-  },
-  containerButtons: {
-    zIndex: 999,
-    width: "100%",
-    flexDirection: "row",
-    position: "absolute",
-    paddingHorizontal: 10,
-    justifyContent: "space-between",
-    bottom: 10,
-  },
-  buttons: {
-    gap: 5,
-    width: "49%",
-    borderWidth: 1,
-    borderRadius: 12,
-    height: 70,
-    flexDirection: "row",
-    alignItems: "center",
-    borderColor: "#186B53",
-    justifyContent: "center",
-    backgroundColor: "#186B53"
   },
   fabContainer: {
     position: "absolute",
@@ -598,10 +523,5 @@ const styles = StyleSheet.create({
     height: 50,
     borderRadius: 10,
     elevation: 5,
-  },
-  innerText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "500",
   },
 });
