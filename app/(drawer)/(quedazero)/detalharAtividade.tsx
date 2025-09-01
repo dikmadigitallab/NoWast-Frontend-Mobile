@@ -364,17 +364,8 @@ export default function DetalharAtividade() {
                 {
                     user?.userType === "OPERATIONAL" && (items.approvalStatus === "PENDING" && items?.statusEnum !== "COMPLETED") && (
                         <View style={styles.buttonsContainer}>
-                            <TouchableOpacity onPress={() => modalizeJustificativaRef.current?.open()} style={styles.justifyButton}>
+                            <TouchableOpacity onPress={() => modalizeJustificativaRef.current?.open()} style={[styles.justifyButton, { width: "100%" }]}>
                                 <Text style={{ color: "#404944", fontSize: 16 }}>JUSTIFICAR</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                onPress={() => {
-                                    setData([items]);
-                                    router.push(`/checklist` as any)
-                                }
-                                }
-                                style={styles.doneButton}>
-                                <Text style={styles.doneButtonText}>REALIZAR</Text>
                             </TouchableOpacity>
                         </View>
                     )

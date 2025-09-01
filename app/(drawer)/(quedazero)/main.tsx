@@ -1,6 +1,5 @@
 import AprovacoStatus from "@/components/aprovacaoStatus";
 import LoadingScreen from "@/components/carregamento";
-import MapScreen from "@/components/renderMap";
 import StatusIndicator from "@/components/StatusIndicator";
 import { useGetActivity } from "@/hooks/atividade/get";
 import { AntDesign, FontAwesome, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -8,6 +7,7 @@ import { Picker } from "@react-native-picker/picker";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useRef, useState } from "react";
 import { FlatList, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ProgressBar } from "react-native-paper";
 import { DatePickerModal } from "react-native-paper-dates";
 import { useAuth } from "../../../contexts/authProvider";
 import { useItemsStore } from "../../../store/storeOcorrencias";
@@ -18,11 +18,21 @@ export default function Mainpage() {
     const router = useRouter();
     const { user } = useAuth();
     const { setitems } = useItemsStore();
-    const [showMap, setShowMap] = useState(false);
-    const [openDate, setOpenDate] = useState(false);
     const [type, setType] = useState("Atividade");
-    const { data, refetch } = useGetActivity({ type: type });
+    const [openDate, setOpenDate] = useState(false);
     const [date, setDate] = useState<Date | undefined>(undefined);
+    const [pageSize, setPageSize] = useState(20);
+    const { data, refetch } = useGetActivity({ type: type, pagination: false, pageSize: pageSize });
+
+    const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+    const loadMoreItems = async () => {
+        if (isLoadingMore) return;
+        setIsLoadingMore(true);
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        setPageSize(prev => prev + 20);
+        setIsLoadingMore(false);
+    };
 
     useFocusEffect(
         useCallback(() => {
@@ -30,7 +40,7 @@ export default function Mainpage() {
                 refetch();
             }
             setDate(undefined);
-        }, [refetch])
+        }, [refetch, type])
     );
 
     const onDismissSingle = useCallback(() => {
@@ -265,6 +275,8 @@ export default function Mainpage() {
                     data={data || []}
                     showsVerticalScrollIndicator={false}
                     keyExtractor={(item) => String(item?.id)}
+                    onEndReached={loadMoreItems}
+                    onEndReachedThreshold={0.1}
                     contentContainerStyle={{
                         gap: 10,
                         paddingHorizontal: 10,
@@ -295,13 +307,6 @@ export default function Mainpage() {
                     saveLabel="Confirmar"
                 />
 
-                {showMap && (
-                    <MapScreen
-                        location={undefined}
-                        showMap={() => setShowMap(!showMap)}
-                    />
-                )}
-
                 {user?.userType !== "ADM_DIKMA" && (
                     <TouchableOpacity
                         onPress={() => router.push('criarOcorrencia' as never)}
@@ -311,6 +316,7 @@ export default function Mainpage() {
                     </TouchableOpacity>
                 )}
             </View>
+            <ProgressBar visible={isLoadingMore} indeterminate={true} progress={1} color={"#00a400"} />
         </StyledMainContainer>
     );
 }

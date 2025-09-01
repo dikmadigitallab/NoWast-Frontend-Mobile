@@ -18,9 +18,10 @@ export interface UseGetParams {
     environmentId?: number | null;
     dateTimeFrom?: string | null;
     type: string;
+    pagination?: boolean | null
 }
 
-export const useGetActivity = ({ type, page = 1, pageSize = null, query = null, supervisorId = null, positionId = null, managerId = null, responsibleManagerId = null, buildingId = null, environmentId = null, dateTimeFrom = null }: UseGetParams) => {
+export const useGetActivity = ({ pagination = null, type, page = 1, pageSize = 1, query = null, supervisorId = null, positionId = null, managerId = null, responsibleManagerId = null, buildingId = null, environmentId = null, dateTimeFrom = null }: UseGetParams) => {
 
     const { logout } = useAuth();
     const [loading, setLoading] = useState<boolean>(false);
@@ -44,7 +45,10 @@ export const useGetActivity = ({ type, page = 1, pageSize = null, query = null, 
         setLoading(true);
         const params = new URLSearchParams();
 
-        params.append("disablePagination", "true");
+        if (pagination !== null) {
+            params.append("disablePagination", String(pagination));
+        }
+
         params.append("page", String(page));
 
         if (query !== null) params.append("query", query.trim());
@@ -150,10 +154,6 @@ export const useGetActivity = ({ type, page = 1, pageSize = null, query = null, 
             setData(refactory);
             setLoading(false);
         }
-
-
-
-
     }, [type, logout, page, pageSize, query, supervisorId, positionId, managerId, responsibleManagerId, buildingId, environmentId, dateTimeFrom]);
 
     const refetch = useCallback(() => {
