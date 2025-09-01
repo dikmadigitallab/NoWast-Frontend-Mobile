@@ -1,4 +1,7 @@
+import Donut from "@/components/charts/donut/donut";
+import Pie from "@/components/charts/pie/pie";
 import { useAuth } from "@/contexts/authProvider";
+import { useGetDashboard } from "@/hooks/dashboard/useGet";
 import { AntDesign, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useRef, useState } from "react";
@@ -13,13 +16,38 @@ import {
 } from "react-native";
 import { PieChart } from "react-native-gifted-charts";
 
+const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
+const endOfMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0];
+
 export default function Dashboard() {
 
   const { user } = useAuth();
   const router = useRouter();
   const [isExpanded, setIsExpanded] = useState(false);
+  const { data } = useGetDashboard({})
   const animation = useRef(new Animated.Value(0)).current;
   const [activeTab, setActiveTab] = useState<"atividades" | "colaboradores">("atividades");
+  const [filters, setFilters] = useState({ endDate: endOfMonth, startDate: startOfMonth, userId: '', sectorId: '', environmentId: '', buildingId: '' });
+  const { data: justifications } = useGetDashboard({
+    url: 'dashboard/justifications',
+    startDate: filters.startDate,
+    endDate: filters.endDate,
+    userId: filters.userId,
+    sectorId: filters.sectorId,
+    environmentId: filters.environmentId,
+    buildingId: filters.buildingId
+  });
+  const { data: atividades } = useGetDashboard({
+    url: 'dashboard/activities',
+    startDate: filters.startDate,
+    endDate: filters.endDate,
+    userId: filters.userId,
+    sectorId: filters.sectorId,
+    environmentId: filters.environmentId,
+    buildingId: filters.buildingId
+  });
+
+  console.log(atividades)
 
   const toggleButtons = () => {
     Animated.spring(animation, {
@@ -55,11 +83,6 @@ export default function Dashboard() {
     opacity: animation,
   };
 
-  const pieData = [
-    { value: 35, color: "#2E97FC", gradientCenterColor: "#2E97FC" },
-    { value: 50, color: "#00A614", gradientCenterColor: "#00A614" },
-    { value: 25, color: "#FFA44D", gradientCenterColor: "#FFA44D" },
-  ];
 
   const pieData3 = [
     { value: 80, prazo: "Dentro do prazo", percent: 56, color: '#28A745' },
@@ -134,52 +157,9 @@ export default function Dashboard() {
           </ScrollView>
         </View>
 
-        <View style={styles.chartRow}>
-          <View style={styles.pieWrapper}>
-            <Text style={styles.pieTitle}>Atividades</Text>
-            <PieChart data={pieData} donut showGradient sectionAutoFocus radius={90} innerRadius={60} innerCircleColor={"#fff"} strokeColor={"#f7f9fb"} strokeWidth={6} centerLabelComponent={() => (
-              <View style={styles.centerLabel}>
-                <Text style={styles.percentageText}>47%</Text>
-                <Text style={styles.centerLabelText}>Excellent</Text>
-              </View>
-            )}
-            />
-          </View>
-          <View style={styles.pieLegend}>
-            {pieData.map((item, index) => (
-              <View key={index}>
-                <View style={styles.legendRow}>
-                  <View style={[styles.legendDot, { backgroundColor: item.color }]} />
-                  <Text style={styles.legendText}>Concluídas</Text>
-                </View>
-                <Text style={styles.legendValue}>{item.value}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-        <View style={styles.chartRow}>
-          <View style={styles.pieWrapper}>
-            <Text style={styles.pieTitle}>Aprovações</Text>
-            <PieChart data={pieData} donut showGradient sectionAutoFocus radius={90} innerRadius={65} innerCircleColor={"#fff"} strokeColor={"#f7f9fb"} strokeWidth={19} centerLabelComponent={() => (
-              <View style={styles.centerLabel}>
-                <Text style={styles.percentageText}>123.42</Text>
-                <Text style={styles.centerLabelText}>Total</Text>
-              </View>
-            )}
-            />
-          </View>
-          <View style={styles.pieLegend}>
-            {pieData.map((item, index) => (
-              <View key={index}>
-                <View style={styles.legendRow}>
-                  <View style={[styles.legendDot, { backgroundColor: item.color }]} />
-                  <Text style={styles.legendText}>Concluídas</Text>
-                </View>
-                <Text style={styles.legendValue}>{item.value}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
+        <Pie data={atividades} />
+        <Donut data={atividades} />
+
         <View style={styles.chartColumn}>
           <Text style={{ alignSelf: "center", fontSize: 22, color: "#43575F", fontWeight: "bold" }}>Execuções</Text>
           <View style={[styles.pieWrapper, { width: '100%' }]}>
