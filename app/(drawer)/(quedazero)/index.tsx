@@ -91,8 +91,6 @@ export default function Dashboard() {
     [setOpenDate, setDateRange, setFilters]
   );
 
-
-
   const toggleButtons = () => {
     Animated.spring(animation, {
       toValue: isExpanded ? 0 : 1,

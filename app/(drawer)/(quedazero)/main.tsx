@@ -28,7 +28,7 @@ export default function Mainpage() {
     const loadMoreItems = async () => {
         if (isLoadingMore) return;
         setIsLoadingMore(true);
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 2000));
         setPageSize(prev => prev + 20);
         setIsLoadingMore(false);
     };
@@ -68,7 +68,6 @@ export default function Mainpage() {
     if (!data) {
         return (<LoadingScreen />)
     }
-
 
     if (data.length === 0) {
         return (
@@ -122,15 +121,25 @@ export default function Mainpage() {
                             alignItems: 'center'
                         }}>
                             {item?.activityFiles?.length > 0 ? (
-                                <Image
-                                    source={{ uri: item.activityFiles[0]?.file?.url }}
-                                    style={{ width: "100%", height: "100%", borderRadius: 10 }}
-                                />
+                                item?.activityFiles[0]?.file?.url?.includes('.mp3') || item?.activityFiles[0]?.file?.url?.includes('.wav') ? (
+                                    <MaterialCommunityIcons name="image-off-outline" size={40} color="#385866" />
+                                ) : (
+                                    <Image
+                                        source={{ uri: item?.activityFiles[0]?.file?.url }}
+                                        style={{ width: "100%", height: "100%", borderRadius: 10 }}
+                                    // onError={(e) => Alert.alert("Erro carregando imagem", item?.activityFiles[0]?.file?.url)}
+                                    />
+                                )
                             ) : item?.justification?.justificationFiles?.length > 0 ? (
-                                <Image
-                                    source={{ uri: item.justification.justificationFiles[0]?.file?.url }}
-                                    style={{ width: "100%", height: "100%", borderRadius: 10 }}
-                                />
+                                item?.justification.justificationFiles[0]?.file?.url?.includes('.mp3') || item?.justification.justificationFiles[0]?.file?.url?.includes('.wav') ? (
+                                    <MaterialCommunityIcons name="image-off-outline" size={40} color="#385866" />
+                                ) : (
+                                    <Image
+                                        source={{ uri: item?.justification.justificationFiles[0]?.file?.url }}
+                                        style={{ width: "100%", height: "100%", borderRadius: 10 }}
+                                    // onError={(e) => Alert.alert("Erro carregando imagem", item?.justification.justificationFiles[0]?.file?.url)}
+                                    />
+                                )
                             ) : (
                                 <MaterialCommunityIcons name="image-off-outline" size={40} color="#385866" />
                             )}
@@ -187,15 +196,17 @@ export default function Mainpage() {
                             justifyContent: 'center',
                             alignItems: 'center'
                         }}>
-                            {item.imageUrls?.length > 0 ? (
+                            {item?.imageUrls?.length > 0 ? (
                                 <Image
-                                    source={{ uri: item.imageUrls[0] }}
+                                    source={{ uri: item?.imageUrls[0] }}
                                     style={{ width: "100%", height: "100%", borderRadius: 10 }}
+                                // onError={(e) => Alert.alert("Erro carregando imagem", item?.imageUrls[0])}
                                 />
                             ) : item.justification?.justificationFiles?.length > 0 ? (
                                 <Image
-                                    source={{ uri: item.justification.justificationFiles[0].file.url }}
+                                    source={{ uri: item?.justification?.justificationFiles[0]?.file?.url }}
                                     style={{ width: "100%", height: "100%", borderRadius: 10 }}
+                                // onError={(e) => Alert.alert("Erro carregando imagem", item?.justification?.justificationFiles[0]?.file?.url)}
                                 />
                             ) : (
                                 <MaterialCommunityIcons name="image-off-outline" size={40} color="#385866" />

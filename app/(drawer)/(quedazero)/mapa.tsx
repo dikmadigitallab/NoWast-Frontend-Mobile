@@ -185,80 +185,59 @@ export default function Mapa() {
         })}
       </MapView>
 
-      <View style={{ position: 'absolute', top: 10, left: 10, flexDirection: 'row', justifyContent: 'space-between', gap: 5 }}>
-
-        <View style={{ width: 130, flexDirection: "column", gap: 5, position: "relative", height: 55 }}>
-          <TouchableOpacity onPress={() => setOpen(true)} style={[styles.filterButton, { justifyContent: "flex-start" }]}>
-            <Entypo name="calendar" size={15} color="#385866" style={{ marginRight: 5 }} />
-            {selectedDate ? (
-              <Text style={{ color: '#000', fontWeight: '500', fontSize: 12 }}>
-                {moment(selectedDate).format('DD/MM/YYYY')}
-              </Text>
-            )
-              :
-              (<Text style={{ color: '#000', fontWeight: '500', fontSize: 12 }}>Data</Text>)}
+      {/* Filtros melhorados */}
+      <View style={styles.filtersContainer}>
+        <View style={styles.filterWrapper}>
+          <TouchableOpacity
+            onPress={() => setOpen(true)}
+            style={[styles.filterButton, selectedDate && styles.filterButtonActive]}
+          >
+            <Entypo name="calendar" size={16} color={selectedDate ? "#fff" : "#385866"} />
+            <Text style={[styles.filterButtonText, selectedDate && styles.filterButtonTextActive]}>
+              {selectedDate ? moment(selectedDate).format('DD/MM/YYYY') : "Data"}
+            </Text>
+            {selectedDate && (
+              <TouchableOpacity
+                onPress={(e) => {
+                  e.stopPropagation();
+                  setSelectedDate(undefined);
+                }}
+                style={styles.clearButton}
+              >
+                <AntDesign name="close" size={14} color="#fff" />
+              </TouchableOpacity>
+            )}
           </TouchableOpacity>
-
-          {selectedDate && (
-            <TouchableOpacity
-              style={{
-                position: "absolute",
-                bottom: -10,
-                left: 0,
-                flexDirection: "row",
-                alignItems: "center",
-                borderRadius: 5,
-                borderWidth: 1,
-                borderColor: "#cdcdcd",
-                padding: 4,
-                gap: 5
-              }}
-              onPress={() => setSelectedDate(undefined)}
-            >
-              <Text style={{ color: '#000', fontWeight: '500', fontSize: 8 }}>
-                {moment(selectedDate).format('DD/MM/YYYY')}
-              </Text>
-              <AntDesign name="close" size={10} color="black" />
-            </TouchableOpacity>
-          )}
         </View>
 
-        <View style={{ width: 130, flexDirection: "column", gap: 5, position: "relative", height: 55 }}>
-          <TouchableOpacity style={styles.filterButton} onPress={() => pickerRef.current?.focus()}>
-            <Text style={{ color: '#000', fontWeight: '500', fontSize: 12 }}>{filter}</Text>
-            <AntDesign name="caretdown" size={10} color="black" />
+        <View style={styles.filterWrapper}>
+          <TouchableOpacity
+            style={[styles.filterButton, filter !== "Todos" && styles.filterButtonActive]}
+            onPress={() => pickerRef.current?.focus()}
+          >
+            <Text style={[styles.filterButtonText, filter !== "Todos" && styles.filterButtonTextActive]}>
+              {filter}
+            </Text>
+            <AntDesign name="caretdown" size={12} color={filter !== "Todos" ? "#fff" : "#385866"} />
+            {filter !== "Todos" && (
+              <TouchableOpacity
+                onPress={(e) => {
+                  e.stopPropagation();
+                  setFilter("Todos");
+                }}
+                style={styles.clearButton}
+              >
+                <AntDesign name="close" size={14} color="#fff" />
+              </TouchableOpacity>
+            )}
           </TouchableOpacity>
-          {filter && filter !== "Todos" && (
-            <TouchableOpacity style={{
-              position: "absolute",
-              bottom: -10,
-              left: 0,
-              flexDirection: "row",
-              alignItems: "center",
-              borderRadius: 5,
-              borderWidth: 1,
-              borderColor: "#cdcdcd",
-              padding: 4,
-              gap: 5
-            }} onPress={() => setFilter("Todos")}>
-              <Text style={{ color: '#000', fontWeight: '500', fontSize: 8 }}>{filter}</Text>
-              <AntDesign name="close" size={10} color="black" />
-            </TouchableOpacity>
-          )}
         </View>
       </View>
 
       {selectedLocation && (
         <View style={styles.infoBox}>
           <View style={styles.mainInfoContainer}>
-            <View style={{
-              width: "25%",
-              height: '100%',
-              backgroundColor: '#f0f0f0',
-              borderRadius: 10,
-              justifyContent: 'center',
-              alignItems: 'center'
-            }}>
+            <View style={styles.imagePlaceholder}>
               <MaterialCommunityIcons name="image-off-outline" size={40} color="#385866" />
             </View>
 
@@ -301,25 +280,48 @@ export default function Mapa() {
 };
 
 const styles = StyleSheet.create({
+  filtersContainer: {
+    position: 'absolute',
+    top: 10,
+    left: 10,
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+    gap: 10
+  },
+  filterWrapper: {
+    position: "relative",
+  },
   filterButton: {
     height: 40,
-    gap: 10,
-    justifyContent: "space-between",
+    minWidth: 120,
+    justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    borderWidth: 0.5,
+    paddingHorizontal: 15,
+    borderRadius: 20,
     flexDirection: "row",
-    borderColor: "#d9d9d9",
-    backgroundColor: "#eff5f0",
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 2,
-    },
-    shadowOpacity: 0.23,
-    shadowRadius: 2.62,
-    elevation: 4,
+    gap: 8,
+    backgroundColor: "#fff",
+  },
+  filterButtonActive: {
+    backgroundColor: "#186B53",
+    borderColor: "#0e8664ff",
+  },
+  filterButtonText: {
+    color: '#385866',
+    fontWeight: '600',
+    fontSize: 14
+  },
+  filterButtonTextActive: {
+    color: '#fff',
+  },
+  clearButton: {
+    marginLeft: 5,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderRadius: 10,
+    width: 18,
+    height: 18,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   container: {
     flex: 1,
@@ -339,6 +341,14 @@ const styles = StyleSheet.create({
     gap: 10,
     padding: 10,
   },
+  imagePlaceholder: {
+    width: "25%",
+    height: '100%',
+    backgroundColor: '#f0f0f0',
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
   infoBox: {
     position: "absolute",
     bottom: 10,
@@ -354,11 +364,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 5,
     elevation: 5,
-  },
-  image: {
-    width: "28%",
-    height: "100%",
-    borderRadius: 5,
   },
   infoContent: {
     width: "70%",

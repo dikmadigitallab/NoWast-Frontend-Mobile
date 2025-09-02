@@ -1,53 +1,71 @@
 import LoadingScreen from "@/components/carregamento";
 import { AudioPlayer } from "@/components/reprodutorAudio";
-import { useUpdateActivityStatus } from "@/hooks/atividade/aprove";
 import { AntDesign, MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-import React from "react";
-import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
-import { useAuth } from "../../../contexts/authProvider";
+import React, { useState } from "react"; // Adicione o useState
+import { Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native"; // Adicione TouchableOpacity, Modal e TouchableWithoutFeedback
 import { useItemsStore } from "../../../store/storeOcorrencias";
 import { StyledMainContainer } from "../../../styles/StyledComponents";
 
 export default function DetalharOcorrência() {
-  const { user } = useAuth();
+
   const { items } = useItemsStore();
-  const { updateStatus } = useUpdateActivityStatus();
 
-  if (!items) {
-    return (
-      <StyledMainContainer>
-        <Text style={styles.title}>Detalhar Ocorrência</Text>
-        <Text style={styles.text}>Nenhuma ocorrência selecionada.</Text>
-      </StyledMainContainer>
-    );
-  }
+  // Estados para o visualizador de imagem
+  const [imageViewerVisible, setImageViewerVisible] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [allImages, setAllImages] = useState<string[]>([]);
 
-
-  const handleFinalizeActivity = (status: string) => {
-    updateStatus(status, {
-      id: String(items.id),
-      approvalStatus: status,
-      approvalUpdatedByUserId: String(user?.id),
-    });
+  // Função para abrir o visualizador de imagem
+  const openImageViewer = (imageUrl: string, images: string[], index: number) => {
+    setSelectedImage(imageUrl);
+    setAllImages(images);
+    setSelectedImageIndex(index);
+    setImageViewerVisible(true);
   };
 
+  // Funções para navegar entre imagens
+  const goToNextImage = () => {
+    if (selectedImageIndex < allImages.length - 1) {
+      const nextIndex = selectedImageIndex + 1;
+      setSelectedImageIndex(nextIndex);
+      setSelectedImage(allImages[nextIndex]);
+    }
+  };
+
+  const goToPrevImage = () => {
+    if (selectedImageIndex > 0) {
+      const prevIndex = selectedImageIndex - 1;
+      setSelectedImageIndex(prevIndex);
+      setSelectedImage(allImages[prevIndex]);
+    }
+  };
+
+  // Check if items is undefined or null first
   if (!items) {
-    return (<LoadingScreen />)
+    return <LoadingScreen />;
   }
 
-  // Função para formatar a data
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR');
+    if (!dateString) return "Data não disponível";
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleDateString('pt-BR') + ' ' + date.toLocaleTimeString('pt-BR');
+    } catch (error) {
+      return "Data inválida";
+    }
   };
+
+  // Safe check for imageUrls
+  const hasImages = items.imageUrls && Array.isArray(items.imageUrls) && items.imageUrls.length > 0;
 
   return (
     <View style={styles.mainContainer}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} >
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         <StyledMainContainer>
-          <View style={{ padding: 10, marginBottom: 10, }}>
+          <View style={{ padding: 10, marginBottom: 10 }}>
             <Text style={{ fontSize: 15 }}>Descrição da ocorrência.</Text>
           </View>
           <View style={styles.wrapper}>
@@ -67,7 +85,7 @@ export default function DetalharOcorrência() {
                   <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                 </View>
                 <Text style={styles.textBold}>ID do Usuário:</Text>
-                <Text style={styles.text}>{items?.userId}</Text>
+                <Text style={styles.text}>{items?.userId || "Não disponível"}</Text>
               </View>
 
               <View style={styles.linha}>
@@ -76,7 +94,7 @@ export default function DetalharOcorrência() {
                   <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                 </View>
                 <Text style={styles.textBold}>Status:</Text>
-                <Text style={styles.text}>{items?.status}</Text>
+                <Text style={styles.text}>{items?.status || "Não disponível"}</Text>
               </View>
 
               <View style={styles.linha}>
@@ -85,7 +103,7 @@ export default function DetalharOcorrência() {
                   <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                 </View>
                 <Text style={styles.textBold}>Transcrição:</Text>
-                <Text style={styles.text}>{items?.transcription}</Text>
+                <Text style={styles.text}>{items?.transcription || "Nenhuma transcrição disponível"}</Text>
               </View>
 
               <View style={styles.linha}>
@@ -94,36 +112,42 @@ export default function DetalharOcorrência() {
                   <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                 </View>
                 <Text style={styles.textBold}>Peso:</Text>
-                <Text style={styles.text}>{items?.weight} kg</Text>
+                <Text style={styles.text}>{items?.weight ? `${items.weight} kg` : "Não disponível"}</Text>
               </View>
+
               <View style={[styles.linha, { height: 150, alignItems: "flex-start" }]}>
                 <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 10 }]}>
                   <AntDesign name="camera" size={15} color="#43575F" />
                   <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                 </View>
-                {
-                  items?.imageUrls?.length > 0 ?
-                    <ScrollView
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                      contentContainerStyle={{ paddingRight: 50 }}
-                    >
-                      {items?.imageUrls?.map((url: any, index: number) => (
-                        <View key={index} style={{ width: 200, height: "100%", marginRight: 10 }}>
-                          <Image
-                            source={{ uri: url }}
-                            style={styles.image}
-                            resizeMode="cover"
-                          />
-                        </View>
-                      ))}
-                    </ScrollView>
-                    :
-                    <View style={{ height: "100%", justifyContent: "center", alignItems: "center" }}>
-                      <MaterialCommunityIcons name="image-off-outline" size={104} color="#43575F" />
-                    </View>
-                }
+                {hasImages ? (
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={{ paddingRight: 50 }}
+                  >
+                    {items.imageUrls.map((url: string, index: number) => (
+                      <TouchableOpacity
+                        key={index}
+                        style={{ width: 200, height: "100%", marginRight: 10 }}
+                        onPress={() => openImageViewer(url, items.imageUrls, index)}
+                      >
+                        <Image
+                          source={{ uri: url }}
+                          style={styles.image}
+                          resizeMode="cover"
+                        />
+                      </TouchableOpacity>
+                    ))}
+                  </ScrollView>
+                ) : (
+                  <View style={{ height: "100%", justifyContent: "center", alignItems: "center" }}>
+                    <MaterialCommunityIcons name="image-off-outline" size={104} color="#43575F" />
+                    <Text style={styles.text}>Nenhuma imagem disponível</Text>
+                  </View>
+                )}
               </View>
+
               <View style={[styles.linha, { height: 70, alignItems: "flex-start" }]}>
                 <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 10 }]}>
                   <MaterialIcons name="keyboard-voice" size={20} color="#43575F" />
@@ -138,26 +162,60 @@ export default function DetalharOcorrência() {
         </StyledMainContainer>
       </ScrollView>
 
-      {/* <View style={styles.fixedButtonsContainer}>
-        {
-          (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE") && items.approvalStatus === "PENDING" && (
-            <View style={styles.buttonsContainer}>
+      {/* Modal do Visualizador de Imagem */}
+      <Modal
+        visible={imageViewerVisible}
+        transparent={true}
+        onRequestClose={() => setImageViewerVisible(false)}
+        animationType="fade"
+      >
+        <View style={styles.imageViewerContainer}>
+          <TouchableOpacity
+            style={styles.closeImageViewerButton}
+            onPress={() => setImageViewerVisible(false)}
+          >
+            <AntDesign name="close" size={30} color="#fff" />
+          </TouchableOpacity>
+
+          {allImages.length > 1 && (
+            <>
               <TouchableOpacity
-                onPress={() => handleFinalizeActivity("REJECTED")}
-                style={styles.justifyButton}>
-                <Text style={{ color: "#404944", fontSize: 16 }}>REPROVAR</Text>
+                style={[styles.navButton, styles.prevButton]}
+                onPress={goToPrevImage}
+                disabled={selectedImageIndex === 0}
+              >
+                <AntDesign name="left" size={30} color="#fff" />
               </TouchableOpacity>
+
               <TouchableOpacity
-                onPress={() => handleFinalizeActivity("APPROVED")}
-                style={styles.doneButton}>
-                <Text style={styles.doneButtonText}>APROVAR</Text>
+                style={[styles.navButton, styles.nextButton]}
+                onPress={goToNextImage}
+                disabled={selectedImageIndex === allImages.length - 1}
+              >
+                <AntDesign name="right" size={30} color="#fff" />
               </TouchableOpacity>
+            </>
+          )}
+
+          <TouchableWithoutFeedback onPress={() => setImageViewerVisible(false)}>
+            <View style={styles.imageViewerContent}>
+              <Image
+                source={{ uri: selectedImage || '' }}
+                style={styles.fullSizeImage}
+                resizeMode="contain"
+              />
             </View>
-          )
-        }
-      </View> */}
+          </TouchableWithoutFeedback>
 
-
+          {allImages.length > 1 && (
+            <View style={styles.imageCounter}>
+              <Text style={styles.imageCounterText}>
+                {selectedImageIndex + 1} / {allImages.length}
+              </Text>
+            </View>
+          )}
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -251,5 +309,58 @@ const styles = StyleSheet.create({
   doneButtonText: {
     color: "#fff",
     fontSize: 16
+  },
+  // Estilos do visualizador de imagem
+  imageViewerContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  imageViewerContent: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullSizeImage: {
+    width: '100%',
+    height: '100%',
+  },
+  closeImageViewerButton: {
+    position: 'absolute',
+    top: 50,
+    right: 20,
+    zIndex: 1000,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 20,
+    padding: 10,
+  },
+  navButton: {
+    position: 'absolute',
+    top: '50%',
+    zIndex: 1000,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 25,
+    padding: 10,
+  },
+  prevButton: {
+    left: 20,
+  },
+  nextButton: {
+    right: 20,
+  },
+  imageCounter: {
+    position: 'absolute',
+    bottom: 30,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    borderRadius: 15,
+    paddingHorizontal: 15,
+    paddingVertical: 5,
+  },
+  imageCounterText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

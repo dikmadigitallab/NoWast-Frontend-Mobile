@@ -6,12 +6,11 @@ import StatusIndicator from "@/components/StatusIndicator";
 import { useUpdateActivityStatus } from "@/hooks/atividade/aprove";
 import { useCloseActivity } from "@/hooks/atividade/update";
 import { useUserJustification } from "@/hooks/atividade/userJustification";
-import { useChecklistStore } from "@/store/dataStore";
 import { userTypes } from "@/types/user";
 import { AntDesign, Feather, FontAwesome5, MaterialCommunityIcons } from "@expo/vector-icons";
 import Entypo from "@expo/vector-icons/Entypo";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
-import { usePathname, useRouter } from "expo-router";
+import { usePathname } from "expo-router";
 import React, { useEffect, useRef, useState } from "react";
 import { Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, TouchableWithoutFeedback, View } from "react-native";
 import { Modalize } from 'react-native-modalize';
@@ -25,11 +24,9 @@ import { StyledMainContainer } from "../../../styles/StyledComponents";
 export default function DetalharAtividade() {
 
     const { user } = useAuth();
-    const router = useRouter();
     const pathname = usePathname();
     const { items } = useItemsStore();
     const { close } = useCloseActivity();
-    const { setData } = useChecklistStore();
     const { updateStatus } = useUpdateActivityStatus();
     const modalizeDescricaoRef = useRef<Modalize | null>(null);
     const [modalVisible, setModalizeVisible] = useState(false);
@@ -37,6 +34,38 @@ export default function DetalharAtividade() {
     const { justification, loading } = useUserJustification();
     const [form, setForm] = useState({ id: items?.id, status: "JUSTIFIED", justification: "", images: [] });
     const [userDescricao, setUserDescricao] = useState({ activityId: "", userId: "", reason: "", name: "" });
+
+    // Estados para o visualizador de imagem
+    const [imageViewerVisible, setImageViewerVisible] = useState(false);
+    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+    const [allImages, setAllImages] = useState<any[]>([]);
+
+    // Função para abrir o visualizador de imagem
+    const openImageViewer = (imageUrl: string, images: any[], index: number) => {
+        setSelectedImage(imageUrl);
+        setAllImages(images);
+        setSelectedImageIndex(index);
+        setImageViewerVisible(true);
+    };
+
+    // Funções para navegar entre imagens
+    const goToNextImage = () => {
+        if (selectedImageIndex < allImages.length - 1) {
+            const nextIndex = selectedImageIndex + 1;
+            setSelectedImageIndex(nextIndex);
+            setSelectedImage(allImages[nextIndex]?.file?.url);
+        }
+    };
+
+    const goToPrevImage = () => {
+        if (selectedImageIndex > 0) {
+            const prevIndex = selectedImageIndex - 1;
+            setSelectedImageIndex(prevIndex);
+            setSelectedImage(allImages[prevIndex]?.file?.url);
+        }
+    };
+
 
     const openModelizeDescricao = (data: { activityId: string, userId: string, reason: string, name: string }): void => {
         setUserDescricao(data)
@@ -121,24 +150,37 @@ export default function DetalharAtividade() {
                                         <AntDesign name="camera" size={15} color="#43575F" />
                                         <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                                     </View>
-                                    {
-                                        items?.activityFiles?.length > 0 ?
-                                            <ScrollView
-                                                horizontal
-                                                showsHorizontalScrollIndicator={false}
-                                                contentContainerStyle={{ paddingRight: 50 }}
-                                            >
-                                                {items?.activityFiles?.map((url: any, index: number) => (
-                                                    <View key={index} style={{ width: 200, height: "100%", marginRight: 10 }}>
-                                                        <Image source={{ uri: url?.file?.url }} style={styles.image} resizeMode="cover" />
-                                                    </View>
-                                                ))}
-                                            </ScrollView>
-                                            :
-                                            <View style={{ height: "100%", justifyContent: "center", alignItems: "center" }}>
-                                                <MaterialCommunityIcons name="image-off-outline" size={104} color="#43575F" />
-                                            </View>
+                                    {items?.activityFiles?.length > 0 ?
+                                        <ScrollView
+                                            horizontal
+                                            showsHorizontalScrollIndicator={false}
+                                            contentContainerStyle={{ paddingRight: 50 }}
+                                        >
+                                            {items?.activityFiles?.map((url: any, index: number) => (
+                                                <TouchableOpacity
+                                                    key={index}
+                                                    style={{ width: 200, height: "100%", marginRight: 10 }}
+                                                    onPress={() => openImageViewer(url?.file?.url, items.activityFiles, index)}
+                                                >
+                                                    <Image source={{ uri: url?.file?.url }} style={styles.image} resizeMode="cover" />
+                                                </TouchableOpacity>
+                                            ))}
+                                        </ScrollView>
+                                        :
+                                        <View style={{ height: "100%", justifyContent: "center", alignItems: "center" }}>
+                                            <MaterialCommunityIcons name="image-off-outline" size={104} color="#43575F" />
+                                        </View>
                                     }
+
+                                    {items.justification?.justificationFiles?.map((url: any, index: number) => (
+                                        <TouchableOpacity
+                                            key={index}
+                                            style={{ width: 200, height: 120, marginRight: 10 }}
+                                            onPress={() => openImageViewer(url?.file?.url, items.justification.justificationFiles, index)}
+                                        >
+                                            <Image source={{ uri: url?.file?.url }} style={styles.image} resizeMode="cover" />
+                                        </TouchableOpacity>
+                                    ))}
                                 </View>
                             )}
 
@@ -157,9 +199,13 @@ export default function DetalharAtividade() {
                                             <Text style={styles.textBold}>Justificativa:</Text>
                                             <Text style={styles.text}>{items?.justification?.description}</Text>
                                             {items.justification?.justificationFiles?.map((url: any, index: number) => (
-                                                <View key={index} style={{ width: 200, height: 120, marginRight: 10 }}>
+                                                <TouchableOpacity
+                                                    key={index}
+                                                    style={{ width: 200, height: 120, marginRight: 10 }}
+                                                    onPress={() => openImageViewer(url?.file?.url, items.activityFiles, index)}
+                                                >
                                                     <Image source={{ uri: url?.file?.url }} style={styles.image} resizeMode="cover" />
-                                                </View>
+                                                </TouchableOpacity>
                                             ))}
                                         </View>
                                     </View>
@@ -301,11 +347,11 @@ export default function DetalharAtividade() {
                                 </View>
                                 <Text style={styles.textBold}>Produtos:</Text>
                                 <View style={{ flexDirection: "row" }}>
-                                    <View style={{ flexDirection: "row" }}>
+                                    <Text style={{ flexWrap: "wrap", width: "80%" }}>
                                         {items?.products.length > 0 ? items?.products.map((product: any) => (
                                             <Text key={product.id} style={styles.text}> - {product.name}</Text>
                                         )) : <Text style={styles.text}> - Nenhum produto</Text>}
-                                    </View>
+                                    </Text>
                                 </View>
                             </View>
                             <View style={styles.linha}>
@@ -330,7 +376,7 @@ export default function DetalharAtividade() {
                                     <MapScreen location={items.local} />
                                 </View>
                             </View>
-                            {user?.userType === "OPERATIONAL" && items?.statusEnum !== "COMPLETED" &&
+                            {user?.userType === "OPERATIONAL" && items?.statusEnum !== "COMPLETED" && (items.approvalStatus !== "APPROVED" && items.approvalStatus !== "REJECTED") &&
                                 <LeituraNFC items={[items]} environmentId={items.environmentId} />
                             }
                         </View>
@@ -502,6 +548,60 @@ export default function DetalharAtividade() {
                         </TouchableWithoutFeedback>
                     </View>
                 </TouchableWithoutFeedback>
+            </Modal>
+
+            <Modal
+                visible={imageViewerVisible}
+                transparent={true}
+                onRequestClose={() => setImageViewerVisible(false)}
+                animationType="fade"
+            >
+                <View style={styles.imageViewerContainer}>
+                    <TouchableOpacity
+                        style={styles.closeImageViewerButton}
+                        onPress={() => setImageViewerVisible(false)}
+                    >
+                        <AntDesign name="close" size={30} color="#fff" />
+                    </TouchableOpacity>
+
+                    {allImages.length > 1 && (
+                        <>
+                            <TouchableOpacity
+                                style={[styles.navButton, styles.prevButton]}
+                                onPress={goToPrevImage}
+                                disabled={selectedImageIndex === 0}
+                            >
+                                <AntDesign name="left" size={30} color="#fff" />
+                            </TouchableOpacity>
+
+                            <TouchableOpacity
+                                style={[styles.navButton, styles.nextButton]}
+                                onPress={goToNextImage}
+                                disabled={selectedImageIndex === allImages.length - 1}
+                            >
+                                <AntDesign name="right" size={30} color="#fff" />
+                            </TouchableOpacity>
+                        </>
+                    )}
+
+                    <TouchableWithoutFeedback onPress={() => setImageViewerVisible(false)}>
+                        <View style={styles.imageViewerContent}>
+                            <Image
+                                source={{ uri: selectedImage || '' }}
+                                style={styles.fullSizeImage}
+                                resizeMode="contain"
+                            />
+                        </View>
+                    </TouchableWithoutFeedback>
+
+                    {allImages.length > 1 && (
+                        <View style={styles.imageCounter}>
+                            <Text style={styles.imageCounterText}>
+                                {selectedImageIndex + 1} / {allImages.length}
+                            </Text>
+                        </View>
+                    )}
+                </View>
             </Modal>
         </View>
 
@@ -779,5 +879,57 @@ const styles = StyleSheet.create({
         color: '#186B53',
         fontWeight: '500',
         fontSize: 16
+    },
+    imageViewerContainer: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    imageViewerContent: {
+        flex: 1,
+        width: '100%',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    fullSizeImage: {
+        width: '100%',
+        height: '100%',
+    },
+    closeImageViewerButton: {
+        position: 'absolute',
+        top: 50,
+        right: 20,
+        zIndex: 1000,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        borderRadius: 20,
+        padding: 10,
+    },
+    navButton: {
+        position: 'absolute',
+        top: '50%',
+        zIndex: 1000,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        borderRadius: 25,
+        padding: 10,
+    },
+    prevButton: {
+        left: 20,
+    },
+    nextButton: {
+        right: 20,
+    },
+    imageCounter: {
+        position: 'absolute',
+        bottom: 30,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        borderRadius: 15,
+        paddingHorizontal: 15,
+        paddingVertical: 5,
+    },
+    imageCounterText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: 'bold',
     },
 });

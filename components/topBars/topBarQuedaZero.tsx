@@ -5,7 +5,6 @@ import type { DrawerNavigationProp } from '@react-navigation/drawer';
 import { useNavigation } from '@react-navigation/native';
 import { useState } from "react";
 import { Dimensions, Pressable, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import { DatePickerModal } from "react-native-paper-dates";
 
 interface TopBarProps {
   router: any;
@@ -15,7 +14,6 @@ interface TopBarProps {
 
 export function TopBar({ customBack, router, pathname }: TopBarProps) {
   // All hooks must be called unconditionally at the top level
-  const [open, setOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const { user } = useAuth(); // Moved to top level
   const navigation = useNavigation() as DrawerNavigationProp<any>;
@@ -28,13 +26,6 @@ export function TopBar({ customBack, router, pathname }: TopBarProps) {
 
   const isHomeOrDashboard = pathname === "/";
   const showIcons = ["/mapa", "/detalharOcorrencia", "/detalharAtividade", "/checklist", "/notificacoes", "/criarOcorrencia", "/tag"];
-
-  const onDismiss = () => setOpen(false);
-
-  const onConfirm = (params: { date: any }) => {
-    setOpen(false);
-    setSelectedDate(params.date);
-  };
 
   if (pathname === "/cronograma") {
     return null;
@@ -50,17 +41,6 @@ export function TopBar({ customBack, router, pathname }: TopBarProps) {
       }
     ]}>
 
-      <DatePickerModal
-        locale="pt-BR"
-        mode="single"
-        visible={open}
-        onDismiss={onDismiss}
-        date={selectedDate}
-        onConfirm={onConfirm}
-        presentationStyle="pageSheet"
-        label="Selecione uma data"
-        saveLabel="Confirmar"
-      />
 
       <Pressable onPress={() => navigation.openDrawer() as never} style={styles.settingsButton}>
 
@@ -95,10 +75,6 @@ export function TopBar({ customBack, router, pathname }: TopBarProps) {
 
       {isHomeOrDashboard ? (
         <View style={{ flexDirection: "row", alignItems: "center", gap: 20 }}>
-          <TouchableOpacity style={styles.calendarButton} onPress={() => setOpen(true)} >
-            <MaterialCommunityIcons name="calendar" size={18} color="#fff" />
-            <Text style={{ fontSize: 15, color: "#fff" }}>{selectedDate ? `${selectedDate.getDate()}/${("0" + (selectedDate.getMonth() + 1)).slice(-2)}` : "Selecione uma data"}</Text>
-          </TouchableOpacity>
           <TouchableOpacity style={{ position: "relative" }} onPress={() => router.push("/notificacoes" as never)}>
             <View style={{ position: "absolute", top: 0, right: 0, width: 8, height: 8, zIndex: 1, backgroundColor: "#FF0000", borderRadius: 50 }} />
             <Feather name="bell" size={24} color="#fff" />

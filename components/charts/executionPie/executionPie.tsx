@@ -2,6 +2,20 @@ import { Dimensions, StyleSheet, Text, View } from "react-native";
 import { PieChart } from "react-native-gifted-charts";
 
 export default function ExecutionPie({ data }: any) {
+
+    if (data?.activitiesByDay?.length <= 0) {
+        return (
+            <View style={styles.emptyContainer}>
+                <Text style={styles.emptyIcon}>📊</Text>
+                <Text style={styles.emptyTitle}>Execuções</Text>
+                <Text style={styles.emptyTitle}>Nenhum dado disponível</Text>
+                <Text style={styles.emptySubtitle}>
+                    Não existem dados disponíveis para esse período.
+                </Text>
+            </View>
+        )
+    }
+
     const pie = [
         { value: data?.sameDayClosureActivities ?? 0, prazo: "Dentro do prazo", color: '#28A745' },
         { value: data?.differentDayClosureActivities ?? 0, prazo: "Fora do prazo", color: '#DC3545' }
@@ -51,6 +65,29 @@ export default function ExecutionPie({ data }: any) {
 
 
 const styles = StyleSheet.create({
+    emptyContainer: {
+        flex: 1,
+        width: "100%",
+        marginVertical: 20,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    emptyIcon: {
+        fontSize: 40,
+        marginBottom: 10
+    },
+    emptyTitle: {
+        fontSize: 18,
+        fontWeight: "bold",
+        color: "#43575F",
+        marginBottom: 5,
+        textAlign: "center"
+    },
+    emptySubtitle: {
+        fontSize: 14,
+        color: "#6c757d",
+        textAlign: "center"
+    },
     filterButtonsContainer: {
         gap: 10,
         height: "100%",

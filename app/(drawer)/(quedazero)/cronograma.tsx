@@ -1,12 +1,15 @@
-import AprovacoStatus from '@/components/aprovacaoStatus';
+
+import AprovacoStatus from "@/components/aprovacaoStatus";
 import LoadingScreen from "@/components/carregamento";
+import StatusIndicator from '@/components/StatusIndicator';
 import { useGetActivity } from '@/hooks/atividade/get';
 import { useGet } from '@/hooks/crud/get/get';
 import { useGetUsuario } from '@/hooks/usuarios/get';
+import { useItemsStore } from '@/store/storeOcorrencias';
 import { IAtividade } from '@/types/IAtividade';
-import { AntDesign, Entypo, FontAwesome6 } from '@expo/vector-icons';
+import { AntDesign, Entypo, FontAwesome5, FontAwesome6, MaterialIcons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import moment from 'moment';
 import 'moment/locale/pt-br';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -14,8 +17,7 @@ import { Animated, Dimensions, Image, ImageBackground, ScrollView, SectionList, 
 import { DatePickerModal } from 'react-native-paper-dates';
 import { CalendarDate } from 'react-native-paper-dates/lib/typescript/Date/Calendar';
 import Calendario from '../../../components/calendario';
-import { StatusContainer, StyledMainContainer } from '../../../styles/StyledComponents';
-import { getStatusColor } from '../../../utils/statusColor';
+import { StyledMainContainer } from '../../../styles/StyledComponents';
 
 interface PickerRef {
   open: () => void;
@@ -23,6 +25,23 @@ interface PickerRef {
   focus: () => void;
   blur: () => void;
   getValue: () => string;
+}
+
+interface GroupedData {
+  id: string;
+  data: string;
+  hora: string;
+  localizacao: {
+    local: string;
+    dimensao: string;
+  };
+  predio: string;
+  status: string | any;
+  dataConclusao: string;
+  horaConclusao: string;
+  aprovacao: string;
+  dataAprovacao: string | null;
+  foto: string[];
 }
 
 //Formata a data no padrão 'dddd [ - ] DD [de] MMMM' e deixa a primeira letra da semana em maiúscula
@@ -41,6 +60,8 @@ const extractDateTime = (dateTime: string) => {
 
 export default function Cronograma() {
 
+  const router = useRouter();
+  const { setitems } = useItemsStore();
   const [open, setOpen] = useState(false);
   const { data: supervisores } = useGetUsuario({})
   const enviromentPickerRef = useRef<PickerRef>(null);
@@ -50,7 +71,8 @@ export default function Cronograma() {
   const animatedHeight = useRef(new Animated.Value(360)).current;
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [filter, setFilter] = useState({ supervisor: { id: 0, label: "" }, environment: { id: 0, label: "" } });
-  const { data, refetch } = useGetActivity({ type: "Atividade", dateTimeFrom: selectedDate ? moment(selectedDate).format("YYYY-MM-DD") : null, supervisorId: filter.supervisor.id, environmentId: filter.environment.id });
+  const [activeFilters, setActiveFilters] = useState<Array<{ type: 'supervisor' | 'environment' | 'date'; label: string; value: any; onRemove: () => void; }>>([]);
+  const { data, refetch } = useGetActivity({ statusEnum: "OPEN", pageSize: null, type: "Atividade", pagination: false, dateTimeFrom: selectedDate ? moment(selectedDate).format("YYYY-MM-DD") : null, supervisorId: filter.supervisor.id, environmentId: filter.environment.id });
 
   useFocusEffect(
     useCallback(() => {
@@ -64,6 +86,40 @@ export default function Cronograma() {
     Animated.timing(animatedHeight, { toValue: showCalendar ? 360 : 100, duration: 300, useNativeDriver: false }).start();
   }, [showCalendar]);
 
+  // Sincroniza os filtros ativos
+  useEffect(() => {
+    const newActiveFilters = [];
+
+    if (filter.supervisor.id !== 0) {
+      newActiveFilters.push({
+        type: 'supervisor',
+        label: `Supervisor: ${filter.supervisor.label}`,
+        value: filter.supervisor.id,
+        onRemove: () => setFilter(prev => ({ ...prev, supervisor: { id: 0, label: "" } }))
+      });
+    }
+
+    if (filter.environment.id !== 0) {
+      newActiveFilters.push({
+        type: 'environment',
+        label: `Ambiente: ${filter.environment.label}`,
+        value: filter.environment.id,
+        onRemove: () => setFilter(prev => ({ ...prev, environment: { id: 0, label: "" } }))
+      });
+    }
+
+    if (selectedDate) {
+      newActiveFilters.push({
+        type: 'date',
+        label: `Data: ${moment(selectedDate).format('DD/MM/YYYY')}`,
+        value: selectedDate,
+        onRemove: () => setSelectedDate(undefined)
+      });
+    }
+
+    setActiveFilters(newActiveFilters as { type: "environment" | "supervisor" | "date"; label: string; value: any; onRemove: () => void; }[]);
+  }, [filter, selectedDate]);
+
   const onDismiss = () => setOpen(false);
 
   // Callback invocado quando o usuário seleciona uma data única
@@ -72,30 +128,27 @@ export default function Cronograma() {
     setSelectedDate(params.date || undefined);
   };
 
-  interface GroupedData {
-    id: string;
-    data: string;
-    hora: string;
-    localizacao: {
-      local: string;
-      origem: string;
-    };
-    nome: string;
-    status: "Concluído" | "Pendente";
-    dataConclusao: string;
-    horaConclusao: string;
-    aprovacao: string;
-    dataAprovacao: string | null;
-    foto: string[];
-  }
+  // Função para limpar todos os filtros
+  const clearFilters = () => {
+    setFilter({ supervisor: { id: 0, label: "" }, environment: { id: 0, label: "" } });
+    setSelectedDate(undefined);
+  };
 
-  // Agrupa as atividades por data e as ordena por hora.
+  // Verificar se há filtros ativos
+  const hasActiveFilters = useMemo(() => {
+    return filter.supervisor.id !== 0 || filter.environment.id !== 0 || selectedDate !== undefined;
+  }, [filter, selectedDate]);
+
+  // Agrupa as atividades por data
   const sections = useMemo(() => {
     if (!data || !Array.isArray(data)) return [];
 
     const grouped: Record<string, GroupedData[]> = {};
+    const currentDate = moment();
+    const currentMonth = currentDate.month();
+    const currentYear = currentDate.year();
 
-    data.forEach((item: IAtividade) => {
+    data.forEach((item: any) => {
       const { date } = extractDateTime(item.dateTime);
       const key = formatDateHeader(date);
 
@@ -113,10 +166,10 @@ export default function Cronograma() {
         hora: extractDateTime(item.dateTime).time,
         localizacao: {
           local: item.environment ?? "",
-          origem: `Dimensão: ${item.dimension}`
+          dimensao: item.dimension
         },
-        nome: `Atividade ${item.id} - ${item.environment}`,
-        status: item.statusEnum === "COMPLETED" ? "Concluído" : "Pendente",
+        predio: item?.local?.building,
+        status: item.statusEnum,
         dataConclusao: item.statusEnum === "COMPLETED" ?
           (item.approvalDate ? moment(item.approvalDate).format('DD/MM/YYYY') : date) : "",
         horaConclusao: horaConclusaoFormatada,
@@ -126,9 +179,73 @@ export default function Cronograma() {
       });
     });
 
-    return Object.entries(grouped).map(([title, data]) => ({ title, data }));
+    return Object.entries(grouped)
+      .map(([title, data]) => ({ title, data }))
+      .sort((a, b) => {
+        const dateA = moment(a.data[0].data, "DD/MM/YYYY");
+        const dateB = moment(b.data[0].data, "DD/MM/YYYY");
+
+        // Verifica se as datas estão no mês atual
+        const isAInCurrentMonth = dateA.month() === currentMonth && dateA.year() === currentYear;
+        const isBInCurrentMonth = dateB.month() === currentMonth && dateB.year() === currentYear;
+
+        // Se ambas estão no mês atual ou ambas não estão, ordena por data decrescente
+        if (isAInCurrentMonth === isBInCurrentMonth) {
+          return dateB.valueOf() - dateA.valueOf();
+        }
+
+        // Se apenas uma está no mês atual, ela vem primeiro
+        return isAInCurrentMonth ? -1 : 1;
+      });
   }, [data]);
 
+  // Componente para renderizar os filtros ativos
+  const renderActiveFilters = () => {
+
+    // Retorna null se não houver filtros ativos
+    if (activeFilters.length === 0) {
+      return null;
+    }
+
+    return (
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.activeFiltersContainer}
+        contentContainerStyle={styles.activeFiltersContent}
+      >
+        {activeFilters.map((filterItem) => (
+          <View key={`${filterItem.type}-${filterItem.value}`} style={styles.filterChip}>
+            <Text style={styles.filterChipText} numberOfLines={1}>
+              {filterItem.label}
+            </Text>
+            <TouchableOpacity
+              onPress={filterItem.onRemove}
+              style={styles.removeFilterButton}
+            >
+              <AntDesign name="close" size={14} color="#fff" />
+            </TouchableOpacity>
+          </View>
+        ))}
+
+        <TouchableOpacity
+          onPress={clearFilters}
+          style={[styles.filterChip, styles.clearAllButton]}
+        >
+          <Text style={styles.clearAllText}>Limpar Tudo</Text>
+          <MaterialIcons name="clear" size={14} color="#fff" />
+        </TouchableOpacity>
+      </ScrollView>
+    );
+  };
+
+  const onSelected = (id: any, rota: string) => {
+    const getData = data?.filter((item: IAtividade) => item.id == id);
+    if (getData) {
+      setitems(getData[0]);
+    }
+    router.push(rota as never);
+  };
 
   if (!data) {
     return (<LoadingScreen />)
@@ -157,6 +274,7 @@ export default function Cronograma() {
           setFilter((prevState) => ({ ...prevState, supervisor: { id: itemValue, label: supervisores?.[itemIndex]?.name } }));
         }}
       >
+        <Picker.Item label="Selecione um supervisor" value={0} />
         {supervisores?.map((supervisor: { id: number; name: string }) => (
           <Picker.Item key={supervisor.id} label={supervisor.name} value={supervisor.id} />
         ))}
@@ -170,6 +288,7 @@ export default function Cronograma() {
           setFilter((prevState) => ({ ...prevState, environment: { id: itemValue, label: environment?.[itemIndex]?.name } }));
         }}
       >
+        <Picker.Item label="Selecione um ambiente" value={0} />
         {environment?.map((environment: { id: number; name: string }) => (
           <Picker.Item key={environment.id} label={environment.name} value={environment.id} />
         ))}
@@ -206,8 +325,8 @@ export default function Cronograma() {
       </TouchableOpacity>
 
       <StyledMainContainer>
-        <View style={{ flexDirection: "column", gap: 10 }}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, height: 50 }}>
+        <View style={{ flexDirection: "column", gap: 10, }}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, height: 50, marginBottom: 10 }}>
             <TouchableOpacity style={styles.filterButton} onPress={() => enviromentPickerRef.current?.focus()} >
               <FontAwesome6 name="location-dot" size={15} color="#43575F" />
               <Text style={styles.filterButtonText}>{filter.environment.label ? filter.environment.label : "Ambiente"}</Text>
@@ -228,7 +347,21 @@ export default function Cronograma() {
               )}
               <Entypo name="calendar" size={15} color="#186B53" />
             </TouchableOpacity>
+
+            {/* Botão para limpar filtros - só aparece quando há filtros ativos */}
+            {hasActiveFilters && (
+              <TouchableOpacity
+                onPress={clearFilters}
+                style={[styles.filterButton, styles.clearFilterButton]}
+              >
+                <MaterialIcons name="clear" size={15} color="#fff" />
+                <Text style={styles.clearFilterButtonText}>Limpar Filtros</Text>
+              </TouchableOpacity>
+            )}
           </ScrollView>
+
+          {/* Lista de filtros ativos */}
+          {renderActiveFilters()}
 
           {sections.length > 0 ? (
             <SectionList
@@ -243,7 +376,7 @@ export default function Cronograma() {
                 </View>
               )}
               renderItem={({ item }) => (
-                <View >
+                <TouchableOpacity onPress={() => onSelected(item.id, "detalharAtividade")}>
                   <Text style={styles.horaText}>{item.hora}</Text>
                   <View style={styles.mainOccurrenceItem}>
                     <View style={styles.occurrenceItem}>
@@ -267,20 +400,21 @@ export default function Cronograma() {
                             <Text style={styles.dateTimeText}>{item?.data} / {item?.hora}</Text>
                           </View>
                           <View style={styles.locationSection}>
-                            <Text style={styles.locationText}>
-                              {item?.localizacao?.local} - {item?.localizacao?.origem}
-                            </Text>
+                            <FontAwesome5 name="building" size={13} color="black" />
+                            <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
+                              <Text style={styles.locationText}>
+                                Ambiente:
+                              </Text>
+                              <Text style={styles.locationText}>
+                                {item?.localizacao?.local}
+                              </Text>
+                            </View>
                           </View>
                           <View style={styles.locationSection}>
-                            <Text style={styles.locationText}>{item?.nome}</Text>
+                            <Entypo name="location-pin" size={15} color="black" />
+                            <Text style={styles.locationText}>{item?.predio}</Text>
                           </View>
-                          <StatusContainer backgroundColor={getStatusColor(item?.status)}>
-                            <Text style={[styles.statusText, { color: "#fff" }]}>
-                              {item?.status === "Concluído" ?
-                                `Concluído em ${item?.dataConclusao} / ${item?.horaConclusao}` :
-                                item?.status}
-                            </Text>
-                          </StatusContainer>
+                          <StatusIndicator status={item.status} />
                         </View>
                       </View>
                       <View style={styles.approvalContainer}>
@@ -288,7 +422,7 @@ export default function Cronograma() {
                       </View>
                     </View>
                   </View>
-                </View>
+                </TouchableOpacity>
               )}
             />
           ) : (
@@ -360,9 +494,18 @@ const styles = StyleSheet.create({
     shadowRadius: 2.62,
     elevation: 4,
   },
+  clearFilterButton: {
+    backgroundColor: "#E74C3C",
+    borderColor: "#C0392B",
+  },
   filterButtonText: {
     color: '#000',
     fontSize: 12,
+  },
+  clearFilterButtonText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '500',
   },
   sectionHeader: {
     fontSize: 17,
@@ -431,7 +574,8 @@ const styles = StyleSheet.create({
   detailsSection: {
     width: "60%",
     height: "100%",
-    gap: 3,
+    gap: 5,
+    padding: 5
   },
   dateSection: {
     gap: 3,
@@ -445,7 +589,8 @@ const styles = StyleSheet.create({
   locationSection: {
     gap: 3,
     flexDirection: "row",
-    alignItems: "flex-start",
+    alignItems: "center",
+    justifyContent: "flex-start",
   },
   approvalContainer: {
     width: "100%",
@@ -477,5 +622,42 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
     fontSize: 14
-  }
+  },
+  // Novos estilos para os filtros ativos
+  activeFiltersContainer: {
+    maxHeight: 50,
+  },
+  activeFiltersContent: {
+    gap: 8,
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  filterChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#186B53',
+    paddingHorizontal: 12,
+    height: 35,
+    borderRadius: 1000,
+    gap: 6,
+  },
+  filterChipText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '500',
+    maxWidth: 150,
+  },
+  removeFilterButton: {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 10,
+    padding: 2,
+  },
+  clearAllButton: {
+    backgroundColor: '#E74C3C',
+  },
+  clearAllText: {
+    color: '#fff',
+    fontSize: 12,
+    fontWeight: '500',
+  },
 });

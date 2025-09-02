@@ -19,9 +19,10 @@ export interface UseGetParams {
     dateTimeFrom?: string | null;
     type: string;
     pagination?: boolean | null
+    statusEnum?: string | null
 }
 
-export const useGetActivity = ({ pagination = null, type, page = 1, pageSize = 1, query = null, supervisorId = null, positionId = null, managerId = null, responsibleManagerId = null, buildingId = null, environmentId = null, dateTimeFrom = null }: UseGetParams) => {
+export const useGetActivity = ({ pagination = null, type, page = 1, pageSize = 1, query = null, supervisorId = null, positionId = null, managerId = null, responsibleManagerId = null, buildingId = null, environmentId = null, dateTimeFrom = null, statusEnum = null }: UseGetParams) => {
 
     const { logout } = useAuth();
     const [loading, setLoading] = useState<boolean>(false);
@@ -60,6 +61,7 @@ export const useGetActivity = ({ pagination = null, type, page = 1, pageSize = 1
         if (buildingId !== null) params.append("buildingId", String(buildingId).trim());
         if (environmentId !== null) params.append("environmentId", String(environmentId).trim());
         if (dateTimeFrom !== null) params.append("dateTimeFrom", String(dateTimeFrom).trim());
+        if (statusEnum !== null) params.append("statusEnum", String(statusEnum).trim());
 
         const paramUrl = type === "Atividade" ? `/activity?${params.toString()}` : `/occurrence?${params.toString()}`;
 
@@ -87,6 +89,7 @@ export const useGetActivity = ({ pagination = null, type, page = 1, pageSize = 1
             return;
         }
 
+
         if (type === "Atividade") {
             const refactory: IAtividade[] = response.data.data.items?.map((item: any) => {
 
@@ -112,6 +115,8 @@ export const useGetActivity = ({ pagination = null, type, page = 1, pageSize = 1
                     })) || [],
                     approvalStatus: filterStatusActivity(item?.approvalStatus),
                     local: item?.environment?.sector ? {
+                        building: item.environment.sector.building.name,
+                        description: item.environment.sector.description,
                         latitude: item.environment.sector.latitude,
                         longitude: item.environment.sector.longitude
                     } : null,

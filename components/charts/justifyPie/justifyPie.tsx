@@ -2,6 +2,20 @@ import { Dimensions, StyleSheet, Text, View } from "react-native";
 import { PieChart } from "react-native-gifted-charts";
 
 export default function JustifyPie({ data }: any) {
+
+    if (data?.justificationsByReasonType?.length <= 0) {
+        return (
+            <View style={styles.emptyContainer}>
+                <Text style={styles.emptyIcon}>📊</Text>
+                <Text style={styles.emptyTitle}>Justificativas</Text>
+                <Text style={styles.emptyTitle}>Nenhum dado disponível</Text>
+                <Text style={styles.emptySubtitle}>
+                    Não existem dados disponíveis para esse período.
+                </Text>
+            </View>
+        )
+    }
+
     const COLORS = ['#007bff', '#28a745', '#dc3545', '#ffc107', '#6f42c1', '#20c997'];
 
     const pieDataJustificativas = data?.justificationsByReasonType?.map((item: any, index: any) => ({
@@ -57,6 +71,29 @@ export default function JustifyPie({ data }: any) {
 
 
 const styles = StyleSheet.create({
+    emptyContainer: {
+        flex: 1,
+        width: "100%",
+        marginVertical: 20,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    emptyIcon: {
+        fontSize: 40,
+        marginBottom: 10
+    },
+    emptyTitle: {
+        fontSize: 18,
+        fontWeight: "bold",
+        color: "#43575F",
+        marginBottom: 5,
+        textAlign: "center"
+    },
+    emptySubtitle: {
+        fontSize: 14,
+        color: "#6c757d",
+        textAlign: "center"
+    },
     filterButtonsContainer: {
         gap: 10,
         height: "100%",

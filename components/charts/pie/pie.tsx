@@ -3,6 +3,19 @@ import { PieChart } from "react-native-gifted-charts";
 
 export default function Pie({ data }: any) {
 
+    if (data?.activitiesByDay?.length <= 0) {
+        return (
+            <View style={styles.emptyContainer}>
+                <Text style={styles.emptyIcon}>📊</Text>
+                <Text style={styles.emptyTitle}>Atividades</Text>
+                <Text style={styles.emptyTitle}>Nenhum dado disponível</Text>
+                <Text style={styles.emptySubtitle}>
+                    Não existem dados disponíveis para esse período.
+                </Text>
+            </View>
+        );
+    }
+
     const pieData = [
         {
             value: data?.completedActivities ?? 0,
@@ -36,7 +49,7 @@ export default function Pie({ data }: any) {
         },
     ];
 
-    const maxItem = pieData.reduce((max, item) =>
+    const maxItem = pieData?.reduce((max, item) =>
         item.value > max.value ? item : max,
         { value: 0, label: '' }
     );
@@ -82,6 +95,29 @@ export default function Pie({ data }: any) {
 
 
 const styles = StyleSheet.create({
+    emptyContainer: {
+        flex: 1,
+        width: "100%",
+        marginVertical: 20,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    emptyIcon: {
+        fontSize: 40,
+        marginBottom: 10
+    },
+    emptyTitle: {
+        fontSize: 18,
+        fontWeight: "bold",
+        color: "#43575F",
+        marginBottom: 5,
+        textAlign: "center"
+    },
+    emptySubtitle: {
+        fontSize: 14,
+        color: "#6c757d",
+        textAlign: "center"
+    },
     filterButtonsContainer: {
         gap: 10,
         height: "100%",
