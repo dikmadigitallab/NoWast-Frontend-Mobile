@@ -347,17 +347,6 @@ export default function Cronograma() {
               )}
               <Entypo name="calendar" size={15} color="#186B53" />
             </TouchableOpacity>
-
-            {/* Botão para limpar filtros - só aparece quando há filtros ativos */}
-            {hasActiveFilters && (
-              <TouchableOpacity
-                onPress={clearFilters}
-                style={[styles.filterButton, styles.clearFilterButton]}
-              >
-                <MaterialIcons name="clear" size={15} color="#fff" />
-                <Text style={styles.clearFilterButtonText}>Limpar Filtros</Text>
-              </TouchableOpacity>
-            )}
           </ScrollView>
 
           {/* Lista de filtros ativos */}

@@ -2,16 +2,25 @@ import AprovacoStatus from "@/components/aprovacaoStatus";
 import LoadingScreen from "@/components/carregamento";
 import StatusIndicator from "@/components/StatusIndicator";
 import { useGetActivity } from "@/hooks/atividade/get";
-import { AntDesign, FontAwesome, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { AntDesign, FontAwesome, Ionicons, MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { useFocusEffect, useRouter } from "expo-router";
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FlatList, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { ProgressBar } from "react-native-paper";
 import { DatePickerModal } from "react-native-paper-dates";
+import { CalendarDate } from "react-native-paper-dates/lib/typescript/Date/Calendar";
 import { useAuth } from "../../../contexts/authProvider";
 import { useItemsStore } from "../../../store/storeOcorrencias";
 import { StyledMainContainer } from "../../../styles/StyledComponents";
+
+interface PickerRef {
+    open: () => void;
+    close: () => void;
+    focus: () => void;
+    blur: () => void;
+    getValue: () => string;
+}
 
 export default function Mainpage() {
 
@@ -23,7 +32,33 @@ export default function Mainpage() {
     const [openDate, setOpenDate] = useState(false);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [date, setDate] = useState<Date | undefined>(undefined);
-    const { data, refetch } = useGetActivity({ type: type, pagination: false, pageSize: pageSize });
+    const [activeFilters, setActiveFilters] = useState<Array<{ type: 'date' | 'activityType'; label: string; value: any; onRemove: () => void; }>>([]);
+    const { data, refetch } = useGetActivity({ type: type, pagination: false, pageSize: pageSize, dateTimeFrom: date ? date.toISOString().split('T')[0] : null });
+
+    // Sincroniza os filtros ativos
+    useEffect(() => {
+        const newActiveFilters = [];
+
+        if (date) {
+            newActiveFilters.push({
+                type: 'date',
+                label: `Data: ${date.toLocaleDateString('pt-BR')}`,
+                value: date,
+                onRemove: () => setDate(undefined)
+            });
+        }
+
+        if (type !== "Atividade") {
+            newActiveFilters.push({
+                type: 'activityType',
+                label: `Tipo: ${type === "Atividade" ? "Atividades" : "Ocorrências"}`,
+                value: type,
+                onRemove: () => setType("Atividade")
+            });
+        }
+
+        setActiveFilters(newActiveFilters as { type: "date" | "activityType"; label: string; value: any; onRemove: () => void; }[]);
+    }, [date, type]);
 
     const loadMoreItems = async () => {
         if (isLoadingMore) return;
@@ -38,7 +73,6 @@ export default function Mainpage() {
             if (refetch) {
                 refetch();
             }
-            setDate(undefined);
         }, [refetch, type])
     );
 
@@ -47,22 +81,71 @@ export default function Mainpage() {
     }, [setOpenDate]);
 
     const onConfirmSingle = useCallback(
-        (params: { date: Date }) => {
+        (params: { date: CalendarDate }) => {
             setOpenDate(false);
-            setDate(params.date);
+            setDate(params.date || undefined);
         },
         [setOpenDate, setDate]
     );
 
-    const pickerRef = useRef<Picker<string> | null>(null);
+    const pickerRef = useRef<PickerRef>(null);
 
     function open() {
         pickerRef.current?.focus();
     }
 
+    // Função para limpar todos os filtros
+    const clearFilters = () => {
+        setDate(undefined);
+        setType("Atividade");
+    };
+
+    // Verificar se há filtros ativos
+    const hasActiveFilters = useMemo(() => {
+        return date !== undefined || type !== "Atividade";
+    }, [date, type]);
+
     const onSelected = (data: any, rota: string) => {
         setitems(data);
         router.push(rota as never);
+    };
+
+    // Componente para renderizar os filtros ativos
+    const renderActiveFilters = () => {
+        if (activeFilters.length === 0) {
+            return null;
+        }
+
+        return (
+            <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.activeFiltersContainer}
+                contentContainerStyle={styles.activeFiltersContent}
+            >
+                {activeFilters.map((filterItem) => (
+                    <View key={`${filterItem.type}-${filterItem.value}`} style={styles.filterChip}>
+                        <Text style={styles.filterChipText} numberOfLines={1}>
+                            {filterItem.label}
+                        </Text>
+                        <TouchableOpacity
+                            onPress={filterItem.onRemove}
+                            style={styles.removeFilterButton}
+                        >
+                            <AntDesign name="close" size={14} color="#fff" />
+                        </TouchableOpacity>
+                    </View>
+                ))}
+
+                <TouchableOpacity
+                    onPress={clearFilters}
+                    style={[styles.filterChip, styles.clearAllButton]}
+                >
+                    <Text style={styles.clearAllText}>Limpar Tudo</Text>
+                    <MaterialIcons name="clear" size={14} color="#fff" />
+                </TouchableOpacity>
+            </ScrollView>
+        );
     };
 
     if (!data) {
@@ -127,7 +210,6 @@ export default function Mainpage() {
                                     <Image
                                         source={{ uri: item?.activityFiles[0]?.file?.url }}
                                         style={{ width: "100%", height: "100%", borderRadius: 10 }}
-                                    // onError={(e) => Alert.alert("Erro carregando imagem", item?.activityFiles[0]?.file?.url)}
                                     />
                                 )
                             ) : item?.justification?.justificationFiles?.length > 0 ? (
@@ -137,7 +219,6 @@ export default function Mainpage() {
                                     <Image
                                         source={{ uri: item?.justification.justificationFiles[0]?.file?.url }}
                                         style={{ width: "100%", height: "100%", borderRadius: 10 }}
-                                    // onError={(e) => Alert.alert("Erro carregando imagem", item?.justification.justificationFiles[0]?.file?.url)}
                                     />
                                 )
                             ) : (
@@ -200,13 +281,11 @@ export default function Mainpage() {
                                 <Image
                                     source={{ uri: item?.imageUrls[0] }}
                                     style={{ width: "100%", height: "100%", borderRadius: 10 }}
-                                // onError={(e) => Alert.alert("Erro carregando imagem", item?.imageUrls[0])}
                                 />
                             ) : item.justification?.justificationFiles?.length > 0 ? (
                                 <Image
                                     source={{ uri: item?.justification?.justificationFiles[0]?.file?.url }}
                                     style={{ width: "100%", height: "100%", borderRadius: 10 }}
-                                // onError={(e) => Alert.alert("Erro carregando imagem", item?.justification?.justificationFiles[0]?.file?.url)}
                                 />
                             ) : (
                                 <MaterialCommunityIcons name="image-off-outline" size={40} color="#385866" />
@@ -220,7 +299,6 @@ export default function Mainpage() {
                         </View>
 
                         <View style={styles.locationSection}>
-                            {/* <Ionicons name="clipboard-text" size={15} color="#385866" /> */}
                             <Text style={styles.locationText}>
                                 Transcrição: {item.transcription}
                             </Text>
@@ -281,6 +359,9 @@ export default function Mainpage() {
                     </ScrollView>
                 </View>
 
+                {/* Lista de filtros ativos */}
+                {renderActiveFilters()}
+
                 <FlatList
                     data={data || []}
                     showsVerticalScrollIndicator={false}
@@ -297,7 +378,7 @@ export default function Mainpage() {
 
                 <Picker
                     style={{ display: "none" }}
-                    ref={pickerRef}
+                    ref={pickerRef as React.MutableRefObject<Picker<string> | null>}
                     selectedValue={type}
                     onValueChange={setType}
                 >
@@ -311,7 +392,7 @@ export default function Mainpage() {
                     visible={openDate}
                     onDismiss={onDismissSingle}
                     date={date}
-                    onConfirm={() => onConfirmSingle}
+                    onConfirm={onConfirmSingle}
                     presentationStyle="pageSheet"
                     label="Selecione uma data"
                     saveLabel="Confirmar"
@@ -356,6 +437,15 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.23,
         shadowRadius: 2.62,
         elevation: 4,
+    },
+    clearFilterButton: {
+        backgroundColor: "#E74C3C",
+        borderColor: "#C0392B",
+    },
+    clearFilterButtonText: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: '500',
     },
     mainOccurrenceItem: {
         width: "100%",
@@ -470,5 +560,44 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontWeight: '600',
         fontSize: 14
-    }
+    },
+    // Novos estilos para os filtros ativos
+    activeFiltersContainer: {
+        maxHeight: 50,
+        marginBottom: 10,
+    },
+    activeFiltersContent: {
+        gap: 8,
+        alignItems: 'center',
+        paddingVertical: 6,
+        paddingHorizontal: 10,
+    },
+    filterChip: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#186B53',
+        paddingHorizontal: 12,
+        height: 35,
+        borderRadius: 1000,
+        gap: 6,
+    },
+    filterChipText: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: '500',
+        maxWidth: 150,
+    },
+    removeFilterButton: {
+        backgroundColor: 'rgba(255,255,255,0.2)',
+        borderRadius: 10,
+        padding: 2,
+    },
+    clearAllButton: {
+        backgroundColor: '#E74C3C',
+    },
+    clearAllText: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: '500',
+    },
 });
