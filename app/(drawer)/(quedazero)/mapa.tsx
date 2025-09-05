@@ -56,11 +56,11 @@ export default function Mapa() {
 
   const mapRef = useRef<MapView>(null);
   const pickerRef = useRef<any>(null);
-  const [filter, setFilter] = useState("Todos");
+  const [type, setType] = useState("Todos");
   const [open, setOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<ActivityData | null>(null);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
-  const { data, refetch, loading } = useGetActivity({ type: "Atividade", dateTimeFrom: selectedDate ? moment(selectedDate).format("YYYY-MM-DD") : null });
+  const { data, refetch, loading } = useGetActivity({ type: type, dateTimeFrom: selectedDate ? moment(selectedDate).format("YYYY-MM-DD") : null });
 
   useFocusEffect(
     useCallback(() => {
@@ -141,14 +141,14 @@ export default function Mapa() {
       <Picker
         style={{ display: "none" }}
         ref={pickerRef}
-        selectedValue={filter}
+        selectedValue={type}
         onValueChange={(itemValue) => {
-          setFilter(itemValue);
+          setType(itemValue);
         }}
       >
         <Picker.Item label="Todos" value="" />
         <Picker.Item label="Atividade" value="Atividade" />
-        <Picker.Item label="Ocorrência" value="Ocorrência" />
+        <Picker.Item label="Ocorrência" value="Ocorrencia" />
       </Picker>
       {loading && <LoadingScreen />}
 
@@ -212,18 +212,18 @@ export default function Mapa() {
 
         <View style={styles.filterWrapper}>
           <TouchableOpacity
-            style={[styles.filterButton, filter !== "Todos" && styles.filterButtonActive]}
+            style={[styles.filterButton, type !== "Todos" && styles.filterButtonActive]}
             onPress={() => pickerRef.current?.focus()}
           >
-            <Text style={[styles.filterButtonText, filter !== "Todos" && styles.filterButtonTextActive]}>
-              {filter}
+            <Text style={[styles.filterButtonText, type !== "Todos" && styles.filterButtonTextActive]}>
+              {type}
             </Text>
-            <AntDesign name="caretdown" size={12} color={filter !== "Todos" ? "#fff" : "#385866"} />
-            {filter !== "Todos" && (
+            <AntDesign name="caretdown" size={12} color={type !== "Todos" ? "#fff" : "#385866"} />
+            {type !== "Todos" && (
               <TouchableOpacity
                 onPress={(e) => {
                   e.stopPropagation();
-                  setFilter("Todos");
+                  setType("Todos");
                 }}
                 style={styles.clearButton}
               >

@@ -89,7 +89,6 @@ export const useGetActivity = ({ pagination = null, type, page = 1, pageSize = 1
             return;
         }
 
-
         if (type === "Atividade") {
             const refactory: IAtividade[] = response.data.data.items?.map((item: any) => {
 

@@ -5,7 +5,7 @@ import { useGetActivity } from "@/hooks/atividade/get";
 import { AntDesign, FontAwesome, Ionicons, MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { useFocusEffect, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { FlatList, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { ProgressBar } from "react-native-paper";
 import { DatePickerModal } from "react-native-paper-dates";
@@ -99,11 +99,6 @@ export default function Mainpage() {
         setDate(undefined);
         setType("Atividade");
     };
-
-    // Verificar se há filtros ativos
-    const hasActiveFilters = useMemo(() => {
-        return date !== undefined || type !== "Atividade";
-    }, [date, type]);
 
     const onSelected = (data: any, rota: string) => {
         setitems(data);
