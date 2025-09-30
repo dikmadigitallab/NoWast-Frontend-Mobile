@@ -1,5 +1,6 @@
 import AprovacoStatus from "@/components/aprovacaoStatus";
 import LoadingScreen from "@/components/carregamento";
+import Map, { MapHandle } from "@/components/Map";
 import StatusIndicator from "@/components/StatusIndicator";
 import { useGetActivity } from "@/hooks/atividade/get";
 import { StyledMainContainer } from "@/styles/StyledComponents";
@@ -10,9 +11,7 @@ import moment from "moment";
 import "moment/locale/pt-br";
 import React, { useCallback, useRef, useState } from "react";
 import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import MapView, { Marker, Region } from "react-native-maps";
 import { DatePickerModal } from 'react-native-paper-dates';
-import { getStatusImage } from "../../../utils/getStatusImage";
 
 interface ActivityData {
   activityFiles: any[];
@@ -45,7 +44,7 @@ const extractDateTime = (dateTime: string) => {
   return { date, time };
 };
 
-const initialRegion: Region = {
+const initialRegion = {
   latitude: -20.3155,
   longitude: -40.3128,
   latitudeDelta: 0.5,
@@ -54,7 +53,7 @@ const initialRegion: Region = {
 
 export default function Mapa() {
 
-  const mapRef = useRef<MapView>(null);
+  const mapRef = useRef<MapHandle | null>(null);
   const pickerRef = useRef<any>(null);
   const [type, setType] = useState("Todos");
   const [open, setOpen] = useState(false);
@@ -152,38 +151,21 @@ export default function Mapa() {
       </Picker>
       {loading && <LoadingScreen />}
 
-      <MapView
+      <Map
         ref={mapRef}
         style={styles.map}
         initialRegion={initialRegion}
-      >
-        {data?.map((activity: any) => {
+        markers={data?.flatMap((activity: any) => {
           const lat = Number(activity.local?.latitude);
           const lng = Number(activity.local?.longitude);
-
-          if (isNaN(lat) || isNaN(lng)) {
-            console.warn(`Coordenadas inválidas para atividade ${activity.id}`);
-            return null;
-          }
-
-          return (
-            <Marker
-              key={activity.id}
-              coordinate={{
-                latitude: lat,
-                longitude: lng,
-              }}
-              onPress={() => setSelectedLocation(activity)}
-            >
-              <Image
-                style={styles.markerImage}
-                resizeMode="contain"
-                source={getStatusImage(activity.statusEnum) as never}
-              />
-            </Marker>
-          );
+          if (isNaN(lat) || isNaN(lng)) return [];
+          return [{
+            id: activity.id,
+            position: { latitude: lat, longitude: lng },
+            onPress: () => setSelectedLocation(activity),
+          }];
         })}
-      </MapView>
+      />
 
       {/* Filtros melhorados */}
       <View style={styles.filtersContainer}>

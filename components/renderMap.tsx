@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import { StyleSheet, View } from "react-native";
-import MapView, { Marker, Region } from "react-native-maps";
+import Map, { MapHandle } from "./Map";
 
 interface Location {
   latitude: number | string; // Aceita ambos number e string
@@ -20,7 +20,7 @@ const parseCoordinate = (value: number | string): number => {
 };
 
 const MapScreen = ({ location }: MapScreenProps) => {
-  const mapRef = useRef<MapView | null>(null);
+  const mapRef = useRef<MapHandle | null>(null);
 
   useEffect(() => {
     if (location && mapRef.current) {
@@ -40,7 +40,7 @@ const MapScreen = ({ location }: MapScreenProps) => {
   }, [location]);
 
   // Região inicial padrão
-  const defaultRegion: Region = {
+  const defaultRegion = {
     latitude: -23.5505,
     longitude: -46.6333,
     latitudeDelta: 0.05,
@@ -48,7 +48,7 @@ const MapScreen = ({ location }: MapScreenProps) => {
   };
 
   // Determinar a região inicial convertendo para número se necessário
-  const initialRegion: Region = location
+  const initialRegion = location
     ? {
       latitude: parseCoordinate(location.latitude),
       longitude: parseCoordinate(location.longitude),
@@ -59,20 +59,15 @@ const MapScreen = ({ location }: MapScreenProps) => {
 
   return (
     <View style={styles.container}>
-      <MapView
+      <Map
         ref={mapRef}
         style={styles.map}
         initialRegion={initialRegion}
-      >
-        {location && (
-          <Marker
-            coordinate={{
-              latitude: parseCoordinate(location.latitude),
-              longitude: parseCoordinate(location.longitude),
-            }}
-          />
-        )}
-      </MapView>
+        marker={location ? {
+          latitude: parseCoordinate(location.latitude),
+          longitude: parseCoordinate(location.longitude),
+        } : null}
+      />
     </View>
   );
 };
