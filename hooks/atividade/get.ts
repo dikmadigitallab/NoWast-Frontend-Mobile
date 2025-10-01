@@ -16,13 +16,17 @@ export interface UseGetParams {
     responsibleManagerId?: number | null;
     buildingId?: number | null;
     environmentId?: number | null;
+    // Mantido por compatibilidade: se fornecido, será mapeado para startDate e endDate
     dateTimeFrom?: string | null;
+    // Novos parâmetros suportados pela API de activity
+    startDate?: string | null;
+    endDate?: string | null;
     type: string;
     pagination?: boolean | null
     statusEnum?: string | null
 }
 
-export const useGetActivity = ({ pagination = null, type, page = 1, pageSize = 1, query = null, supervisorId = null, positionId = null, managerId = null, responsibleManagerId = null, buildingId = null, environmentId = null, dateTimeFrom = null, statusEnum = null }: UseGetParams) => {
+export const useGetActivity = ({ pagination = null, type, page = 1, pageSize = 1, query = null, supervisorId = null, positionId = null, managerId = null, responsibleManagerId = null, buildingId = null, environmentId = null, dateTimeFrom = null, startDate = null, endDate = null, statusEnum = null }: UseGetParams) => {
 
     const { logout } = useAuth();
     const [loading, setLoading] = useState<boolean>(false);
@@ -60,7 +64,11 @@ export const useGetActivity = ({ pagination = null, type, page = 1, pageSize = 1
         if (responsibleManagerId !== null) params.append("responsibleManagerId", String(responsibleManagerId).trim());
         if (buildingId !== null) params.append("buildingId", String(buildingId).trim());
         if (environmentId !== null) params.append("environmentId", String(environmentId).trim());
-        if (dateTimeFrom !== null) params.append("dateTimeFrom", String(dateTimeFrom).trim());
+        // Compatibilidade: se dateTimeFrom vier e start/end não vierem, usar o mesmo dia para ambos
+        const effectiveStartDate = startDate ?? (dateTimeFrom ? String(dateTimeFrom).trim() : null);
+        const effectiveEndDate = endDate ?? (dateTimeFrom ? String(dateTimeFrom).trim() : null);
+        if (effectiveStartDate !== null) params.append("startDate", effectiveStartDate);
+        if (effectiveEndDate !== null) params.append("endDate", effectiveEndDate);
         if (statusEnum !== null) params.append("statusEnum", String(statusEnum).trim());
 
         const paramUrl = type === "Atividade" ? `/activity?${params.toString()}` : `/occurrence?${params.toString()}`;
@@ -158,7 +166,7 @@ export const useGetActivity = ({ pagination = null, type, page = 1, pageSize = 1
             setData(refactory);
             setLoading(false);
         }
-    }, [type, logout, page, pageSize, query, supervisorId, positionId, managerId, responsibleManagerId, buildingId, environmentId, dateTimeFrom]);
+    }, [type, logout, page, pageSize, query, supervisorId, positionId, managerId, responsibleManagerId, buildingId, environmentId, dateTimeFrom, startDate, endDate]);
 
     const refetch = useCallback(() => {
         get();

@@ -2,7 +2,7 @@ import { useGet } from "@/hooks/crud/get/get";
 import { StyledMainContainer } from "@/styles/StyledComponents";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Dimensions, Modal, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Dimensions, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import NfcManager, { Ndef, NfcTech } from 'react-native-nfc-manager';
 
 interface ContainerItem {
@@ -186,7 +186,7 @@ export default function Tag() {
 
     return (
         <StyledMainContainer>
-            <View style={styles.container}>
+            <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
                 {containerData.map((item) => (
                     <View key={item.id} style={styles.card}>
                         <TouchableOpacity onPress={() => toggleExpand(item.id)} style={styles.header}>
@@ -233,44 +233,44 @@ export default function Tag() {
                         )}
                     </View>
                 ))}
+            </ScrollView>
 
-                <Modal animationType="fade" transparent={true} visible={modalVisible} onRequestClose={cancelNfcWriting}>
-                    <TouchableOpacity
-                        style={styles.modalOverlay}
-                        activeOpacity={1}
-                        onPressOut={cancelNfcWriting}
-                    >
-                        <View style={styles.modalContainer}>
-                            <MaterialCommunityIcons
-                                name={isWriting ? "nfc-search-variant" : "cellphone-nfc"}
-                                size={50}
-                                color={isWriting ? "#186b53" : "#43575f"}
-                            />
+            <Modal animationType="fade" transparent={true} visible={modalVisible} onRequestClose={cancelNfcWriting}>
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPressOut={cancelNfcWriting}
+                >
+                    <View style={styles.modalContainer}>
+                        <MaterialCommunityIcons
+                            name={isWriting ? "nfc-search-variant" : "cellphone-nfc"}
+                            size={50}
+                            color={isWriting ? "#186b53" : "#43575f"}
+                        />
 
-                            {isWriting ? (
-                                <>
-                                    <ActivityIndicator size="large" color="#186b53" style={styles.modalSpinner} />
-                                    <Text style={styles.modalTitle}>Gravando na tag...</Text>
-                                    <Text style={styles.modalInstruction}>Mantenha a tag próxima ao dispositivo.</Text>
-                                </>
-                            ) : (
-                                <>
-                                    <Text style={styles.modalTitle}>Aproxime a tag NFC</Text>
-                                    <Text style={styles.modalInstruction}>Mantenha a tag próxima ao dispositivo para vincular ao ambiente.</Text>
-                                </>
-                            )}
+                        {isWriting ? (
+                            <>
+                                <ActivityIndicator size="large" color="#186b53" style={styles.modalSpinner} />
+                                <Text style={styles.modalTitle}>Gravando na tag...</Text>
+                                <Text style={styles.modalInstruction}>Mantenha a tag próxima ao dispositivo.</Text>
+                            </>
+                        ) : (
+                            <>
+                                <Text style={styles.modalTitle}>Aproxime a tag NFC</Text>
+                                <Text style={styles.modalInstruction}>Mantenha a tag próxima ao dispositivo para vincular ao ambiente.</Text>
+                            </>
+                        )}
 
-                            <TouchableOpacity
-                                style={styles.modalCloseButton}
-                                onPress={cancelNfcWriting}
-                                disabled={isWriting}
-                            >
-                                <Text style={styles.modalCloseButtonText}>Cancelar</Text>
-                            </TouchableOpacity>
-                        </View>
-                    </TouchableOpacity>
-                </Modal>
-            </View>
+                        <TouchableOpacity
+                            style={styles.modalCloseButton}
+                            onPress={cancelNfcWriting}
+                            disabled={isWriting}
+                        >
+                            <Text style={styles.modalCloseButtonText}>Cancelar</Text>
+                        </TouchableOpacity>
+                    </View>
+                </TouchableOpacity>
+            </Modal>
         </StyledMainContainer>
     );
 }
@@ -279,6 +279,7 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         padding: 16,
+        paddingBottom: 20,
     },
     card: {
         elevation: 2,

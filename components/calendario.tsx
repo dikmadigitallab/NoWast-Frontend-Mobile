@@ -11,7 +11,12 @@ LocaleConfig.locales['br'] = {
 };
 LocaleConfig.defaultLocale = 'br';
 
-export default function Calendario() {
+type CalendarioProps = {
+    onMonthChange?: (dateString: string) => void;
+    onDaySelect?: (dateString: string) => void;
+};
+
+export default function Calendario({ onMonthChange, onDaySelect }: CalendarioProps) {
 
     const [selected, setSelected] = useState('');
     const [currentMonth, setCurrentMonth] = useState('');
@@ -24,8 +29,14 @@ export default function Calendario() {
                     paddingTop: 5,
                 }}
                 current={currentMonth || undefined}
-                onDayPress={day => { setSelected(day.dateString) }}
-                onMonthChange={month => { setCurrentMonth(month.dateString); }}
+                onDayPress={day => {
+                    setSelected(day.dateString);
+                    if (onDaySelect) onDaySelect(day.dateString);
+                }}
+                onMonthChange={month => {
+                    setCurrentMonth(month.dateString);
+                    if (onMonthChange) onMonthChange(month.dateString);
+                }}
                 markedDates={{
                     [selected]: {
                         selected: true,

@@ -13,7 +13,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import moment from 'moment';
 import 'moment/locale/pt-br';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Dimensions, Image, ImageBackground, ScrollView, SectionList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Image, ImageBackground, ScrollView, SectionList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { DatePickerModal } from 'react-native-paper-dates';
 import { CalendarDate } from 'react-native-paper-dates/lib/typescript/Date/Calendar';
 import Calendario from '../../../components/calendario';
@@ -70,9 +70,20 @@ export default function Cronograma() {
   const { data: environment } = useGet({ url: "environment" });
   const animatedHeight = useRef(new Animated.Value(360)).current;
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [currentMonthAnchor, setCurrentMonthAnchor] = useState<string>(moment().startOf('month').format('YYYY-MM-DD'));
   const [filter, setFilter] = useState({ supervisor: { id: 0, label: "" }, environment: { id: 0, label: "" } });
   const [activeFilters, setActiveFilters] = useState<Array<{ type: 'supervisor' | 'environment' | 'date'; label: string; value: any; onRemove: () => void; }>>([]);
-  const { data, refetch } = useGetActivity({ statusEnum: "OPEN", pageSize: null, type: "Atividade", pagination: false, dateTimeFrom: selectedDate ? moment(selectedDate).format("YYYY-MM-DD") : null, supervisorId: filter.supervisor.id, environmentId: filter.environment.id });
+  const monthRange = useMemo(() => {
+    if (selectedDate) {
+      const day = moment(selectedDate).format('YYYY-MM-DD');
+      return { startDate: day, endDate: day };
+    }
+    const start = moment(currentMonthAnchor).startOf('month').format('YYYY-MM-DD');
+    const end = moment(currentMonthAnchor).endOf('month').format('YYYY-MM-DD');
+    return { startDate: start, endDate: end };
+  }, [selectedDate, currentMonthAnchor]);
+
+  const { data, refetch } = useGetActivity({ pageSize: null, type: "Atividade", pagination: false, startDate: monthRange.startDate, endDate: monthRange.endDate, supervisorId: filter.supervisor.id, environmentId: filter.environment.id });
 
   useFocusEffect(
     useCallback(() => {
@@ -307,7 +318,14 @@ export default function Cronograma() {
         shadowOpacity: 0.25,
         shadowRadius: 3.84,
       }}>
-        <Calendario />
+        <Calendario
+          onMonthChange={(dateString) => {
+            setCurrentMonthAnchor(dateString);
+          }}
+          onDaySelect={(dateString) => {
+            setSelectedDate(moment(dateString, 'YYYY-MM-DD').toDate());
+          }}
+        />
       </Animated.View>
 
       <TouchableOpacity
@@ -325,108 +343,115 @@ export default function Cronograma() {
       </TouchableOpacity>
 
       <StyledMainContainer>
-        <View style={{ flexDirection: "column", gap: 10, }}>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, height: 50, marginBottom: 10 }}>
-            <TouchableOpacity style={styles.filterButton} onPress={() => enviromentPickerRef.current?.focus()} >
-              <FontAwesome6 name="location-dot" size={15} color="#43575F" />
-              <Text style={styles.filterButtonText}>{filter.environment.label ? filter.environment.label : "Ambiente"}</Text>
-              <AntDesign name="caretdown" size={10} color="black" />
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.filterButton} onPress={() => supervisorPickerRef.current?.focus()}>
-              <FontAwesome6 name="user-tie" size={15} color="#43575F" />
-              <Text style={styles.filterButtonText}>{filter.supervisor.label ? filter.supervisor.label : "Supervisor"}</Text>
-              <AntDesign name="caretdown" size={10} color="black" />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setOpen(true)} style={[styles.filterButton]}>
-              {selectedDate ? (
-                <Text style={{ color: '#000', fontWeight: '500', fontSize: 12 }}>
-                  {moment(selectedDate).format('DD/MM/YYYY')}
-                </Text>
-              ) : (
-                <Text style={{ color: '#000', fontWeight: '500', fontSize: 12 }}>Selecione uma data</Text>
-              )}
-              <Entypo name="calendar" size={15} color="#186B53" />
-            </TouchableOpacity>
-          </ScrollView>
+        <ScrollView 
+          style={{ flex: 1 }}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 20 }}
+        >
+          <View style={{ flexDirection: "column", gap: 10, }}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, height: 50, marginBottom: 10 }}>
+              <TouchableOpacity style={styles.filterButton} onPress={() => enviromentPickerRef.current?.focus()} >
+                <FontAwesome6 name="location-dot" size={15} color="#43575F" />
+                <Text style={styles.filterButtonText}>{filter.environment.label ? filter.environment.label : "Ambiente"}</Text>
+                <AntDesign name="caretdown" size={10} color="black" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.filterButton} onPress={() => supervisorPickerRef.current?.focus()}>
+                <FontAwesome6 name="user-tie" size={15} color="#43575F" />
+                <Text style={styles.filterButtonText}>{filter.supervisor.label ? filter.supervisor.label : "Supervisor"}</Text>
+                <AntDesign name="caretdown" size={10} color="black" />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setOpen(true)} style={[styles.filterButton]}>
+                {selectedDate ? (
+                  <Text style={{ color: '#000', fontWeight: '500', fontSize: 12 }}>
+                    {moment(selectedDate).format('DD/MM/YYYY')}
+                  </Text>
+                ) : (
+                  <Text style={{ color: '#000', fontWeight: '500', fontSize: 12 }}>Selecione uma data</Text>
+                )}
+                <Entypo name="calendar" size={15} color="#186B53" />
+              </TouchableOpacity>
+            </ScrollView>
 
-          {/* Lista de filtros ativos */}
-          {renderActiveFilters()}
+            {/* Lista de filtros ativos */}
+            {renderActiveFilters()}
 
-          {sections.length > 0 ? (
-            <SectionList
-              sections={sections}
-              keyExtractor={(item) => item.id}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ gap: 10, paddingBottom: Dimensions.get('window').height - 750 }}
-              renderSectionHeader={({ section: { title } }) => (
-                <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}>
-                  <Text style={styles.sectionHeader}>{title}</Text>
-                  <View style={{ flex: 1, height: 1, marginLeft: 10, backgroundColor: "#81A8B8" }} />
-                </View>
-              )}
-              renderItem={({ item }) => (
-                <TouchableOpacity onPress={() => onSelected(item.id, "detalharAtividade")}>
-                  <Text style={styles.horaText}>{item.hora}</Text>
-                  <View style={styles.mainOccurrenceItem}>
-                    <View style={styles.occurrenceItem}>
-                      <View style={styles.contentInfoConteiner}>
-                        <View style={styles.photoContainer}>
-                          {item?.foto?.[0] ? (
-                            <ImageBackground
-                              source={{ uri: item.foto[0] }}
-                              style={{ width: "100%", height: "100%" }}
-                              resizeMode="cover"
-                              imageStyle={styles.imageStyle}
-                            />
-                          ) : (
-                            <View style={styles.placeholderImage}>
-                              <FontAwesome6 name="image" size={24} color="#ccc" />
+            {sections.length > 0 ? (
+              <SectionList
+                sections={sections}
+                keyExtractor={(item) => item.id}
+                showsVerticalScrollIndicator={false}
+                scrollEnabled={false}
+                contentContainerStyle={{ gap: 10 }}
+                renderSectionHeader={({ section: { title } }) => (
+                  <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 10 }}>
+                    <Text style={styles.sectionHeader}>{title}</Text>
+                    <View style={{ flex: 1, height: 1, marginLeft: 10, backgroundColor: "#81A8B8" }} />
+                  </View>
+                )}
+                renderItem={({ item }) => (
+                  <TouchableOpacity onPress={() => onSelected(item.id, "detalharAtividade")}>
+                    <Text style={styles.horaText}>{item.hora}</Text>
+                    <View style={styles.mainOccurrenceItem}>
+                      <View style={styles.occurrenceItem}>
+                        <View style={styles.contentInfoConteiner}>
+                          <View style={styles.photoContainer}>
+                            {item?.foto?.[0] ? (
+                              <ImageBackground
+                                source={{ uri: item.foto[0] }}
+                                style={{ width: "100%", height: "100%" }}
+                                resizeMode="cover"
+                                imageStyle={styles.imageStyle}
+                              />
+                            ) : (
+                              <View style={styles.placeholderImage}>
+                                <FontAwesome6 name="image" size={24} color="#ccc" />
+                              </View>
+                            )}
+                          </View>
+                          <View style={styles.detailsSection}>
+                            <View style={styles.dateSection}>
+                              <Text style={styles.dateTimeText}>{item?.data} / {item?.hora}</Text>
                             </View>
-                          )}
-                        </View>
-                        <View style={styles.detailsSection}>
-                          <View style={styles.dateSection}>
-                            <Text style={styles.dateTimeText}>{item?.data} / {item?.hora}</Text>
-                          </View>
-                          <View style={styles.locationSection}>
-                            <FontAwesome5 name="building" size={13} color="black" />
-                            <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
-                              <Text style={styles.locationText}>
-                                Ambiente:
-                              </Text>
-                              <Text style={styles.locationText}>
-                                {item?.localizacao?.local}
-                              </Text>
+                            <View style={styles.locationSection}>
+                              <FontAwesome5 name="building" size={13} color="black" />
+                              <View style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
+                                <Text style={styles.locationText}>
+                                  Ambiente:
+                                </Text>
+                                <Text style={styles.locationText}>
+                                  {item?.localizacao?.local}
+                                </Text>
+                              </View>
                             </View>
+                            <View style={styles.locationSection}>
+                              <Entypo name="location-pin" size={15} color="black" />
+                              <Text style={styles.locationText}>{item?.predio}</Text>
+                            </View>
+                            <StatusIndicator status={item.status} />
                           </View>
-                          <View style={styles.locationSection}>
-                            <Entypo name="location-pin" size={15} color="black" />
-                            <Text style={styles.locationText}>{item?.predio}</Text>
-                          </View>
-                          <StatusIndicator status={item.status} />
                         </View>
-                      </View>
-                      <View style={styles.approvalContainer}>
-                        <AprovacoStatus status={item.aprovacao ?? "Sem Aprovacao"} date={item.dataAprovacao ?? undefined} />
+                        <View style={styles.approvalContainer}>
+                          <AprovacoStatus status={item.aprovacao ?? "Sem Aprovacao"} date={item.dataAprovacao ?? undefined} />
+                        </View>
                       </View>
                     </View>
-                  </View>
-                </TouchableOpacity>
-              )}
-            />
-          ) : (
-            <View style={styles.emptyContainer}>
-              <Image
-                style={{ width: 130, height: 130, marginBottom: -20 }}
-                source={require("../../../assets/images/adaptive-icon.png")}
+                  </TouchableOpacity>
+                )}
               />
-              <Text style={styles.emptyTitle}>Nenhum dado encontrado</Text>
-              <Text style={styles.emptySubtitle}>
-                Não há atividades ou ocorrências cadastradas
-              </Text>
-            </View>
-          )}
-        </View>
+            ) : (
+              <View style={styles.emptyContainer}>
+                <Image
+                  style={{ width: 130, height: 130, marginBottom: -20 }}
+                  source={require("../../../assets/images/adaptive-icon.png")}
+                />
+                <Text style={styles.emptyTitle}>Nenhum dado encontrado</Text>
+                <Text style={styles.emptySubtitle}>
+                  Não há atividades ou ocorrências cadastradas
+                </Text>
+              </View>
+            )}
+          </View>
+        </ScrollView>
       </StyledMainContainer>
     </View>
   );
