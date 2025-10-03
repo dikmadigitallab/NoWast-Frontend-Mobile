@@ -1,9 +1,10 @@
 import CapturaImagens from '@/components/capturaImagens';
+import GravadorAudio from '@/components/gravadorAudio';
 import { useCloseActivity } from '@/hooks/atividade/update';
 import { useChecklistStore } from '@/store/dataStore';
 import { AntDesign } from '@expo/vector-icons';
 import { useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Checkbox, TextInput } from 'react-native-paper';
 import { StyledMainContainer } from '../../../styles/StyledComponents';
 
@@ -14,6 +15,7 @@ interface IFormData {
     completedChecklistIds: number[];
     pendingChecklistIds: number[];
     images: string[];
+    audio: string; // URI do arquivo de áudio gravado (opcional)
 }
 
 interface IChecklist {
@@ -24,8 +26,8 @@ interface IChecklist {
 export default function Checklist() {
 
     const { data } = useChecklistStore();
-    const { close, error } = useCloseActivity();
-    const defaultForm: IFormData = { id: data?.[0]?.id || 0, status: "COMPLETED", observation: "", completedChecklistIds: [], pendingChecklistIds: [], images: [] };
+    const { close, loading, error } = useCloseActivity();
+    const defaultForm: IFormData = { id: data?.[0]?.id || 0, status: "COMPLETED", observation: "", completedChecklistIds: [], pendingChecklistIds: [], images: [], audio: '' };
     const [form, setForm] = useState<IFormData | null>(defaultForm);
 
     // Função responsável por atualizar o estado do checkbox ela verifica se o item já está na lista de itens completos se estiver, remove o item da lista se não estiver, adiciona o item  lista
@@ -106,7 +108,7 @@ export default function Checklist() {
                                         </Text>
                                     </View>
                                     {isChecked && (
-                                        <AntDesign name="checkcircle" size={20} color="#fff" />
+                                        <AntDesign name="check-circle" size={20} color="#fff" />
                                     )}
                                 </TouchableOpacity>
                             );
@@ -121,6 +123,16 @@ export default function Checklist() {
                                 setForm={(uris) => setForm((prev) => prev ? { ...prev, images: uris } : { ...defaultForm, images: uris })}
                             />
                         </View>
+                    </View>
+
+                    <View style={styles.audioSection}>
+                        <GravadorAudio
+                            setForm={(audioUri) => 
+                                setForm((prev) => 
+                                    prev ? { ...prev, audio: audioUri } : { ...defaultForm, audio: audioUri }
+                                )
+                            }
+                        />
                     </View>
 
                     <View style={styles.observationsSection}>
@@ -150,9 +162,23 @@ export default function Checklist() {
             </StyledMainContainer>
 
             <View style={styles.fixedButtonContainer}>
-                <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} activeOpacity={0.8}>
-                    <Text style={styles.submitButtonText}>Finalizar Atividade</Text>
-                    <AntDesign name="arrowright" size={20} color="#fff" />
+                <TouchableOpacity 
+                    style={[styles.submitButton, loading && styles.submitButtonDisabled]} 
+                    onPress={handleSubmit} 
+                    activeOpacity={0.8}
+                    disabled={loading}
+                >
+                    {loading ? (
+                        <>
+                            <Text style={styles.submitButtonText}>Finalizando...</Text>
+                            <ActivityIndicator size="small" color="#fff" />
+                        </>
+                    ) : (
+                        <>
+                            <Text style={styles.submitButtonText}>Finalizar Atividade</Text>
+                            <AntDesign name="arrow-right" size={20} color="#fff" />
+                        </>
+                    )}
                 </TouchableOpacity>
             </View>
         </View>
@@ -176,6 +202,7 @@ const styles = StyleSheet.create({
     header: {
         alignItems: 'center',
         marginBottom: 8,
+        marginTop: 24,
     },
     headerTitle: {
         flexDirection: 'row',
@@ -239,6 +266,9 @@ const styles = StyleSheet.create({
     observationsSection: {
         gap: 16,
     },
+    audioSection: {
+        gap: 16,
+    },
     textInput: {
         backgroundColor: '#fff',
         borderRadius: 12,
@@ -277,5 +307,9 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 16,
         fontWeight: 'bold',
+    },
+    submitButtonDisabled: {
+        backgroundColor: '#ccc',
+        opacity: 0.6,
     },
 });

@@ -203,7 +203,7 @@ export default function AudioRecorderPlayer({ onRecordingComplete, onRemove, set
               {isPlaying ? (
                 <Entypo name="controller-stop" size={24} color="#186B53" />
               ) : (
-                <AntDesign name="play" size={24} color="#fff" />
+                <AntDesign name="caret-right" size={24} color="#fff" />
               )}
             </TouchableOpacity>
 

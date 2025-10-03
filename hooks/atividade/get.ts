@@ -3,7 +3,7 @@ import { IAtividade } from "@/types/IAtividade";
 import { filterStatusActivity } from "@/utils/statusActivity";
 import { toast } from "@backpackapp-io/react-native-toast";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import api from "../api";
 
 export interface UseGetParams {
@@ -73,35 +73,30 @@ export const useGetActivity = ({ pagination = null, type, page = 1, pageSize = 1
         if (statusEnum !== null) params.append("statusEnum", String(statusEnum).trim());
         if (approvalStatus !== null) params.append("approvalStatus", String(approvalStatus).trim());
 
-        const paramUrl = type === "Atividade" ? `/activity?${params.toString()}` : `/occurrence?${params.toString()}`;
+        // Função para fazer uma requisição específica
+        const makeRequest = async (endpoint: string) => {
+            return await api.get(`${endpoint}?${params.toString()}`, {
+                headers: {
+                    Authorization: `Bearer ${authToken}`,
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+            }).catch((error) => {
+                if (error.response?.status === 401) {
+                    toast.error("Token de autenticação expirado!", { duration: 3000 });
+                    setError("Unauthorized - Sessão expirada");
+                    setTimeout(() => {
+                        logout();
+                    }, 1000);
+                } else {
+                    setError(error.response?.data?.messages?.[0] || "Erro ao carregar dados");
+                }
+                return null;
+            });
+        };
 
-        const response = await api.get(paramUrl, {
-            headers: {
-                Authorization: `Bearer ${authToken}`,
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-        }).catch((error) => {
-            if (error.response?.status === 401) {
-                toast.error("Token de autenticação expirado!", { duration: 3000 });
-                setError("Unauthorized - Sessão expirada");
-                setTimeout(() => {
-                    logout();
-                }, 1000);
-            } else {
-                setError(error.response?.data?.messages?.[0] || "Erro ao carregar dados");
-            }
-            setData(null);
-            return null;
-        });
-
-        if (!response) {
-            setLoading(false);
-            return;
-        }
-
-        if (type === "Atividade") {
-            const refactory: IAtividade[] = response.data.data.items?.map((item: any) => {
-
+        // Função para processar dados de atividade
+        const processActivityData = (items: any[]) => {
+            return items?.map((item: any) => {
                 const userJustification = item?.userActivities.map((userActivity: any) => ({
                     name: userActivity?.user?.person?.name || null,
                     justification: userActivity?.justification?.reason || null,
@@ -122,10 +117,11 @@ export const useGetActivity = ({ pagination = null, type, page = 1, pageSize = 1
                         id: checklist.serviceItem.id,
                         name: checklist.serviceItem.name
                     })) || [],
-                    approvalStatus: filterStatusActivity(item?.approvalStatus),
+                    approvalStatus: filterStatusActivity(item?.approvalStatus) as "PENDING" | "APPROVED" | "REJECTED" | "PENDING_JUSTIFIED" | "JUSTIFIED",
                     local: item?.environment?.sector ? {
                         building: item.environment.sector.building.name,
                         description: item.environment.sector.description,
+                        sector: item.environment.sector.name, // Adicionar nome do setor
                         latitude: item.environment.sector.latitude,
                         longitude: item.environment.sector.longitude
                     } : null,
@@ -137,6 +133,8 @@ export const useGetActivity = ({ pagination = null, type, page = 1, pageSize = 1
                     userActivities: item?.userActivities || [],
                     file: item?.justification?.justificationFiles?.[0]?.file.url || null,
                     userJustification: userJustification || [],
+                    // Manter o dateTime original para ordenação e formatação de exibição
+                    dateTimeOriginal: item.dateTime || null,
                     dateTime: new Date(item.dateTime).toLocaleString('pt-BR', {
                         year: 'numeric',
                         month: '2-digit',
@@ -145,15 +143,19 @@ export const useGetActivity = ({ pagination = null, type, page = 1, pageSize = 1
                         minute: '2-digit',
                         second: '2-digit',
                         hour12: false
-                    })
+                    }),
+                    // Propriedades obrigatórias da interface IAtividade
+                    createdAt: item.createdAt || new Date().toISOString(),
+                    updatedAt: item.updatedAt || new Date().toISOString(),
+                    deletedAt: item.deletedAt || null,
+                    activityId: item.id || 0
                 };
             }) || [];
+        };
 
-            setData(refactory);
-            setLoading(false);
-        } else {
-
-            const refactory: IAtividade[] = response.data.data.items?.map((item: any) => {
+        // Função para processar dados de ocorrência
+        const processOccurrenceData = (items: any[]) => {
+            return items?.map((item: any) => {
                 const occurrenceFiles = item.occurrenceFiles || [];
 
                 return {
@@ -165,12 +167,58 @@ export const useGetActivity = ({ pagination = null, type, page = 1, pageSize = 1
                         .find((f: any) => f.fileType === 'AUDIO' && f.file?.url)?.file.url || null
                 };
             }) || [];
-            setData(refactory);
+        };
+
+        try {
+            let allData: IAtividade[] = [];
+
+            if (type === "Atividade") {
+                const response = await makeRequest('/activity');
+                if (response) {
+                    allData = processActivityData(response.data.data.items);
+                }
+            } else if (type === "Ocorrencia") {
+                const response = await makeRequest('/occurrence');
+                if (response) {
+                    allData = processOccurrenceData(response.data.data.items);
+                }
+            } else if (type === "" || type === "Todos") {
+                // Fazer duas requisições quando for "Todos"
+                const [activityResponse, occurrenceResponse] = await Promise.all([
+                    makeRequest('/activity'),
+                    makeRequest('/occurrence')
+                ]);
+
+                let activityData: IAtividade[] = [];
+                let occurrenceData: IAtividade[] = [];
+
+                if (activityResponse) {
+                    activityData = processActivityData(activityResponse.data.data.items);
+                }
+
+                if (occurrenceResponse) {
+                    occurrenceData = processOccurrenceData(occurrenceResponse.data.data.items);
+                }
+
+                // Combinar os dados
+                allData = [...activityData, ...occurrenceData];
+            }
+
+            setData(allData);
+            setLoading(false);
+        } catch (error) {
+            setError("Erro ao carregar dados");
+            setData(null);
             setLoading(false);
         }
     }, [type, logout, page, pageSize, query, supervisorId, positionId, managerId, responsibleManagerId, buildingId, environmentId, dateTimeFrom, startDate, endDate, statusEnum, approvalStatus]);
 
     const refetch = useCallback(() => {
+        get();
+    }, [get]);
+
+    // Executar automaticamente quando o hook é montado ou quando os parâmetros mudam
+    useEffect(() => {
         get();
     }, [get]);
 

@@ -17,8 +17,6 @@ export default function Mainpage() {
     const router = useRouter();
     const { user } = useAuth();
 
-    console.log(user);
-
     const { setitems } = useItemsStore();
     const [pageSize, setPageSize] = useState(20);
     const [type, setType] = useState("Atividade");
@@ -55,6 +53,8 @@ export default function Mainpage() {
         endDate: (startDate && endDate) ? endDate : null,
         //approvalStatus: user?.userType === "OPERATIONAL" ? "APPROVED" : null
     });
+    
+    console.log(data && data[0])
 
     // Sincroniza os filtros ativos
     useEffect(() => {
@@ -165,8 +165,26 @@ export default function Mainpage() {
         return (<LoadingScreen />)
     }
 
+    // Ordenar os dados por data em ordem decrescente (mais recente para mais antiga)
+    const sortedData = [...data].sort((a, b) => {
+        let dateA: Date;
+        let dateB: Date;
+
+        if (type === "Atividade") {
+            // Para atividades, usar dateTimeOriginal se disponível, senão createdAt
+            dateA = new Date((a as any).dateTimeOriginal || a.createdAt);
+            dateB = new Date((b as any).dateTimeOriginal || b.createdAt);
+        } else {
+            // Para ocorrências, usar o campo createdAt
+            dateA = new Date(a.createdAt);
+            dateB = new Date(b.createdAt);
+        }
+
+        return dateB.getTime() - dateA.getTime(); // Ordem decrescente
+    });
+
     const hasActiveFilters = activeFilters.length > 0;
-    const isEmpty = data.length === 0;
+    const isEmpty = sortedData.length === 0;
 
     // função para renderizar os itens da lista
     const renderAtividadeItem = ({ item }: { item: any }) => {
@@ -384,7 +402,7 @@ export default function Mainpage() {
                     </View>
                 ) : (
                 <FlatList
-                    data={data || []}
+                    data={sortedData || []}
                     showsVerticalScrollIndicator={false}
                     keyExtractor={(item) => String(item?.id)}
                     onEndReached={loadMoreItems}

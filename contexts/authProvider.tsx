@@ -24,11 +24,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<UserData | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  console.log(user);
+
   useEffect(() => {
     const loadStoredAuth = async () => {
       try {
         const token = await AsyncStorage.getItem("authToken");
         const storedUser = await AsyncStorage.getItem("user");
+        console.log(token);
 
         if (token && storedUser) {
           setIsAuthenticated(true);

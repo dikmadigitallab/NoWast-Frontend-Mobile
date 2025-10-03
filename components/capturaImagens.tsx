@@ -130,7 +130,7 @@ export default function CapturaImagens({ texto, qtsImagens, setForm }: { texto: 
                             <Text style={styles.processingText}>Processando...</Text>
                         )}
                         <TouchableOpacity style={styles.closeButton} onPress={() => setCameraOpen(false)}>
-                            <AntDesign name="closecircle" size={32} color="white" />
+                            <AntDesign name="close-circle" size={32} color="white" />
                         </TouchableOpacity>
                     </View>
                 </CameraView>

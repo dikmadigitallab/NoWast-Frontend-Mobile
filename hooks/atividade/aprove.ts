@@ -9,7 +9,7 @@ export const useUpdateActivityStatus = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const updateStatus = async (aprov: string, data: { id: string; approvalStatus: string; approvalUpdatedByUserId: string; }) => {
+    const updateStatus = async (approvalStatus: string, data: { id: string; observation?: string }) => {
         setError(null);
         setLoading(true);
 
@@ -22,22 +22,23 @@ export const useUpdateActivityStatus = () => {
                 return;
             }
 
-            const params = new URLSearchParams();
-            params.append("approvalStatus", data.approvalStatus);
-            params.append("approvalDate", new Date().toISOString());
-            params.append("approvalUpdatedByUserId", data.approvalUpdatedByUserId);
+            const requestBody = {
+                approvalStatus: approvalStatus,
+                approvalDate: new Date().toISOString(),
+                observation: data.observation || ''
+            };
 
-            const response = await api.patch(`/activity/${data.id}`,
-                params.toString(),
+            const response = await api.put(`/activity/${data.id}/review`,
+                requestBody,
                 {
                     headers: {
                         Authorization: `Bearer ${authToken}`,
-                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'Content-Type': 'application/json',
                     },
                 }
             );
 
-            const successMessage = aprov === "APPROVED"
+            const successMessage = approvalStatus === "APPROVED"
                 ? "Atividade aprovada com sucesso"
                 : "Atividade reprovada com sucesso";
 

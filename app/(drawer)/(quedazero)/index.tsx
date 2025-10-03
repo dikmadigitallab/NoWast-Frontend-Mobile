@@ -7,28 +7,26 @@ import { useAuth } from "@/contexts/authProvider";
 import { useGet } from "@/hooks/crud/get/get";
 import { useGetDashboard } from "@/hooks/dashboard/useGet";
 import { AntDesign, Feather, FontAwesome6, MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
-import { Picker } from "@react-native-picker/picker";
 import { useRouter } from "expo-router";
 import React, { SetStateAction, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Animated, Dimensions, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Animated, Dimensions, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { PieChart } from "react-native-gifted-charts";
 import { DatePickerModal } from "react-native-paper-dates";
 import { CalendarDate } from "react-native-paper-dates/lib/typescript/Date/Calendar";
 
 const startOfMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().split('T')[0];
 const endOfMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).toISOString().split('T')[0];
-interface PickerRef { open: () => void; close: () => void; focus: () => void; blur: () => void; getValue: () => string; }
 
 export default function Dashboard() {
 
   const { user } = useAuth();
   const router = useRouter();
   const [openDate, setOpenDate] = useState(false);
-  const sectorPickerRef = useRef<PickerRef>(null);
-  const buildingPickerRef = useRef<PickerRef>(null);
+  const [openSectorModal, setOpenSectorModal] = useState(false);
+  const [openBuildingModal, setOpenBuildingModal] = useState(false);
+  const [openEnvironmentModal, setOpenEnvironmentModal] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const { data: setores } = useGet({ url: "sector" });
-  const enviromentPickerRef = useRef<PickerRef>(null);
   const { data: predios } = useGet({ url: "building" });
   const animation = useRef(new Animated.Value(0)).current;
   const { data: ambientes } = useGet({ url: "environment" });
@@ -283,7 +281,7 @@ export default function Dashboard() {
 
             {
               user?.userType == "ADM_DIKMA" && (
-                <TouchableOpacity style={styles.filterButton} onPress={() => buildingPickerRef.current?.focus()} >
+                <TouchableOpacity style={styles.filterButton} onPress={() => setOpenBuildingModal(true)} >
                   <FontAwesome6 name="location-dot" size={15} color="#43575F" />
                   <Text style={styles.filterButtonText}>{filter.building.label ? filter.building.label : "Prédios"}</Text>
                   <AntDesign name="down" size={10} color="black" />
@@ -291,13 +289,13 @@ export default function Dashboard() {
               )
             }
 
-            <TouchableOpacity style={styles.filterButton} onPress={() => sectorPickerRef.current?.focus()} >
+            <TouchableOpacity style={styles.filterButton} onPress={() => setOpenSectorModal(true)} >
               <FontAwesome6 name="location-dot" size={15} color="#43575F" />
               <Text style={styles.filterButtonText}>{filter.sector.label ? filter.sector.label : "Setores"}</Text>
               <AntDesign name="down" size={10} color="black" />
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.filterButton} onPress={() => enviromentPickerRef.current?.focus()} >
+            <TouchableOpacity style={styles.filterButton} onPress={() => setOpenEnvironmentModal(true)} >
               <FontAwesome6 name="location-dot" size={15} color="#43575F" />
               <Text style={styles.filterButtonText}>{filter.environment.label ? filter.environment.label : "Ambiente"}</Text>
               <AntDesign name="down" size={10} color="black" />
@@ -426,45 +424,6 @@ export default function Dashboard() {
   return (
     <View style={styles.container}>
 
-      <Picker
-        style={{ display: "none" }}
-        ref={enviromentPickerRef as React.MutableRefObject<Picker<number> | null>}
-        selectedValue={filter?.environment?.id}
-        onValueChange={(itemValue, itemIndex) => {
-          setFilter((prevState) => ({ ...prevState, environment: { id: itemValue, label: ambientes?.[itemIndex]?.name } }));
-        }}
-      >
-        {ambientes?.map((environment: { id: number; name: string }) => (
-          <Picker.Item key={environment.id} label={environment.name} value={environment.id} />
-        ))}
-      </Picker>
-
-      <Picker
-        style={{ display: "none" }}
-        ref={sectorPickerRef as React.MutableRefObject<Picker<number> | null>}
-        selectedValue={filter?.sector?.id}
-        onValueChange={(itemValue, itemIndex) => {
-          setFilter((prevState) => ({ ...prevState, sector: { id: itemValue, label: setores?.[itemIndex]?.name } }));
-        }}
-      >
-        {setores?.map((sector: { id: number; name: string }) => (
-          <Picker.Item key={sector.id} label={sector.name} value={sector.id} />
-        ))}
-      </Picker>
-
-      <Picker
-        style={{ display: "none" }}
-        ref={buildingPickerRef as React.MutableRefObject<Picker<number> | null>}
-        selectedValue={filter?.building?.id}
-        onValueChange={(itemValue, itemIndex) => {
-          setFilter((prevState) => ({ ...prevState, building: { id: itemValue, label: predios?.[itemIndex]?.name } }));
-        }}
-      >
-        {predios?.map((predio: { id: number; name: string }) => (
-          <Picker.Item key={predio.id} label={predio.name} value={predio.id} />
-        ))}
-      </Picker>
-
       <View style={styles.sectionHeaderWrapper}>
         <TouchableOpacity
           style={[styles.sectionHeader, { borderRightColor: '#186b5427', borderRightWidth: 1 }]}
@@ -530,6 +489,180 @@ export default function Dashboard() {
         label="Selecione um período"
         saveLabel="Confirmar"
       />
+
+      {/* Modal de Seleção de Ambiente */}
+      <Modal
+        visible={openEnvironmentModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setOpenEnvironmentModal(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setOpenEnvironmentModal(false)}
+        >
+          <TouchableOpacity 
+            activeOpacity={1} 
+            style={styles.modalContent}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Selecione o Ambiente</Text>
+              <TouchableOpacity onPress={() => setOpenEnvironmentModal(false)}>
+                <AntDesign name="close" size={24} color="#385866" />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.modalScrollView}>
+              <TouchableOpacity
+                style={[styles.modalOption, filter.environment.id === 0 && styles.modalOptionSelected]}
+                onPress={() => {
+                  setFilter((prevState) => ({ ...prevState, environment: { id: 0, label: "" } }));
+                  setOpenEnvironmentModal(false);
+                }}
+              >
+                <Text style={[styles.modalOptionText, filter.environment.id === 0 && styles.modalOptionTextSelected]}>
+                  Todos os ambientes
+                </Text>
+                {filter.environment.id === 0 && <AntDesign name="check" size={20} color="#186B53" />}
+              </TouchableOpacity>
+
+              {ambientes?.map((env: { id: number; name: string }) => (
+                <TouchableOpacity
+                  key={env.id}
+                  style={[styles.modalOption, filter.environment.id === env.id && styles.modalOptionSelected]}
+                  onPress={() => {
+                    setFilter((prevState) => ({ ...prevState, environment: { id: env.id, label: env.name } }));
+                    setOpenEnvironmentModal(false);
+                  }}
+                >
+                  <Text style={[styles.modalOptionText, filter.environment.id === env.id && styles.modalOptionTextSelected]} numberOfLines={2}>
+                    {env.name}
+                  </Text>
+                  {filter.environment.id === env.id && <AntDesign name="check" size={20} color="#186B53" />}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Modal de Seleção de Setor */}
+      <Modal
+        visible={openSectorModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setOpenSectorModal(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setOpenSectorModal(false)}
+        >
+          <TouchableOpacity 
+            activeOpacity={1} 
+            style={styles.modalContent}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Selecione o Setor</Text>
+              <TouchableOpacity onPress={() => setOpenSectorModal(false)}>
+                <AntDesign name="close" size={24} color="#385866" />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.modalScrollView}>
+              <TouchableOpacity
+                style={[styles.modalOption, filter.sector.id === 0 && styles.modalOptionSelected]}
+                onPress={() => {
+                  setFilter((prevState) => ({ ...prevState, sector: { id: 0, label: "" } }));
+                  setOpenSectorModal(false);
+                }}
+              >
+                <Text style={[styles.modalOptionText, filter.sector.id === 0 && styles.modalOptionTextSelected]}>
+                  Todos os setores
+                </Text>
+                {filter.sector.id === 0 && <AntDesign name="check" size={20} color="#186B53" />}
+              </TouchableOpacity>
+
+              {setores?.map((setor: { id: number; name: string }) => (
+                <TouchableOpacity
+                  key={setor.id}
+                  style={[styles.modalOption, filter.sector.id === setor.id && styles.modalOptionSelected]}
+                  onPress={() => {
+                    setFilter((prevState) => ({ ...prevState, sector: { id: setor.id, label: setor.name } }));
+                    setOpenSectorModal(false);
+                  }}
+                >
+                  <Text style={[styles.modalOptionText, filter.sector.id === setor.id && styles.modalOptionTextSelected]} numberOfLines={2}>
+                    {setor.name}
+                  </Text>
+                  {filter.sector.id === setor.id && <AntDesign name="check" size={20} color="#186B53" />}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Modal de Seleção de Prédio */}
+      <Modal
+        visible={openBuildingModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setOpenBuildingModal(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setOpenBuildingModal(false)}
+        >
+          <TouchableOpacity 
+            activeOpacity={1} 
+            style={styles.modalContent}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Selecione o Prédio</Text>
+              <TouchableOpacity onPress={() => setOpenBuildingModal(false)}>
+                <AntDesign name="close" size={24} color="#385866" />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.modalScrollView}>
+              <TouchableOpacity
+                style={[styles.modalOption, filter.building.id === 0 && styles.modalOptionSelected]}
+                onPress={() => {
+                  setFilter((prevState) => ({ ...prevState, building: { id: 0, label: "" } }));
+                  setOpenBuildingModal(false);
+                }}
+              >
+                <Text style={[styles.modalOptionText, filter.building.id === 0 && styles.modalOptionTextSelected]}>
+                  Todos os prédios
+                </Text>
+                {filter.building.id === 0 && <AntDesign name="check" size={20} color="#186B53" />}
+              </TouchableOpacity>
+
+              {predios?.map((predio: { id: number; name: string }) => (
+                <TouchableOpacity
+                  key={predio.id}
+                  style={[styles.modalOption, filter.building.id === predio.id && styles.modalOptionSelected]}
+                  onPress={() => {
+                    setFilter((prevState) => ({ ...prevState, building: { id: predio.id, label: predio.name } }));
+                    setOpenBuildingModal(false);
+                  }}
+                >
+                  <Text style={[styles.modalOptionText, filter.building.id === predio.id && styles.modalOptionTextSelected]} numberOfLines={2}>
+                    {predio.name}
+                  </Text>
+                  {filter.building.id === predio.id && <AntDesign name="check" size={20} color="#186B53" />}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
 
     </View>
   );
@@ -730,5 +863,71 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 12,
     fontWeight: '500',
+  },
+  // Estilos dos Modais
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    padding: 20,
+    width: '100%',
+    maxWidth: 400,
+    maxHeight: '70%',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#385866',
+  },
+  modalScrollView: {
+    maxHeight: 400,
+  },
+  modalOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 15,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    marginBottom: 8,
+    backgroundColor: '#f5f5f5',
+  },
+  modalOptionSelected: {
+    backgroundColor: '#e8f5f1',
+    borderWidth: 1,
+    borderColor: '#186B53',
+  },
+  modalOptionText: {
+    fontSize: 16,
+    color: '#333',
+    flex: 1,
+    marginRight: 10,
+  },
+  modalOptionTextSelected: {
+    color: '#186B53',
+    fontWeight: '600',
   },
 });

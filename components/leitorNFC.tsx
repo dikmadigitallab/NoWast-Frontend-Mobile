@@ -2,7 +2,7 @@ import { useChecklistStore } from '@/store/dataStore';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Alert, AppState, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, AppState, Dimensions, Modal, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import NfcManager, { Ndef, NfcTech } from 'react-native-nfc-manager';
 
 interface LeituraNFCProps {
@@ -18,6 +18,9 @@ export default function LeituraNFC({ items, environmentId }: LeituraNFCProps) {
     const [nfcSupported, setNfcSupported] = useState<boolean | null>(null);
     const [readResult, setReadResult] = useState<'success' | 'error' | 'id_mismatch' | null>(null);
     const appState = useRef(AppState.currentState);
+    const [errorModalVisible, setErrorModalVisible] = useState(false);
+    const [errorModalTitle, setErrorModalTitle] = useState('');
+    const [errorModalMessage, setErrorModalMessage] = useState('');
 
     // Verificar se o NFC está disponível
     useEffect(() => {
@@ -56,6 +59,12 @@ export default function LeituraNFC({ items, environmentId }: LeituraNFCProps) {
         };
     }, []);
 
+    const showErrorModal = (title: string, message: string) => {
+        setErrorModalTitle(title);
+        setErrorModalMessage(message);
+        setErrorModalVisible(true);
+    };
+
     // Ler tag NFC
     const readNdef = async () => {
         setIsLoading(true);
@@ -84,7 +93,7 @@ export default function LeituraNFC({ items, environmentId }: LeituraNFCProps) {
                 } catch (decodeError) {
                     console.error('Erro ao decodificar payload NFC:', decodeError);
                     setReadResult('error');
-                    Alert.alert('Erro', 'Não foi possível decodificar os dados da tag NFC.');
+                    showErrorModal('Erro', 'Não foi possível decodificar os dados da tag NFC.');
                     return;
                 }
 
@@ -115,16 +124,16 @@ export default function LeituraNFC({ items, environmentId }: LeituraNFCProps) {
                 } else {
                     console.log('❌ Validação NFC falhou - IDs não correspondem');
                     setReadResult('id_mismatch');
-                    Alert.alert(
+                    showErrorModal(
                         'ID não corresponde',
-                        `Tag vinculada ao ambiente ${normalizedRecordedId}, mas atividade é do ambiente ${normalizedEnvironmentId}.`,
-                        [{ text: 'OK', onPress: () => NfcManager.cancelTechnologyRequest() }]
+                        `Tag vinculada ao ambiente ${normalizedRecordedId}, mas atividade é do ambiente ${normalizedEnvironmentId}.`
                     );
+                    NfcManager.cancelTechnologyRequest();
                 }
             } else {
                 console.log('❌ Tag NFC não contém dados válidos');
                 setReadResult('error');
-                Alert.alert('Erro', 'Tag não contém dados ou está vazia.');
+                showErrorModal('Erro', 'Tag não contém dados ou está vazia.');
             }
         } catch (ex) {
             console.error('Erro na leitura NFC:', ex);
@@ -133,15 +142,15 @@ export default function LeituraNFC({ items, environmentId }: LeituraNFCProps) {
             // Tratamento de erros mais específico
             if (ex instanceof Error) {
                 if (ex.message.includes('timeout')) {
-                    Alert.alert('Timeout', 'Aproxime a tag novamente e tente mais uma vez.');
+                    showErrorModal('Timeout', 'Aproxime a tag novamente e tente mais uma vez.');
                 } else if (ex.message.includes('cancelled')) {
-                    // Usuário cancelou, não mostrar alerta
+                    // Usuário cancelou, não mostrar modal
                     console.log('Leitura NFC cancelada pelo usuário');
                 } else {
-                    Alert.alert('Erro', `Falha ao ler a tag NFC: ${ex.message}`);
+                    showErrorModal('Erro', `Falha ao ler a tag NFC: ${ex.message}`);
                 }
             } else {
-                Alert.alert('Erro', 'Falha ao ler a tag NFC.');
+                showErrorModal('Erro', 'Falha ao ler a tag NFC.');
             }
         } finally {
             setIsLoading(false);
@@ -226,6 +235,30 @@ export default function LeituraNFC({ items, environmentId }: LeituraNFCProps) {
                     </View>
                 )}
             </View>
+
+            <Modal animationType="fade" transparent={true} visible={errorModalVisible} onRequestClose={() => setErrorModalVisible(false)}>
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPressOut={() => setErrorModalVisible(false)}
+                >
+                    <View style={styles.modalContainer}>
+                        <MaterialCommunityIcons
+                            name="alert-circle"
+                            size={50}
+                            color="#FF3B30"
+                        />
+                        <Text style={styles.modalTitle}>{errorModalTitle}</Text>
+                        <Text style={styles.modalMessage}>{errorModalMessage}</Text>
+                        <TouchableOpacity
+                            style={styles.modalCloseButton}
+                            onPress={() => setErrorModalVisible(false)}
+                        >
+                            <Text style={styles.modalCloseButtonText}>Fechar</Text>
+                        </TouchableOpacity>
+                    </View>
+                </TouchableOpacity>
+            </Modal>
         </View>
     );
 }
@@ -311,5 +344,46 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: '600',
         textAlign: 'center',
+    },
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '100%',
+    },
+    modalContainer: {
+        gap: 5,
+        padding: 15,
+        borderRadius: 12,
+        alignItems: 'center',
+        backgroundColor: 'white',
+        width: Dimensions.get('window').width * 0.8,
+    },
+    modalTitle: {
+        fontSize: 18,
+        marginBottom: 8,
+        fontWeight: 'bold',
+        color: '#FF3B30',
+        textAlign: 'center',
+    },
+    modalMessage: {
+        fontSize: 14,
+        marginBottom: 24,
+        color: '#43575f',
+        textAlign: 'center',
+    },
+    modalCloseButton: {
+        padding: 20,
+        width: '100%',
+        borderWidth: 1,
+        borderRadius: 6,
+        alignItems: 'center',
+        borderColor: "#d7ddd9",
+        backgroundColor: '#fff',
+    },
+    modalCloseButtonText: {
+        color: '#43575f',
+        fontWeight: 'bold',
     },
 });

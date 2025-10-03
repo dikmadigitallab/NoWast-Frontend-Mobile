@@ -31,9 +31,11 @@ export default function DetalharAtividade() {
     const modalizeDescricaoRef = useRef<Modalize | null>(null);
     const [modalVisible, setModalizeVisible] = useState(false);
     const modalizeJustificativaRef = useRef<Modalize | null>(null);
+    const modalizeObservacaoRef = useRef<Modalize | null>(null);
     const { justification, loading } = useUserJustification();
     const [form, setForm] = useState({ id: items?.id, status: "JUSTIFIED", justification: "", images: [] });
     const [userDescricao, setUserDescricao] = useState({ activityId: "", userId: "", reason: "", name: "" });
+    const [observacao, setObservacao] = useState({ status: "", observation: "" });
 
     // Estados para o visualizador de imagem
     const [imageViewerVisible, setImageViewerVisible] = useState(false);
@@ -83,9 +85,10 @@ export default function DetalharAtividade() {
     }
 
     const closeModal = () => {
-        if (modalizeJustificativaRef.current && modalizeDescricaoRef.current) {
+        if (modalizeJustificativaRef.current && modalizeDescricaoRef.current && modalizeObservacaoRef.current) {
             modalizeDescricaoRef.current.close();
             modalizeJustificativaRef.current.close();
+            modalizeObservacaoRef.current.close();
         }
     };
 
@@ -93,6 +96,7 @@ export default function DetalharAtividade() {
         closeModal();
         setForm({ id: items?.id, status: "", justification: "", images: [] });
         setUserDescricao({ activityId: "", userId: "", reason: "", name: "" });
+        setObservacao({ status: "", observation: "" });
         setModalizeVisible(false);
     };
 
@@ -105,12 +109,19 @@ export default function DetalharAtividade() {
         );
     }
 
-    const handleFinalizeActivity = (status: string) => {
-        updateStatus(status, {
+    const openObservacaoModal = (status: string) => {
+        setObservacao({ status, observation: "" });
+        modalizeObservacaoRef.current?.open();
+    };
+
+    const handleFinalizeActivity = () => {
+        updateStatus(observacao.status, {
             id: String(items.id),
-            approvalStatus: status,
-            approvalUpdatedByUserId: String(user?.id),
+            observation: observacao.observation.trim() || undefined
         });
+        
+        modalizeObservacaoRef.current?.close();
+        setObservacao({ status: "", observation: "" });
     };
 
 
@@ -386,8 +397,7 @@ export default function DetalharAtividade() {
 
             <View style={[styles.fixedButtonsContainer, {
                 display:
-                    items.approvalStatus === "APPROVED"
-                        || items.approvalStatus === "REJECTED"
+                    items.approvalStatus === "PENDING"
                         || items?.statusEnum !== "COMPLETED"
                         ? "flex" : "none"
             }]}>
@@ -421,12 +431,12 @@ export default function DetalharAtividade() {
                     (user?.userType === "ADM_DIKMA" || user?.userType === "ADM_CLIENTE") && items.approvalStatus === "PENDING" && (
                         <View style={styles.buttonsContainer}>
                             <TouchableOpacity
-                                onPress={() => handleFinalizeActivity("REJECTED")}
+                                onPress={() => openObservacaoModal("REJECTED")}
                                 style={styles.justifyButton}>
                                 <Text style={{ color: "#404944", fontSize: 16 }}>REPROVAR</Text>
                             </TouchableOpacity>
                             <TouchableOpacity
-                                onPress={() => handleFinalizeActivity("APPROVED")}
+                                onPress={() => openObservacaoModal("APPROVED")}
                                 style={styles.doneButton}>
                                 <Text style={styles.doneButtonText}>APROVAR</Text>
                             </TouchableOpacity>
@@ -524,6 +534,63 @@ export default function DetalharAtividade() {
                     <TouchableOpacity style={styles.sendButton} onPress={sendUserJustification}>
                         <Text style={{ color: "#fff", fontSize: 15 }}>
                             {loading ? (<ActivityIndicator size="small" color="#fff" />) : "Enviar"}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+            </Modalize>
+
+            <Modalize
+                ref={modalizeObservacaoRef}
+                modalStyle={styles.modal}
+                adjustToContentHeight
+                handleStyle={styles.handle}
+                keyboardAvoidingBehavior="padding"
+                scrollViewProps={{
+                    keyboardShouldPersistTaps: 'handled',
+                    contentContainerStyle: { flexGrow: 1 }
+                }}
+            >
+                <View>
+                    <View style={styles.modalHeader}>
+                        <View style={{ width: 40 }} />
+                        <Text style={styles.modalTitle}>
+                            {observacao.status === "APPROVED" ? "Aprovar Atividade" : "Reprovar Atividade"}
+                        </Text>
+                        <TouchableOpacity 
+                            onPress={() => {
+                                modalizeObservacaoRef.current?.close();
+                                setObservacao({ status: "", observation: "" });
+                            }} 
+                            style={styles.closeButton}
+                        >
+                            <AntDesign name="close" size={26} color="#43575F" />
+                        </TouchableOpacity>
+                    </View>
+                    <Text style={styles.modalSubtitle}>
+                        Insira uma observação sobre a {observacao.status === "APPROVED" ? "aprovação" : "reprovação"} da atividade (opcional)
+                    </Text>
+                    <View style={{ gap: 10 }}>
+                        <TextInput
+                            mode="outlined"
+                            label="Observação (Opcional)"
+                            multiline
+                            outlineColor="#707974"
+                            activeOutlineColor="#0B6780"
+                            value={observacao.observation}
+                            onChangeText={(text) => setObservacao(prev => ({ ...prev, observation: text }))}
+                            style={{ height: 120 }}
+                            numberOfLines={4}
+                            placeholder="Digite uma observação (opcional)..."
+                        />
+                    </View>
+                </View>
+                <View style={styles.fotosContainer}>
+                    <TouchableOpacity 
+                        style={[styles.sendButton, observacao.status === "REJECTED" ? styles.rejectButton : {}]} 
+                        onPress={handleFinalizeActivity}
+                    >
+                        <Text style={{ color: "#fff", fontSize: 16 }}>
+                            {observacao.status === "APPROVED" ? "APROVAR" : "REPROVAR"}
                         </Text>
                     </TouchableOpacity>
                 </View>
@@ -852,6 +919,10 @@ const styles = StyleSheet.create({
         borderColor: "#186B53",
         justifyContent: "center",
         backgroundColor: "#186B53"
+    },
+    rejectButton: {
+        borderColor: "#d32f2f",
+        backgroundColor: "#d32f2f"
     },
     modalContent: {
         backgroundColor: '#fff',

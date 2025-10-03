@@ -8,24 +8,15 @@ import { useGetUsuario } from '@/hooks/usuarios/get';
 import { useItemsStore } from '@/store/storeOcorrencias';
 import { IAtividade } from '@/types/IAtividade';
 import { AntDesign, Entypo, FontAwesome5, FontAwesome6, MaterialIcons } from '@expo/vector-icons';
-import { Picker } from '@react-native-picker/picker';
 import { useFocusEffect, useRouter } from 'expo-router';
 import moment from 'moment';
 import 'moment/locale/pt-br';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Animated, Image, ImageBackground, ScrollView, SectionList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Animated, Image, ImageBackground, Modal, ScrollView, SectionList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { DatePickerModal } from 'react-native-paper-dates';
 import { CalendarDate } from 'react-native-paper-dates/lib/typescript/Date/Calendar';
 import Calendario from '../../../components/calendario';
 import { StyledMainContainer } from '../../../styles/StyledComponents';
-
-interface PickerRef {
-  open: () => void;
-  close: () => void;
-  focus: () => void;
-  blur: () => void;
-  getValue: () => string;
-}
 
 interface GroupedData {
   id: string;
@@ -64,8 +55,8 @@ export default function Cronograma() {
   const { setitems } = useItemsStore();
   const [open, setOpen] = useState(false);
   const { data: supervisores } = useGetUsuario({})
-  const enviromentPickerRef = useRef<PickerRef>(null);
-  const supervisorPickerRef = useRef<PickerRef>(null);
+  const [openSupervisorModal, setOpenSupervisorModal] = useState(false);
+  const [openEnvironmentModal, setOpenEnvironmentModal] = useState(false);
   const [showCalendar, setShowCalendar] = useState(true);
   const { data: environment } = useGet({ url: "environment" });
   const animatedHeight = useRef(new Animated.Value(360)).current;
@@ -277,34 +268,6 @@ export default function Cronograma() {
         saveLabel="Confirmar"
       />
 
-      <Picker
-        style={{ display: "none" }}
-        ref={supervisorPickerRef as React.MutableRefObject<Picker<number> | null>}
-        selectedValue={filter.supervisor.id}
-        onValueChange={(itemValue, itemIndex) => {
-          setFilter((prevState) => ({ ...prevState, supervisor: { id: itemValue, label: supervisores?.[itemIndex]?.name } }));
-        }}
-      >
-        <Picker.Item label="Selecione um supervisor" value={0} />
-        {supervisores?.map((supervisor: { id: number; name: string }) => (
-          <Picker.Item key={supervisor.id} label={supervisor.name} value={supervisor.id} />
-        ))}
-      </Picker>
-
-      <Picker
-        style={{ display: "none" }}
-        ref={enviromentPickerRef as React.MutableRefObject<Picker<number> | null>}
-        selectedValue={filter.environment.id}
-        onValueChange={(itemValue, itemIndex) => {
-          setFilter((prevState) => ({ ...prevState, environment: { id: itemValue, label: environment?.[itemIndex]?.name } }));
-        }}
-      >
-        <Picker.Item label="Selecione um ambiente" value={0} />
-        {environment?.map((environment: { id: number; name: string }) => (
-          <Picker.Item key={environment.id} label={environment.name} value={environment.id} />
-        ))}
-      </Picker>
-
       <Animated.View style={{
         overflow: "hidden",
         height: animatedHeight,
@@ -350,12 +313,12 @@ export default function Cronograma() {
         >
           <View style={{ flexDirection: "column", gap: 10, }}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, height: 50, marginBottom: 10 }}>
-              <TouchableOpacity style={styles.filterButton} onPress={() => enviromentPickerRef.current?.focus()} >
+              <TouchableOpacity style={styles.filterButton} onPress={() => setOpenEnvironmentModal(true)} >
                 <FontAwesome6 name="location-dot" size={15} color="#43575F" />
                 <Text style={styles.filterButtonText}>{filter.environment.label ? filter.environment.label : "Ambiente"}</Text>
                 <AntDesign name="down" size={10} color="black" />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.filterButton} onPress={() => supervisorPickerRef.current?.focus()}>
+              <TouchableOpacity style={styles.filterButton} onPress={() => setOpenSupervisorModal(true)}>
                 <FontAwesome6 name="user-tie" size={15} color="#43575F" />
                 <Text style={styles.filterButtonText}>{filter.supervisor.label ? filter.supervisor.label : "Supervisor"}</Text>
                 <AntDesign name="down" size={10} color="black" />
@@ -453,6 +416,122 @@ export default function Cronograma() {
           </View>
         </ScrollView>
       </StyledMainContainer>
+
+      {/* Modal de Seleção de Ambiente */}
+      <Modal
+        visible={openEnvironmentModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setOpenEnvironmentModal(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setOpenEnvironmentModal(false)}
+        >
+          <TouchableOpacity 
+            activeOpacity={1} 
+            style={styles.modalContent}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Selecione o Ambiente</Text>
+              <TouchableOpacity onPress={() => setOpenEnvironmentModal(false)}>
+                <AntDesign name="close" size={24} color="#385866" />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.modalScrollView}>
+              <TouchableOpacity
+                style={[styles.modalOption, filter.environment.id === 0 && styles.modalOptionSelected]}
+                onPress={() => {
+                  setFilter((prevState) => ({ ...prevState, environment: { id: 0, label: "" } }));
+                  setOpenEnvironmentModal(false);
+                }}
+              >
+                <Text style={[styles.modalOptionText, filter.environment.id === 0 && styles.modalOptionTextSelected]}>
+                  Todos os ambientes
+                </Text>
+                {filter.environment.id === 0 && <AntDesign name="check" size={20} color="#186B53" />}
+              </TouchableOpacity>
+
+              {environment?.map((env: { id: number; name: string }) => (
+                <TouchableOpacity
+                  key={env.id}
+                  style={[styles.modalOption, filter.environment.id === env.id && styles.modalOptionSelected]}
+                  onPress={() => {
+                    setFilter((prevState) => ({ ...prevState, environment: { id: env.id, label: env.name } }));
+                    setOpenEnvironmentModal(false);
+                  }}
+                >
+                  <Text style={[styles.modalOptionText, filter.environment.id === env.id && styles.modalOptionTextSelected]} numberOfLines={2}>
+                    {env.name}
+                  </Text>
+                  {filter.environment.id === env.id && <AntDesign name="check" size={20} color="#186B53" />}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Modal de Seleção de Supervisor */}
+      <Modal
+        visible={openSupervisorModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setOpenSupervisorModal(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setOpenSupervisorModal(false)}
+        >
+          <TouchableOpacity 
+            activeOpacity={1} 
+            style={styles.modalContent}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Selecione o Supervisor</Text>
+              <TouchableOpacity onPress={() => setOpenSupervisorModal(false)}>
+                <AntDesign name="close" size={24} color="#385866" />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.modalScrollView}>
+              <TouchableOpacity
+                style={[styles.modalOption, filter.supervisor.id === 0 && styles.modalOptionSelected]}
+                onPress={() => {
+                  setFilter((prevState) => ({ ...prevState, supervisor: { id: 0, label: "" } }));
+                  setOpenSupervisorModal(false);
+                }}
+              >
+                <Text style={[styles.modalOptionText, filter.supervisor.id === 0 && styles.modalOptionTextSelected]}>
+                  Todos os supervisores
+                </Text>
+                {filter.supervisor.id === 0 && <AntDesign name="check" size={20} color="#186B53" />}
+              </TouchableOpacity>
+
+              {supervisores?.map((supervisor: { id: number; name: string }) => (
+                <TouchableOpacity
+                  key={supervisor.id}
+                  style={[styles.modalOption, filter.supervisor.id === supervisor.id && styles.modalOptionSelected]}
+                  onPress={() => {
+                    setFilter((prevState) => ({ ...prevState, supervisor: { id: supervisor.id, label: supervisor.name } }));
+                    setOpenSupervisorModal(false);
+                  }}
+                >
+                  <Text style={[styles.modalOptionText, filter.supervisor.id === supervisor.id && styles.modalOptionTextSelected]} numberOfLines={2}>
+                    {supervisor.name}
+                  </Text>
+                  {filter.supervisor.id === supervisor.id && <AntDesign name="check" size={20} color="#186B53" />}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
     </View>
   );
 }
@@ -673,5 +752,71 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 12,
     fontWeight: '500',
+  },
+  // Estilos dos Modais
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    padding: 20,
+    width: '100%',
+    maxWidth: 400,
+    maxHeight: '70%',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#385866',
+  },
+  modalScrollView: {
+    maxHeight: 400,
+  },
+  modalOption: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 15,
+    paddingHorizontal: 15,
+    borderRadius: 8,
+    marginBottom: 8,
+    backgroundColor: '#f5f5f5',
+  },
+  modalOptionSelected: {
+    backgroundColor: '#e8f5f1',
+    borderWidth: 1,
+    borderColor: '#186B53',
+  },
+  modalOptionText: {
+    fontSize: 16,
+    color: '#333',
+    flex: 1,
+    marginRight: 10,
+  },
+  modalOptionTextSelected: {
+    color: '#186B53',
+    fontWeight: '600',
   },
 });

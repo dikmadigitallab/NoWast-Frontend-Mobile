@@ -36,6 +36,7 @@ export interface IAtividade {
     id: number;
     approvalStatus: "PENDING" | "APPROVED" | "REJECTED" | "PENDING_JUSTIFIED" | "JUSTIFIED";
     dateTime: string;
+    dateTimeOriginal?: string;
     dimension: number;
     environment: string;
     manager: string;

@@ -25,7 +25,7 @@ export default function AprovacoStatus({ status, date }: AprovacoStatusProps) {
         >
             {isApproved ? (
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-                    <AntDesign name="checkcircle" size={20} color="#fff" />
+                    <AntDesign name="check-circle" size={20} color="#fff" />
                     <Text style={[styles.statusText, { color: "#fff", fontSize: 14 }]}>
                         Aprovado em {formattedDate}
                     </Text>

@@ -2,7 +2,7 @@ import { useGet } from "@/hooks/crud/get/get";
 import { StyledMainContainer } from "@/styles/StyledComponents";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Dimensions, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Dimensions, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import NfcManager, { Ndef, NfcTech } from 'react-native-nfc-manager';
 
 interface ContainerItem {
@@ -25,6 +25,10 @@ export default function Tag() {
     const [nfcSupported, setNfcSupported] = useState<boolean | null>(null);
     const { data: ambientes, loading, error } = useGet({ url: 'environment' });
     const [selectedContainer, setSelectedContainer] = useState<ContainerItem | null>(null);
+    const [errorModalVisible, setErrorModalVisible] = useState(false);
+    const [errorModalTitle, setErrorModalTitle] = useState('');
+    const [errorModalMessage, setErrorModalMessage] = useState('');
+    const [retryAttempt, setRetryAttempt] = useState(0);
 
     // Inicializar NFC
     useEffect(() => {
@@ -71,9 +75,15 @@ export default function Tag() {
         setExpandedId(expandedId === id ? null : id);
     };
 
+    const showErrorModal = (title: string, message: string) => {
+        setErrorModalTitle(title);
+        setErrorModalMessage(message);
+        setErrorModalVisible(true);
+    };
+
     const handleVincularTag = (container: ContainerItem) => {
         if (nfcSupported === false) {
-            Alert.alert(
+            showErrorModal(
                 'NFC não disponível',
                 nfcError || 'Seu dispositivo não suporta NFC ou está desativado.'
             );
@@ -81,7 +91,7 @@ export default function Tag() {
         }
 
         if (nfcSupported === null) {
-            Alert.alert('Aguarde', 'Verificando suporte NFC...');
+            showErrorModal('Aguarde', 'Verificando suporte NFC...');
             return;
         }
 
@@ -92,6 +102,7 @@ export default function Tag() {
 
     const startNfcWriting = async (container: ContainerItem) => {
         setIsWriting(true);
+        setRetryAttempt(0);
 
         try {
             // Normalizar o ambienteId para garantir consistência
@@ -104,8 +115,13 @@ export default function Tag() {
             console.log('Ambiente nome:', container.ambiente);
             console.log('===================');
 
-            // Solicitar tecnologia NDEF
-            await NfcManager.requestTechnology(NfcTech.Ndef);
+            // Solicitar tecnologia NDEF com timeout maior
+            await NfcManager.requestTechnology(NfcTech.Ndef, {
+                alertMessage: 'Mantenha a tag próxima ao dispositivo',
+            });
+
+            // Aguardar um pequeno delay para estabilizar a conexão
+            await new Promise(resolve => setTimeout(resolve, 300));
 
             // Obter informações da tag
             const tag = await NfcManager.getTag();
@@ -131,7 +147,7 @@ export default function Tag() {
             const techTypes = tag?.techTypes || [];
             const isNdefFormatable = techTypes.includes('android.nfc.tech.NdefFormatable');
             
-            if (isNdefFormatable) {
+                if (isNdefFormatable) {
                 console.log('⚠️ Tag não formatada, formatando como NDEF...');
                 
                 try {
@@ -143,7 +159,7 @@ export default function Tag() {
                     await (NfcManager as any).ndefFormatableHandlerAndroid.formatNdefAndMakeReadOnly(bytes);
                     
                     console.log('✅ Tag formatada e gravada com sucesso!');
-                    Alert.alert('Sucesso', `Tag formatada e vinculada ao ambiente ${container.ambiente} (ID: ${normalizedAmbienteId}) com sucesso!`);
+                    showErrorModal('Sucesso', `Tag formatada e vinculada ao ambiente ${container.ambiente} (ID: ${normalizedAmbienteId}) com sucesso!`);
                     return;
                 } catch (formatError: any) {
                     console.error('Erro ao formatar tag:', formatError);
@@ -155,7 +171,7 @@ export default function Tag() {
                         await (NfcManager as any).ndefFormatableHandlerAndroid.formatNdef(bytes);
                         
                         console.log('✅ Tag formatada e gravada com sucesso (método alternativo)!');
-                        Alert.alert('Sucesso', `Tag formatada e vinculada ao ambiente ${container.ambiente} (ID: ${normalizedAmbienteId}) com sucesso!`);
+                        showErrorModal('Sucesso', `Tag formatada e vinculada ao ambiente ${container.ambiente} (ID: ${normalizedAmbienteId}) com sucesso!`);
                         return;
                     } catch (altFormatError: any) {
                         console.error('Erro no método alternativo de formatação:', altFormatError);
@@ -165,57 +181,101 @@ export default function Tag() {
             }
 
             // Tentar gravar usando o método padrão (tag já formatada)
-            try {
-                await NfcManager.ndefHandler.writeNdefMessage(bytes);
-                console.log('✅ Tag NFC gravada com sucesso!');
-                Alert.alert('Sucesso', `Tag vinculada ao ambiente ${container.ambiente} (ID: ${normalizedAmbienteId}) com sucesso!`);
-            } catch (writeError: any) {
-                console.error('Erro no método de gravação padrão:', writeError);
-                
-                // Se o método padrão falhar, tentar método alternativo
-                if (writeError?.message?.includes('unsupported')) {
-                    console.log('Tentando método alternativo de gravação...');
+            // Implementar retry logic para java.io.IOException
+            let writeSuccess = false;
+            let lastWriteError: any = null;
+            const maxRetries = 3;
+
+            for (let attempt = 1; attempt <= maxRetries && !writeSuccess; attempt++) {
+                try {
+                    console.log(`Tentativa de gravação ${attempt}/${maxRetries}...`);
+                    setRetryAttempt(attempt);
                     
-                    // Método alternativo usando NfcA
-                    try {
-                        await NfcManager.cancelTechnologyRequest();
-                        await NfcManager.requestTechnology([NfcTech.NfcA, NfcTech.Ndef]);
-                        await NfcManager.ndefHandler.writeNdefMessage(bytes);
-                        console.log('✅ Tag NFC gravada com sucesso (método alternativo)!');
-                        Alert.alert('Sucesso', `Tag vinculada ao ambiente ${container.ambiente} (ID: ${normalizedAmbienteId}) com sucesso!`);
-                    } catch (altError: any) {
-                        console.error('Erro no método alternativo:', altError);
-                        throw new Error(`Tag não suporta gravação NDEF. Tipo de tag: ${tag?.techTypes?.join(', ') || 'desconhecido'}`);
+                    // Aguardar um pequeno delay entre tentativas
+                    if (attempt > 1) {
+                        await new Promise(resolve => setTimeout(resolve, 500));
                     }
-                } else {
-                    throw writeError;
+                    
+                    await NfcManager.ndefHandler.writeNdefMessage(bytes);
+                    console.log('✅ Tag NFC gravada com sucesso!');
+                    showErrorModal('Sucesso', `Tag vinculada ao ambiente ${container.ambiente} (ID: ${normalizedAmbienteId}) com sucesso!`);
+                    writeSuccess = true;
+                } catch (writeError: any) {
+                    lastWriteError = writeError;
+                    console.error(`Erro na tentativa ${attempt}:`, writeError);
+                    
+                    // Verificar se foi cancelado pelo usuário
+                    if (writeError?.message?.includes('cancelled') || writeError?.message?.includes('canceled')) {
+                        console.log('Gravação NFC cancelada pelo usuário');
+                        throw writeError; // Lançar imediatamente para não tentar novamente
+                    }
+                    
+                    // Se for IOException e ainda há tentativas, continuar
+                    if (writeError?.message?.includes('IOException') && attempt < maxRetries) {
+                        console.log('IOException detectado (má conexão), tentando novamente...');
+                        continue;
+                    }
+                    
+                    // Se o método padrão falhar após todas as tentativas, tentar método alternativo
+                    if (attempt === maxRetries) {
+                        if (writeError?.message?.includes('unsupported')) {
+                            console.log('Tentando método alternativo de gravação...');
+                            
+                            // Método alternativo usando NfcA
+                            try {
+                                await NfcManager.cancelTechnologyRequest();
+                                await NfcManager.requestTechnology([NfcTech.NfcA, NfcTech.Ndef]);
+                                await new Promise(resolve => setTimeout(resolve, 300));
+                                await NfcManager.ndefHandler.writeNdefMessage(bytes);
+                                console.log('✅ Tag NFC gravada com sucesso (método alternativo)!');
+                                showErrorModal('Sucesso', `Tag vinculada ao ambiente ${container.ambiente} (ID: ${normalizedAmbienteId}) com sucesso!`);
+                                writeSuccess = true;
+                            } catch (altError: any) {
+                                console.error('Erro no método alternativo:', altError);
+                                throw new Error(`Tag não suporta gravação NDEF. Tipo de tag: ${tag?.techTypes?.join(', ') || 'desconhecido'}`);
+                            }
+                        } else {
+                            // Se não é erro de unsupported, lançar o erro
+                            throw writeError;
+                        }
+                    }
                 }
+            }
+
+            // Se não conseguiu gravar após todas as tentativas
+            if (!writeSuccess && lastWriteError) {
+                throw lastWriteError;
             }
         } catch (error: any) {
             console.error('Erro ao escrever na tag:', error);
 
             // Tratamento de erros mais específico
             if (error?.message?.includes('timeout')) {
-                Alert.alert('Timeout', 'Aproxime a tag novamente e tente mais uma vez.');
+                showErrorModal('Timeout', 'Aproxime a tag novamente e tente mais uma vez.');
             } else if (error?.message?.includes('cancelled')) {
-                // Usuário cancelou, não mostrar alerta
+                // Usuário cancelou, não mostrar modal
                 console.log('Gravação NFC cancelada pelo usuário');
+            } else if (error?.message?.includes('IOException')) {
+                showErrorModal(
+                    'Erro de comunicação',
+                    'Falha na comunicação com a tag NFC. Mantenha a tag estável próxima ao dispositivo e tente novamente.'
+                );
             } else if (error?.message?.includes('unsupported') || error?.message?.includes('não suporta')) {
-                Alert.alert(
+                showErrorModal(
                     'Tag incompatível', 
-                    'Esta tag NFC não suporta gravação NDEF. Use uma tag compatível (NFC Forum Type 2, 4 ou 5).',
-                    [{ text: 'OK' }]
+                    'Esta tag NFC não suporta gravação NDEF. Use uma tag compatível (NFC Forum Type 2, 4 ou 5).'
                 );
             } else if (error?.message?.includes('read-only') || error?.message?.includes('protegida')) {
-                Alert.alert('Erro', 'Esta tag está protegida contra escrita.');
+                showErrorModal('Erro', 'Esta tag está protegida contra escrita.');
             } else if (error?.message?.includes('Nenhuma tag')) {
-                Alert.alert('Erro', 'Nenhuma tag foi detectada. Aproxime a tag do dispositivo.');
+                showErrorModal('Erro', 'Nenhuma tag foi detectada. Aproxime a tag do dispositivo.');
             } else {
-                Alert.alert('Erro', `Não foi possível gravar na tag: ${error?.message || 'Erro desconhecido'}`);
+                showErrorModal('Erro', `Não foi possível gravar na tag: ${error?.message || 'Erro desconhecido'}`);
             }
         } finally {
             setIsWriting(false);
             setModalVisible(false);
+            setRetryAttempt(0);
             try {
                 await NfcManager.cancelTechnologyRequest();
             } catch (cancelError) {
@@ -225,6 +285,7 @@ export default function Tag() {
     };
 
     const cancelNfcWriting = async () => {
+        console.log('Usuário clicou em cancelar');
         try {
             await NfcManager.cancelTechnologyRequest();
         } catch (error) {
@@ -232,6 +293,7 @@ export default function Tag() {
         } finally {
             setIsWriting(false);
             setModalVisible(false);
+            setRetryAttempt(0);
         }
     };
 
@@ -352,13 +414,19 @@ export default function Tag() {
                         {isWriting ? (
                             <>
                                 <ActivityIndicator size="large" color="#186b53" style={styles.modalSpinner} />
-                                <Text style={styles.modalTitle}>Gravando na tag...</Text>
-                                <Text style={styles.modalInstruction}>Mantenha a tag próxima ao dispositivo.</Text>
+                                <Text style={styles.modalTitle}>
+                                    {retryAttempt > 1 ? `Tentando novamente (${retryAttempt}/3)...` : 'Gravando na tag...'}
+                                </Text>
+                                <Text style={styles.modalInstruction}>Mantenha a tag próxima e ESTÁVEL ao dispositivo até concluir.</Text>
+                                {retryAttempt > 1 && (
+                                    <Text style={styles.modalRetryInfo}>Detectado má conexão, reposicione a tag</Text>
+                                )}
+                                <Text style={styles.modalWarning}>⚠️ Não mova a tag durante a gravação</Text>
                             </>
                         ) : (
                             <>
                                 <Text style={styles.modalTitle}>Aproxime a tag NFC</Text>
-                                <Text style={styles.modalInstruction}>Mantenha a tag próxima ao dispositivo para vincular ao ambiente.</Text>
+                                <Text style={styles.modalInstruction}>Mantenha a tag próxima e estável ao dispositivo para vincular ao ambiente.</Text>
                             </>
                         )}
 
@@ -368,6 +436,32 @@ export default function Tag() {
                             disabled={isWriting}
                         >
                             <Text style={styles.modalCloseButtonText}>Cancelar</Text>
+                        </TouchableOpacity>
+                    </View>
+                </TouchableOpacity>
+            </Modal>
+
+            <Modal animationType="fade" transparent={true} visible={errorModalVisible} onRequestClose={() => setErrorModalVisible(false)}>
+                <TouchableOpacity
+                    style={styles.modalOverlay}
+                    activeOpacity={1}
+                    onPressOut={() => setErrorModalVisible(false)}
+                >
+                    <View style={styles.modalContainer}>
+                        <MaterialCommunityIcons
+                            name={errorModalTitle === 'Sucesso' ? "check-circle" : "alert-circle"}
+                            size={50}
+                            color={errorModalTitle === 'Sucesso' ? "#186b53" : "#FF3B30"}
+                        />
+                        <Text style={[styles.modalTitle, errorModalTitle === 'Sucesso' ? styles.successTitle : styles.errorTitle]}>
+                            {errorModalTitle}
+                        </Text>
+                        <Text style={styles.modalInstruction}>{errorModalMessage}</Text>
+                        <TouchableOpacity
+                            style={[styles.modalCloseButton, errorModalTitle === 'Sucesso' && styles.successButton]}
+                            onPress={() => setErrorModalVisible(false)}
+                        >
+                            <Text style={styles.modalCloseButtonText}>Fechar</Text>
                         </TouchableOpacity>
                     </View>
                 </TouchableOpacity>
@@ -474,9 +568,23 @@ const styles = StyleSheet.create({
     },
     modalInstruction: {
         fontSize: 14,
-        marginBottom: 24,
+        marginBottom: 12,
         color: '#43575f',
         textAlign: 'center',
+    },
+    modalWarning: {
+        fontSize: 12,
+        marginBottom: 24,
+        color: '#FF9500',
+        textAlign: 'center',
+        fontWeight: 'bold',
+    },
+    modalRetryInfo: {
+        fontSize: 13,
+        marginBottom: 8,
+        color: '#186b53',
+        textAlign: 'center',
+        fontStyle: 'italic',
     },
     modalSpinner: {
         marginVertical: 10,
@@ -530,5 +638,14 @@ const styles = StyleSheet.create({
     emptyText: {
         fontSize: 16,
         color: '#666',
+    },
+    successTitle: {
+        color: '#186b53',
+    },
+    errorTitle: {
+        color: '#FF3B30',
+    },
+    successButton: {
+        borderColor: '#186b53',
     },
 });
