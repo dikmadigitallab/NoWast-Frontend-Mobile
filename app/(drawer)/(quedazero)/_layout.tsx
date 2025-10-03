@@ -4,7 +4,7 @@ import { customTheme } from '@/config/inputsTheme';
 import { useFocusEffect } from '@react-navigation/native';
 import { RelativePathString, Tabs, usePathname, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef } from 'react';
-import { BackHandler } from 'react-native';
+import { BackHandler, Platform } from 'react-native';
 import { PaperProvider } from 'react-native-paper';
 
 export default function TabLayout() {
@@ -63,7 +63,7 @@ export default function TabLayout() {
                         elevation: 0,
                         shadowColor: 'transparent',
                         backgroundColor: 'transparent',
-                        height: 60,
+                        height: Platform.OS === 'web' ? 60 : 80,
                         borderBottomWidth: 0,
                     },
                     headerTitleContainerStyle: {
@@ -72,11 +72,10 @@ export default function TabLayout() {
                         left: 0,
                         right: 0,
                     },
-                    headerStatusBarHeight: 0,
                 }}
             >
                 <Tabs.Screen name="index" />
-                <Tabs.Screen name="main" />
+                <Tabs.Screen name="listagem" />
                 <Tabs.Screen name="detalharOcorrencia" />
                 <Tabs.Screen name="detalharAtividade" />
                 <Tabs.Screen options={{ headerShown: false }} name="checklist" />

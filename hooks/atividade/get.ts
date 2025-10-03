@@ -24,9 +24,10 @@ export interface UseGetParams {
     type: string;
     pagination?: boolean | null
     statusEnum?: string | null
+    approvalStatus?: string | null
 }
 
-export const useGetActivity = ({ pagination = null, type, page = 1, pageSize = 1, query = null, supervisorId = null, positionId = null, managerId = null, responsibleManagerId = null, buildingId = null, environmentId = null, dateTimeFrom = null, startDate = null, endDate = null, statusEnum = null }: UseGetParams) => {
+export const useGetActivity = ({ pagination = null, type, page = 1, pageSize = 1, query = null, supervisorId = null, positionId = null, managerId = null, responsibleManagerId = null, buildingId = null, environmentId = null, dateTimeFrom = null, startDate = null, endDate = null, statusEnum = null, approvalStatus = null }: UseGetParams) => {
 
     const { logout } = useAuth();
     const [loading, setLoading] = useState<boolean>(false);
@@ -70,6 +71,7 @@ export const useGetActivity = ({ pagination = null, type, page = 1, pageSize = 1
         if (effectiveStartDate !== null) params.append("startDate", effectiveStartDate);
         if (effectiveEndDate !== null) params.append("endDate", effectiveEndDate);
         if (statusEnum !== null) params.append("statusEnum", String(statusEnum).trim());
+        if (approvalStatus !== null) params.append("approvalStatus", String(approvalStatus).trim());
 
         const paramUrl = type === "Atividade" ? `/activity?${params.toString()}` : `/occurrence?${params.toString()}`;
 
@@ -166,7 +168,7 @@ export const useGetActivity = ({ pagination = null, type, page = 1, pageSize = 1
             setData(refactory);
             setLoading(false);
         }
-    }, [type, logout, page, pageSize, query, supervisorId, positionId, managerId, responsibleManagerId, buildingId, environmentId, dateTimeFrom, startDate, endDate]);
+    }, [type, logout, page, pageSize, query, supervisorId, positionId, managerId, responsibleManagerId, buildingId, environmentId, dateTimeFrom, startDate, endDate, statusEnum, approvalStatus]);
 
     const refetch = useCallback(() => {
         get();

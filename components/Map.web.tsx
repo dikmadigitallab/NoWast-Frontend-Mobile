@@ -1,6 +1,52 @@
 import React, { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { ImageSourcePropType, StyleProp, ViewStyle } from "react-native";
 
+// Declarações de tipos para Google Maps API
+declare global {
+  interface Window {
+    google: typeof google;
+  }
+}
+
+declare namespace google {
+  namespace maps {
+    class Map {
+      constructor(element: HTMLElement, options: MapOptions);
+      setCenter(latLng: LatLng | LatLngLiteral): void;
+      setZoom(zoom: number): void;
+    }
+    
+    class Marker {
+      constructor(options: MarkerOptions);
+      setMap(map: Map | null): void;
+      setPosition(latLng: LatLng | LatLngLiteral): void;
+      addListener(eventName: string, handler: () => void): void;
+    }
+    
+    interface MapOptions {
+      center: LatLng | LatLngLiteral;
+      zoom: number;
+      disableDefaultUI?: boolean;
+    }
+    
+    interface MarkerOptions {
+      position: LatLng | LatLngLiteral;
+      map: Map;
+      icon?: string;
+    }
+    
+    interface LatLng {
+      lat(): number;
+      lng(): number;
+    }
+    
+    interface LatLngLiteral {
+      lat: number;
+      lng: number;
+    }
+  }
+}
+
 export type LatLng = { latitude: number; longitude: number };
 export type Region = { latitude: number; longitude: number; latitudeDelta: number; longitudeDelta: number };
 
@@ -39,11 +85,11 @@ const Map = forwardRef<MapHandle, MapProps>(({ style, initialRegion, marker, mar
   useEffect(() => {
     if (!containerRef.current) return;
     // Safeguard if google is not available
-    // @ts-ignore
-    if (typeof google === "undefined" || !google.maps) {
+    if (typeof window === "undefined" || typeof window.google === "undefined" || !window.google?.maps) {
+      console.warn("Google Maps API não está disponível");
       return;
     }
-    const map = new google.maps.Map(containerRef.current, {
+    const map = new window.google.maps.Map(containerRef.current, {
       center: { lat: initialRegion.latitude, lng: initialRegion.longitude },
       zoom: regionToZoom(initialRegion.latitudeDelta),
       disableDefaultUI: true,
@@ -51,7 +97,7 @@ const Map = forwardRef<MapHandle, MapProps>(({ style, initialRegion, marker, mar
     mapRef.current = map;
 
     if (marker) {
-      markerRef.current = new google.maps.Marker({
+      markerRef.current = new window.google.maps.Marker({
         position: { lat: marker.latitude, lng: marker.longitude },
         map,
       });
@@ -73,7 +119,7 @@ const Map = forwardRef<MapHandle, MapProps>(({ style, initialRegion, marker, mar
       return;
     }
     if (!markerRef.current) {
-      markerRef.current = new google.maps.Marker({
+      markerRef.current = new window.google.maps.Marker({
         position: { lat: marker.latitude, lng: marker.longitude },
         map: mapRef.current,
       });
@@ -88,7 +134,7 @@ const Map = forwardRef<MapHandle, MapProps>(({ style, initialRegion, marker, mar
     multiMarkersRef.current.forEach(m => m.setMap(null));
     multiMarkersRef.current = [];
     markers?.forEach(m => {
-      const mk = new google.maps.Marker({
+      const mk = new window.google.maps.Marker({
         position: { lat: m.position.latitude, lng: m.position.longitude },
         map: mapRef.current!,
         // icon mapping could be added here if needed

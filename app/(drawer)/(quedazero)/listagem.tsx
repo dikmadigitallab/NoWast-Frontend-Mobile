@@ -1,50 +1,71 @@
 import AprovacoStatus from "@/components/aprovacaoStatus";
 import LoadingScreen from "@/components/carregamento";
+import SeletorPeriodo from "@/components/seletorPeriodo";
 import StatusIndicator from "@/components/StatusIndicator";
 import { useGetActivity } from "@/hooks/atividade/get";
 import { AntDesign, FontAwesome, Ionicons, MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
-import { Picker } from "@react-native-picker/picker";
 import { useFocusEffect, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { FlatList, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useCallback, useEffect, useState } from "react";
+import { FlatList, Image, Modal, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { ProgressBar } from "react-native-paper";
-import { DatePickerModal } from "react-native-paper-dates";
-import { CalendarDate } from "react-native-paper-dates/lib/typescript/Date/Calendar";
 import { useAuth } from "../../../contexts/authProvider";
 import { useItemsStore } from "../../../store/storeOcorrencias";
 import { StyledMainContainer } from "../../../styles/StyledComponents";
-
-interface PickerRef {
-    open: () => void;
-    close: () => void;
-    focus: () => void;
-    blur: () => void;
-    getValue: () => string;
-}
 
 export default function Mainpage() {
 
     const router = useRouter();
     const { user } = useAuth();
+
+    console.log(user);
+
     const { setitems } = useItemsStore();
     const [pageSize, setPageSize] = useState(20);
     const [type, setType] = useState("Atividade");
-    const [openDate, setOpenDate] = useState(false);
+    const [openTypeModal, setOpenTypeModal] = useState(false);
+    const [openDateModal, setOpenDateModal] = useState(false);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
-    const [date, setDate] = useState<Date | undefined>(undefined);
+    const [selectedMonth, setSelectedMonth] = useState<number | undefined>(undefined);
+    const [selectedYear, setSelectedYear] = useState<number | undefined>(undefined);
     const [activeFilters, setActiveFilters] = useState<Array<{ type: 'date' | 'activityType'; label: string; value: any; onRemove: () => void; }>>([]);
-    const { data, refetch } = useGetActivity({ type: type, pagination: false, pageSize: pageSize, dateTimeFrom: date ? date.toISOString().split('T')[0] : null });
+
+    // Calcular startDate e endDate baseado no mês/ano selecionado
+    const getDateRange = () => {
+        if (selectedMonth === undefined || selectedYear === undefined) {
+            return { startDate: null, endDate: null };
+        }
+
+        const startDate = new Date(selectedYear, selectedMonth - 1, 1);
+        const endDate = new Date(selectedYear, selectedMonth, 0);
+
+        return {
+            startDate: startDate.toISOString().split('T')[0],
+            endDate: endDate.toISOString().split('T')[0]
+        };
+    };
+
+    const { startDate, endDate } = getDateRange();
+    
+    // Só passa startDate e endDate se ambos estiverem definidos
+    const { data, refetch } = useGetActivity({ 
+        type: type, 
+        pagination: false, 
+        pageSize: pageSize, 
+        startDate: (startDate && endDate) ? startDate : null, 
+        endDate: (startDate && endDate) ? endDate : null,
+        //approvalStatus: user?.userType === "OPERATIONAL" ? "APPROVED" : null
+    });
 
     // Sincroniza os filtros ativos
     useEffect(() => {
         const newActiveFilters = [];
 
-        if (date) {
+        if (selectedMonth !== undefined && selectedYear !== undefined) {
             newActiveFilters.push({
                 type: 'date',
-                label: `Data: ${date.toLocaleDateString('pt-BR')}`,
-                value: date,
-                onRemove: () => setDate(undefined)
+                label: `Período: ${monthNames[selectedMonth - 1]}/${selectedYear}`,
+                value: { month: selectedMonth, year: selectedYear },
+                onRemove: handleClearPeriod
             });
         }
 
@@ -58,7 +79,7 @@ export default function Mainpage() {
         }
 
         setActiveFilters(newActiveFilters as { type: "date" | "activityType"; label: string; value: any; onRemove: () => void; }[]);
-    }, [date, type]);
+    }, [selectedMonth, selectedYear, type]);
 
     const loadMoreItems = async () => {
         if (isLoadingMore) return;
@@ -73,32 +94,29 @@ export default function Mainpage() {
             if (refetch) {
                 refetch();
             }
-        }, [refetch, type])
+        }, [refetch])
     );
-
-    const onDismissSingle = useCallback(() => {
-        setOpenDate(false);
-    }, [setOpenDate]);
-
-    const onConfirmSingle = useCallback(
-        (params: { date: CalendarDate }) => {
-            setOpenDate(false);
-            setDate(params.date || undefined);
-        },
-        [setOpenDate, setDate]
-    );
-
-    const pickerRef = useRef<PickerRef>(null);
-
-    function open() {
-        pickerRef.current?.focus();
-    }
 
     // Função para limpar todos os filtros
     const clearFilters = () => {
-        setDate(undefined);
+        setSelectedMonth(undefined);
+        setSelectedYear(undefined);
         setType("Atividade");
     };
+
+    // Handler para limpar período no componente
+    const handleClearPeriod = () => {
+        setSelectedMonth(undefined);
+        setSelectedYear(undefined);
+    };
+
+    // Handler para confirmar período
+    const handleConfirmPeriod = () => {
+        setOpenDateModal(false);
+    };
+
+    // Meses para exibição nos filtros ativos
+    const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
     const onSelected = (data: any, rota: string) => {
         setitems(data);
@@ -147,35 +165,8 @@ export default function Mainpage() {
         return (<LoadingScreen />)
     }
 
-    if (data.length === 0) {
-        return (
-            <StyledMainContainer>
-                <View style={styles.emptyContainer}>
-                    <Image
-                        style={{ width: 130, height: 130, marginBottom: -20 }}
-                        source={require("../../../assets/images/adaptive-icon.png")}
-                    />
-                    <Text style={styles.emptyTitle}>Nenhum dado encontrado</Text>
-                    <Text style={styles.emptySubtitle}>
-                        {user?.userType === "ADM_DIKMA"
-                            ? "Não há atividades ou ocorrências cadastradas"
-                            : "Você ainda não criou nenhuma ocorrência"
-                        }
-                    </Text>
-
-                    {user?.userType !== "ADM_DIKMA" && (
-                        <TouchableOpacity
-                            onPress={() => router.push('criarOcorrencia' as never)}
-                            style={styles.emptyButton}
-                        >
-                            <AntDesign name="plus" size={20} color="#fff" />
-                            <Text style={styles.emptyButtonText}>Criar Primeira Ocorrência</Text>
-                        </TouchableOpacity>
-                    )}
-                </View>
-            </StyledMainContainer>
-        );
-    }
+    const hasActiveFilters = activeFilters.length > 0;
+    const isEmpty = data.length === 0;
 
     // função para renderizar os itens da lista
     const renderAtividadeItem = ({ item }: { item: any }) => {
@@ -336,20 +327,20 @@ export default function Mainpage() {
                     >
                         <TouchableOpacity
                             style={styles.filterButton}
-                            onPress={() => setOpenDate(true)}
+                            onPress={() => setOpenDateModal(true)}
                         >
                             <MaterialCommunityIcons name="calendar" size={24} color="black" />
-                            <Text>Data</Text>
-                            <AntDesign name="caretdown" size={10} color="black" />
+                            <Text>Período</Text>
+                            <AntDesign name="down" size={10} color="black" />
                         </TouchableOpacity>
                         <TouchableOpacity
-                            onPress={() => open()}
+                            onPress={() => setOpenTypeModal(true)}
                             style={styles.filterButton}
                         >
                             <Text>
                                 {type === "Atividade" ? "Atividades" : "Ocorrências"}
                             </Text>
-                            <AntDesign name="caretdown" size={10} color="black" />
+                            <AntDesign name="down" size={10} color="black" />
                         </TouchableOpacity>
                     </ScrollView>
                 </View>
@@ -357,6 +348,41 @@ export default function Mainpage() {
                 {/* Lista de filtros ativos */}
                 {renderActiveFilters()}
 
+                {isEmpty ? (
+                    <View style={styles.emptyContainer}>
+                        <Image
+                            style={{ width: 130, height: 130, marginBottom: -20 }}
+                            source={require("../../../assets/images/adaptive-icon.png")}
+                        />
+                        <Text style={styles.emptyTitle}>Nenhum dado encontrado</Text>
+                        <Text style={styles.emptySubtitle}>
+                            {hasActiveFilters
+                                ? "Nenhum resultado encontrado com os filtros selecionados"
+                                : user?.userType === "ADM_DIKMA"
+                                    ? "Não há atividades ou ocorrências cadastradas"
+                                    : "Você ainda não criou nenhuma ocorrência"
+                            }
+                        </Text>
+
+                        {hasActiveFilters ? (
+                            <TouchableOpacity
+                                onPress={clearFilters}
+                                style={[styles.emptyButton, { backgroundColor: '#E74C3C' }]}
+                            >
+                                <MaterialIcons name="clear" size={20} color="#fff" />
+                                <Text style={styles.emptyButtonText}>Limpar Filtros</Text>
+                            </TouchableOpacity>
+                        ) : user?.userType !== "ADM_DIKMA" ? (
+                            <TouchableOpacity
+                                onPress={() => router.push('criarOcorrencia' as never)}
+                                style={styles.emptyButton}
+                            >
+                                <AntDesign name="plus" size={20} color="#fff" />
+                                <Text style={styles.emptyButtonText}>Criar Primeira Ocorrência</Text>
+                            </TouchableOpacity>
+                        ) : null}
+                    </View>
+                ) : (
                 <FlatList
                     data={data || []}
                     showsVerticalScrollIndicator={false}
@@ -370,27 +396,65 @@ export default function Mainpage() {
                     }}
                     renderItem={type === "Atividade" ? renderAtividadeItem : renderOcurrenceItem}
                 />
+                )}
 
-                <Picker
-                    style={{ display: "none" }}
-                    ref={pickerRef as React.MutableRefObject<Picker<string> | null>}
-                    selectedValue={type}
-                    onValueChange={setType}
+                {/* Modal de Seleção de Tipo */}
+                <Modal
+                    visible={openTypeModal}
+                    transparent={true}
+                    animationType="fade"
+                    onRequestClose={() => setOpenTypeModal(false)}
                 >
-                    <Picker.Item label="Atividades" value="Atividade" />
-                    <Picker.Item label="Ocorrências" value="Ocorrencia" />
-                </Picker>
+                    <TouchableOpacity 
+                        style={styles.modalOverlay}
+                        activeOpacity={1}
+                        onPress={() => setOpenTypeModal(false)}
+                    >
+                        <View style={styles.modalContent}>
+                            <View style={styles.modalHeader}>
+                                <Text style={styles.modalTitle}>Selecione o Tipo</Text>
+                                <TouchableOpacity onPress={() => setOpenTypeModal(false)}>
+                                    <AntDesign name="close" size={24} color="#385866" />
+                                </TouchableOpacity>
+                            </View>
+                            <TouchableOpacity
+                                style={[styles.modalOption, type === "Atividade" && styles.modalOptionSelected]}
+                                onPress={() => {
+                                    setType("Atividade");
+                                    setOpenTypeModal(false);
+                                }}
+                            >
+                                <Text style={[styles.modalOptionText, type === "Atividade" && styles.modalOptionTextSelected]}>
+                                    Atividades
+                                </Text>
+                                {type === "Atividade" && <AntDesign name="check" size={20} color="#186B53" />}
+                            </TouchableOpacity>
+                            <TouchableOpacity
+                                style={[styles.modalOption, type === "Ocorrencia" && styles.modalOptionSelected]}
+                                onPress={() => {
+                                    setType("Ocorrencia");
+                                    setOpenTypeModal(false);
+                                }}
+                            >
+                                <Text style={[styles.modalOptionText, type === "Ocorrencia" && styles.modalOptionTextSelected]}>
+                                    Ocorrências
+                                </Text>
+                                {type === "Ocorrencia" && <AntDesign name="check" size={20} color="#186B53" />}
+                            </TouchableOpacity>
+                        </View>
+                    </TouchableOpacity>
+                </Modal>
 
-                <DatePickerModal
-                    locale="pt-BR"
-                    mode="single"
-                    visible={openDate}
-                    onDismiss={onDismissSingle}
-                    date={date}
-                    onConfirm={onConfirmSingle}
-                    presentationStyle="pageSheet"
-                    label="Selecione uma data"
-                    saveLabel="Confirmar"
+                {/* Componente Seletor de Período */}
+                <SeletorPeriodo
+                    visible={openDateModal}
+                    onClose={() => setOpenDateModal(false)}
+                    selectedMonth={selectedMonth}
+                    selectedYear={selectedYear}
+                    onMonthChange={setSelectedMonth}
+                    onYearChange={setSelectedYear}
+                    onClear={handleClearPeriod}
+                    onConfirm={handleConfirmPeriod}
                 />
 
                 {user?.userType !== "ADM_DIKMA" && (
@@ -594,5 +658,88 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 12,
         fontWeight: '500',
+    },
+    // Estilos dos Modais
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 20,
+    },
+    modalContent: {
+        backgroundColor: '#fff',
+        borderRadius: 15,
+        padding: 20,
+        width: '100%',
+        maxWidth: 400,
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 20,
+        paddingBottom: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: '#e0e0e0',
+    },
+    modalTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#385866',
+    },
+    modalOption: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        paddingVertical: 15,
+        paddingHorizontal: 15,
+        borderRadius: 8,
+        marginBottom: 8,
+        backgroundColor: '#f5f5f5',
+    },
+    modalOptionSelected: {
+        backgroundColor: '#e8f5f1',
+        borderWidth: 1,
+        borderColor: '#186B53',
+    },
+    modalOptionText: {
+        fontSize: 16,
+        color: '#333',
+    },
+    modalOptionTextSelected: {
+        color: '#186B53',
+        fontWeight: '600',
+    },
+    sectionLabel: {
+        fontSize: 14,
+        fontWeight: '600',
+        color: '#385866',
+        marginTop: 15,
+        marginBottom: 10,
+    },
+    scrollSection: {
+        maxHeight: 150,
+        marginBottom: 10,
+    },
+    confirmButton: {
+        backgroundColor: '#186B53',
+        paddingVertical: 14,
+        borderRadius: 10,
+        alignItems: 'center',
+        marginTop: 15,
+    },
+    confirmButtonText: {
+        color: '#fff',
+        fontSize: 16,
+        fontWeight: '600',
     },
 });

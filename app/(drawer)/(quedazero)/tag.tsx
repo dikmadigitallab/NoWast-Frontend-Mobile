@@ -94,28 +94,124 @@ export default function Tag() {
         setIsWriting(true);
 
         try {
+            // Normalizar o ambienteId para garantir consistência
+            const normalizedAmbienteId = String(container.ambienteId).trim();
+            
+            // Log para debug
+            console.log('=== GRAVAÇÃO NFC ===');
+            console.log('Ambiente ID original:', container.ambienteId);
+            console.log('Ambiente ID normalizado:', normalizedAmbienteId);
+            console.log('Ambiente nome:', container.ambiente);
+            console.log('===================');
+
+            // Solicitar tecnologia NDEF
             await NfcManager.requestTechnology(NfcTech.Ndef);
+
+            // Obter informações da tag
+            const tag = await NfcManager.getTag();
+            console.log('Tag detectada:', tag);
+
+            // Verificar se a tag suporta NDEF
+            if (!tag) {
+                throw new Error('Nenhuma tag foi detectada');
+            }
 
             // Criar mensagem NDEF com o ID do ambiente
             const bytes = Ndef.encodeMessage([
-                Ndef.textRecord(container.ambienteId.toString(), 'en', {
-                    id: Array.from({ length: 8 }, () => Math.floor(Math.random() * 256)),
-                }),
+                Ndef.textRecord(normalizedAmbienteId, 'pt-BR'),
             ]);
 
-            if (bytes) {
+            if (!bytes) {
+                throw new Error('Falha ao criar mensagem NDEF');
+            }
+
+            console.log('Mensagem NDEF criada, iniciando gravação...');
+
+            // Verificar se a tag precisa ser formatada
+            const techTypes = tag?.techTypes || [];
+            const isNdefFormatable = techTypes.includes('android.nfc.tech.NdefFormatable');
+            
+            if (isNdefFormatable) {
+                console.log('⚠️ Tag não formatada, formatando como NDEF...');
+                
+                try {
+                    // Cancelar requisição atual e solicitar NdefFormatable
+                    await NfcManager.cancelTechnologyRequest();
+                    await NfcManager.requestTechnology(NfcTech.NdefFormatable);
+                    
+                    // Formatar e gravar em uma operação
+                    await (NfcManager as any).ndefFormatableHandlerAndroid.formatNdefAndMakeReadOnly(bytes);
+                    
+                    console.log('✅ Tag formatada e gravada com sucesso!');
+                    Alert.alert('Sucesso', `Tag formatada e vinculada ao ambiente ${container.ambiente} (ID: ${normalizedAmbienteId}) com sucesso!`);
+                    return;
+                } catch (formatError: any) {
+                    console.error('Erro ao formatar tag:', formatError);
+                    
+                    // Se falhar com makeReadOnly, tentar sem ele
+                    try {
+                        await NfcManager.cancelTechnologyRequest();
+                        await NfcManager.requestTechnology(NfcTech.NdefFormatable);
+                        await (NfcManager as any).ndefFormatableHandlerAndroid.formatNdef(bytes);
+                        
+                        console.log('✅ Tag formatada e gravada com sucesso (método alternativo)!');
+                        Alert.alert('Sucesso', `Tag formatada e vinculada ao ambiente ${container.ambiente} (ID: ${normalizedAmbienteId}) com sucesso!`);
+                        return;
+                    } catch (altFormatError: any) {
+                        console.error('Erro no método alternativo de formatação:', altFormatError);
+                        throw new Error('Não foi possível formatar a tag NFC');
+                    }
+                }
+            }
+
+            // Tentar gravar usando o método padrão (tag já formatada)
+            try {
                 await NfcManager.ndefHandler.writeNdefMessage(bytes);
-                Alert.alert('Sucesso', `Tag vinculada ao ambiente ${container.ambiente} com sucesso!`);
+                console.log('✅ Tag NFC gravada com sucesso!');
+                Alert.alert('Sucesso', `Tag vinculada ao ambiente ${container.ambiente} (ID: ${normalizedAmbienteId}) com sucesso!`);
+            } catch (writeError: any) {
+                console.error('Erro no método de gravação padrão:', writeError);
+                
+                // Se o método padrão falhar, tentar método alternativo
+                if (writeError?.message?.includes('unsupported')) {
+                    console.log('Tentando método alternativo de gravação...');
+                    
+                    // Método alternativo usando NfcA
+                    try {
+                        await NfcManager.cancelTechnologyRequest();
+                        await NfcManager.requestTechnology([NfcTech.NfcA, NfcTech.Ndef]);
+                        await NfcManager.ndefHandler.writeNdefMessage(bytes);
+                        console.log('✅ Tag NFC gravada com sucesso (método alternativo)!');
+                        Alert.alert('Sucesso', `Tag vinculada ao ambiente ${container.ambiente} (ID: ${normalizedAmbienteId}) com sucesso!`);
+                    } catch (altError: any) {
+                        console.error('Erro no método alternativo:', altError);
+                        throw new Error(`Tag não suporta gravação NDEF. Tipo de tag: ${tag?.techTypes?.join(', ') || 'desconhecido'}`);
+                    }
+                } else {
+                    throw writeError;
+                }
             }
         } catch (error: any) {
             console.error('Erro ao escrever na tag:', error);
 
+            // Tratamento de erros mais específico
             if (error?.message?.includes('timeout')) {
                 Alert.alert('Timeout', 'Aproxime a tag novamente e tente mais uma vez.');
             } else if (error?.message?.includes('cancelled')) {
                 // Usuário cancelou, não mostrar alerta
+                console.log('Gravação NFC cancelada pelo usuário');
+            } else if (error?.message?.includes('unsupported') || error?.message?.includes('não suporta')) {
+                Alert.alert(
+                    'Tag incompatível', 
+                    'Esta tag NFC não suporta gravação NDEF. Use uma tag compatível (NFC Forum Type 2, 4 ou 5).',
+                    [{ text: 'OK' }]
+                );
+            } else if (error?.message?.includes('read-only') || error?.message?.includes('protegida')) {
+                Alert.alert('Erro', 'Esta tag está protegida contra escrita.');
+            } else if (error?.message?.includes('Nenhuma tag')) {
+                Alert.alert('Erro', 'Nenhuma tag foi detectada. Aproxime a tag do dispositivo.');
             } else {
-                Alert.alert('Erro', 'Não foi possível gravar na tag. Tente novamente.');
+                Alert.alert('Erro', `Não foi possível gravar na tag: ${error?.message || 'Erro desconhecido'}`);
             }
         } finally {
             setIsWriting(false);
@@ -148,7 +244,12 @@ export default function Tag() {
         servico: ambiente.description || "Sem descrição",
         tipo: "Ambiente",
         ambienteId: ambiente.id,
-    })) || [];
+    })).sort((a: ContainerItem, b: ContainerItem) => {
+        // Ordenar por ID numérico (extraindo o número do ID)
+        const idA = parseInt(a.id.replace('AMB-', ''));
+        const idB = parseInt(b.id.replace('AMB-', ''));
+        return idA - idB;
+    }) || [];
 
     if (loading) {
         return (

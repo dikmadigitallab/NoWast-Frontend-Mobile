@@ -11,7 +11,7 @@ export function formatRouteNameQuedaZero(path: string) {
             return "Mapa";
         case "perfil":
             return "Perfil";
-        case "/main":
+        case "/listagem":
             return "Queda Zero";
         case "/criarOcorrencia":
             return "Nova Ocorrência";

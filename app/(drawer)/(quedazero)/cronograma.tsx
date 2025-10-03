@@ -353,12 +353,12 @@ export default function Cronograma() {
               <TouchableOpacity style={styles.filterButton} onPress={() => enviromentPickerRef.current?.focus()} >
                 <FontAwesome6 name="location-dot" size={15} color="#43575F" />
                 <Text style={styles.filterButtonText}>{filter.environment.label ? filter.environment.label : "Ambiente"}</Text>
-                <AntDesign name="caretdown" size={10} color="black" />
+                <AntDesign name="down" size={10} color="black" />
               </TouchableOpacity>
               <TouchableOpacity style={styles.filterButton} onPress={() => supervisorPickerRef.current?.focus()}>
                 <FontAwesome6 name="user-tie" size={15} color="#43575F" />
                 <Text style={styles.filterButtonText}>{filter.supervisor.label ? filter.supervisor.label : "Supervisor"}</Text>
-                <AntDesign name="caretdown" size={10} color="black" />
+                <AntDesign name="down" size={10} color="black" />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => setOpen(true)} style={[styles.filterButton]}>
                 {selectedDate ? (

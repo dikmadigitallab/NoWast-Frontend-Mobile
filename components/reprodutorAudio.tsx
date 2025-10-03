@@ -103,9 +103,9 @@ export const AudioPlayer = ({ source }: AudioPlayerProps) => {
         onPress={handlePlayPause}
       >
         {isPlaying ? (
-          <AntDesign name="pausecircle" size={24} color="#186B53" />
+          <AntDesign name="pause-circle" size={24} color="#186B53" />
         ) : (
-          <AntDesign name="play" size={24} color="#fff" />
+          <AntDesign name="play-circle" size={24} color="#fff" />
         )}
       </TouchableOpacity>
       <Slider

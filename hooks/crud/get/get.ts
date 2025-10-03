@@ -18,9 +18,10 @@ export interface UseGetParams {
     responsibleManagerId?: number | null
     buildingId?: number | null,
     environmentId?: number | null,
+    disablePagination?: string,
 }
 
-export const useGet = ({ url, page = 1, pageSize = null, query = null, supervisorId = null, positionId = null, managerId = null, responsibleManagerId = null, buildingId = null, environmentId = null }: UseGetParams) => {
+export const useGet = ({ url, page = 1, pageSize = null, disablePagination="true",  query = null, supervisorId = null, positionId = null, managerId = null, responsibleManagerId = null, buildingId = null, environmentId = null }: UseGetParams) => {
 
     // const { userInfo } = useAuthStore();
     // const { setIdService } = useGetIDStore();
@@ -45,7 +46,7 @@ export const useGet = ({ url, page = 1, pageSize = null, query = null, superviso
         try {
             const params = new URLSearchParams();
 
-            params.append("disablePagination", "true");
+            params.append("disablePagination", String(disablePagination).trim());
             params.append("page", String(page));
 
             if (query !== null) params.append("query", query.trim());

@@ -4,7 +4,7 @@ import Entypo from '@expo/vector-icons/Entypo';
 import React from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-type IconKey = 'main' | 'mapa' | 'index' | 'cronograma';
+type IconKey = 'listagem' | 'mapa' | 'index' | 'cronograma';
 
 export default function TabBar({ state, navigation }: any) {
 
@@ -12,7 +12,7 @@ export default function TabBar({ state, navigation }: any) {
 
     const icons = {
         index: (color: string) => (<Entypo name="bar-graph" size={20} color={color} />),
-        main: (color: string) => (<MaterialCommunityIcons name="clipboard-text-outline" size={20} color={color} />),
+        listagem: (color: string) => (<MaterialCommunityIcons name="clipboard-text-outline" size={20} color={color} />),
         mapa: (color: string) => (<MaterialCommunityIcons name="map-marker-radius" size={20} color={color} />),
         cronograma: (color: string) => (<MaterialCommunityIcons name="chart-timeline" size={20} color={color} />),
     };
@@ -40,7 +40,7 @@ export default function TabBar({ state, navigation }: any) {
                     const onLongPress = () => navigation.emit({ type: 'tabLongPress', target: route.key });
 
                     const routeTitles: Record<IconKey, string> = {
-                        main: 'Listagem',
+                        listagem: 'Listagem',
                         mapa: 'Mapa',
                         cronograma: 'Cronograma',
                         index: 'Dashboard',

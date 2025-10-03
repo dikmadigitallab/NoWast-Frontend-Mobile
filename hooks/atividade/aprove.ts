@@ -42,7 +42,7 @@ export const useUpdateActivityStatus = () => {
                 : "Atividade reprovada com sucesso";
 
             toast.success(successMessage, { duration: 3000 });
-            setTimeout(() => router.push("/main"), 1000);
+            setTimeout(() => router.push("/listagem"), 1000);
 
         } catch (err: any) {
             console.error('Erro na requisição:', err);

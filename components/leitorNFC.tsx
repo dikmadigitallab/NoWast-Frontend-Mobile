@@ -71,14 +71,41 @@ export default function LeituraNFC({ items, environmentId }: LeituraNFCProps) {
                 // Extrair o conteúdo gravado (ambienteId)
                 const ndefRecord = tag.ndefMessage[0];
 
-                // Converter bytes para string (o ambienteId que foi gravado)
-                const recordedId = Ndef.text.decodePayload(Uint8Array.from(ndefRecord.payload as any as number[]));
+                // Converter bytes para string de forma mais robusta
+                let recordedId: string;
+                try {
+                    // Verificar se o payload é um array de números
+                    if (Array.isArray(ndefRecord.payload)) {
+                        recordedId = Ndef.text.decodePayload(new Uint8Array(ndefRecord.payload));
+                    } else {
+                        // Fallback: tentar converter para Uint8Array usando Array.from
+                        recordedId = Ndef.text.decodePayload(new Uint8Array(Array.from(ndefRecord.payload as any)));
+                    }
+                } catch (decodeError) {
+                    console.error('Erro ao decodificar payload NFC:', decodeError);
+                    setReadResult('error');
+                    Alert.alert('Erro', 'Não foi possível decodificar os dados da tag NFC.');
+                    return;
+                }
 
-                console.log('ID gravado na tag:', recordedId);
-                console.log('Environment ID esperado:', environmentId);
+                // Normalizar tipos para comparação
+                const normalizedRecordedId = String(recordedId).trim();
+                const normalizedEnvironmentId = String(environmentId).trim();
+
+                // Logs detalhados para debug
+                console.log('=== DEBUG NFC ===');
+                console.log('Tipo do environmentId:', typeof environmentId);
+                console.log('Tipo do recordedId:', typeof recordedId);
+                console.log('Valor original environmentId:', environmentId);
+                console.log('Valor original recordedId:', recordedId);
+                console.log('Valor normalizado environmentId:', normalizedEnvironmentId);
+                console.log('Valor normalizado recordedId:', normalizedRecordedId);
+                console.log('Payload original:', ndefRecord.payload);
+                console.log('==================');
 
                 // Verificar se o ID corresponde
-                if (recordedId === environmentId.toString()) {
+                if (normalizedRecordedId === normalizedEnvironmentId) {
+                    console.log('✅ Validação NFC bem-sucedida!');
                     setReadResult('success');
                     setData(items);
 
@@ -86,21 +113,36 @@ export default function LeituraNFC({ items, environmentId }: LeituraNFCProps) {
                         router.push("/checklist");
                     }, 1500);
                 } else {
+                    console.log('❌ Validação NFC falhou - IDs não correspondem');
                     setReadResult('id_mismatch');
                     Alert.alert(
                         'ID não corresponde',
-                        `Atividade não está vinculada a este ambiente.`,
+                        `Tag vinculada ao ambiente ${normalizedRecordedId}, mas atividade é do ambiente ${normalizedEnvironmentId}.`,
                         [{ text: 'OK', onPress: () => NfcManager.cancelTechnologyRequest() }]
                     );
                 }
             } else {
+                console.log('❌ Tag NFC não contém dados válidos');
                 setReadResult('error');
                 Alert.alert('Erro', 'Tag não contém dados ou está vazia.');
             }
         } catch (ex) {
-            console.warn('Erro na leitura NFC:', ex);
+            console.error('Erro na leitura NFC:', ex);
             setReadResult('error');
-            Alert.alert('Erro', 'Falha ao ler a tag NFC.');
+            
+            // Tratamento de erros mais específico
+            if (ex instanceof Error) {
+                if (ex.message.includes('timeout')) {
+                    Alert.alert('Timeout', 'Aproxime a tag novamente e tente mais uma vez.');
+                } else if (ex.message.includes('cancelled')) {
+                    // Usuário cancelou, não mostrar alerta
+                    console.log('Leitura NFC cancelada pelo usuário');
+                } else {
+                    Alert.alert('Erro', `Falha ao ler a tag NFC: ${ex.message}`);
+                }
+            } else {
+                Alert.alert('Erro', 'Falha ao ler a tag NFC.');
+            }
         } finally {
             setIsLoading(false);
             NfcManager.cancelTechnologyRequest().catch(() => { });

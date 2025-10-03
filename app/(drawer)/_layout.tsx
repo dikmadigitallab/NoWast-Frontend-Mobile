@@ -7,7 +7,7 @@ import { Dimensions, LogBox, StatusBar, View } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { ActivityIndicator } from "react-native-paper";
 import { RootSiblingParent } from "react-native-root-siblings";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import { AuthProvider } from "@/contexts/authProvider";
 import { useModuleStore } from "@/store/moduleStore";
@@ -15,6 +15,11 @@ import { Toasts } from "@backpackapp-io/react-native-toast";
 
 import AuthRouter from "./authRoute";
 import SelecionarStack from "./selecionar-stack";
+
+// Componente separado para o drawer content
+function DrawerContent() {
+  return <SelecionarStack />;
+}
 
 SplashScreen.preventAutoHideAsync();
 
@@ -47,59 +52,69 @@ export default function RootLayout() {
   if (moduleType === null) {
     return (
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <Toasts />
-        <AuthProvider>
-          <AuthRouter>
-            <SelecionarStack />
-          </AuthRouter>
-        </AuthProvider>
+        <SafeAreaProvider>
+          <SafeAreaView style={{ flex: 1 }}>
+            <Toasts />
+            <AuthProvider>
+              <AuthRouter>
+                <SelecionarStack />
+              </AuthRouter>
+            </AuthProvider>
+          </SafeAreaView>
+        </SafeAreaProvider>
       </GestureHandlerRootView>
     );
   }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <StatusBar barStyle="light-content" backgroundColor="#186B53" />
+      <StatusBar 
+        barStyle="dark-content" 
+        backgroundColor="#000000" 
+        translucent={false}
+        hidden={false}
+      />
       <SafeAreaProvider>
-        <Toasts />
-        <RootSiblingParent>
-          <AuthProvider>
-            {loading && (
-              <View
-                style={{
-                  flex: 1,
-                  position: "absolute",
-                  zIndex: 999,
-                  width: Dimensions.get("window").width,
-                  height: Dimensions.get("window").height,
-                  backgroundColor: "#fff",
-                  justifyContent: "center",
-                  alignItems: "center",
+        <SafeAreaView style={{ flex: 1 }} edges={['bottom', 'left', 'right']}>
+          <Toasts />
+          <RootSiblingParent>
+            <AuthProvider>
+              {loading && (
+                <View
+                  style={{
+                    flex: 1,
+                    position: "absolute",
+                    zIndex: 999,
+                    width: Dimensions.get("window").width,
+                    height: Dimensions.get("window").height,
+                    backgroundColor: "#fff",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <ActivityIndicator size="large" color="#00A614" />
+                </View>
+              )}
+              <Drawer
+                drawerContent={DrawerContent}
+                backBehavior="history"
+                screenOptions={{
+                  headerShown: false,
+                  drawerStyle: { width: "80%" },
+                  drawerType: "slide",
+                  drawerPosition: "left",
                 }}
               >
-                <ActivityIndicator size="large" color="#00A614" />
-              </View>
-            )}
-            <Drawer
-              drawerContent={() => <SelecionarStack />}
-              backBehavior="history"
-              screenOptions={{
-                headerShown: false,
-                drawerStyle: { width: "80%" },
-                drawerType: "slide",
-                drawerPosition: "left",
-              }}
-            >
-              <Stack screenOptions={{ headerShown: false }}>
                 <Stack.Screen name="(quedazero)" />
-                <Stack.Screen name="(coleta)" />
-                <Stack.Screen name="(residuos)" />
+                {/* Rotas futuras - descomente quando criar as pastas */}
+                {/* <Stack.Screen name="(coleta)" /> */}
+                {/* <Stack.Screen name="(residuos)" /> */}
                 <Stack.Screen name="perfil" />
                 <Stack.Screen name="+not-found" />
-              </Stack>
-            </Drawer>
-          </AuthProvider>
-        </RootSiblingParent>
+              </Drawer>
+            </AuthProvider>
+          </RootSiblingParent>
+        </SafeAreaView>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

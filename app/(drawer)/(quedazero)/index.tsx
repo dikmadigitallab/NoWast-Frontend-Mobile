@@ -278,7 +278,7 @@ export default function Dashboard() {
             <TouchableOpacity style={styles.filterButton} onPress={() => setOpenDate(true)}>
               <MaterialCommunityIcons name="calendar" size={24} color="black" />
               <Text>Data</Text>
-              <AntDesign name="caretdown" size={10} color="black" />
+              <AntDesign name="down" size={10} color="black" />
             </TouchableOpacity>
 
             {
@@ -286,7 +286,7 @@ export default function Dashboard() {
                 <TouchableOpacity style={styles.filterButton} onPress={() => buildingPickerRef.current?.focus()} >
                   <FontAwesome6 name="location-dot" size={15} color="#43575F" />
                   <Text style={styles.filterButtonText}>{filter.building.label ? filter.building.label : "Prédios"}</Text>
-                  <AntDesign name="caretdown" size={10} color="black" />
+                  <AntDesign name="down" size={10} color="black" />
                 </TouchableOpacity>
               )
             }
@@ -294,13 +294,13 @@ export default function Dashboard() {
             <TouchableOpacity style={styles.filterButton} onPress={() => sectorPickerRef.current?.focus()} >
               <FontAwesome6 name="location-dot" size={15} color="#43575F" />
               <Text style={styles.filterButtonText}>{filter.sector.label ? filter.sector.label : "Setores"}</Text>
-              <AntDesign name="caretdown" size={10} color="black" />
+              <AntDesign name="down" size={10} color="black" />
             </TouchableOpacity>
 
             <TouchableOpacity style={styles.filterButton} onPress={() => enviromentPickerRef.current?.focus()} >
               <FontAwesome6 name="location-dot" size={15} color="#43575F" />
               <Text style={styles.filterButtonText}>{filter.environment.label ? filter.environment.label : "Ambiente"}</Text>
-              <AntDesign name="caretdown" size={10} color="black" />
+              <AntDesign name="down" size={10} color="black" />
             </TouchableOpacity>
           </ScrollView>
         </View>
@@ -324,7 +324,7 @@ export default function Dashboard() {
         <TouchableOpacity style={[styles.filterButton, { width: "40%" }]}>
           <MaterialCommunityIcons name="calendar" size={24} color="black" />
           <Text>Data</Text>
-          <AntDesign name="caretdown" size={10} color="black" />
+          <AntDesign name="caret-down" size={10} color="black" />
         </TouchableOpacity>
         <View style={{ gap: 15 }}>
           {colaboradores.map((loc, index) => (

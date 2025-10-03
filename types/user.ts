@@ -6,6 +6,7 @@ interface IUser {
     name?: string | null;
     position?: string | null;
     contractId?: string | number | null;
+    person?: any;
 }
 
 

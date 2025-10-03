@@ -3,14 +3,13 @@ import LoadingScreen from "@/components/carregamento";
 import Map, { MapHandle } from "@/components/Map";
 import StatusIndicator from "@/components/StatusIndicator";
 import { useGetActivity } from "@/hooks/atividade/get";
-import { StyledMainContainer } from "@/styles/StyledComponents";
 import { AntDesign, Entypo, FontAwesome, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
 import { useFocusEffect } from "expo-router";
 import moment from "moment";
 import "moment/locale/pt-br";
 import React, { useCallback, useRef, useState } from "react";
-import { Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { DatePickerModal } from 'react-native-paper-dates';
 
 interface ActivityData {
@@ -65,6 +64,8 @@ export default function Mapa() {
     endDate: selectedDate ? moment(selectedDate).format("YYYY-MM-DD") : null
   });
 
+  console.log(data)
+
   useFocusEffect(
     useCallback(() => {
       if (refetch) {
@@ -109,22 +110,7 @@ export default function Mapa() {
     setSelectedDate(params.date);
   };
 
-  if (data?.length === 0) {
-    return (
-      <StyledMainContainer>
-        <View style={styles.emptyContainer}>
-          <Image
-            style={{ width: 130, height: 130, marginBottom: -20 }}
-            source={require("../../../assets/images/adaptive-icon.png")}
-          />
-          <Text style={styles.emptyTitle}>Nenhum dado encontrado</Text>
-          <Text style={styles.emptySubtitle}>
-            Não há atividades ou ocorrências cadastradas
-          </Text>
-        </View>
-      </StyledMainContainer>
-    );
-  }
+  // Sempre mostrar o mapa, mesmo quando não há dados
 
   return (
     <View style={styles.container}>
@@ -168,8 +154,24 @@ export default function Mapa() {
             position: { latitude: lat, longitude: lng },
             onPress: () => setSelectedLocation(activity),
           }];
-        })}
+        }) || []}
       />
+
+      {/* Indicador quando não há dados */}
+      {data?.length === 0 && (
+        <View style={styles.noDataOverlay}>
+          <View style={styles.noDataContainer}>
+            <MaterialCommunityIcons name="map-marker-off" size={40} color="#666" />
+            <Text style={styles.noDataTitle}>Nenhum marcador encontrado</Text>
+            <Text style={styles.noDataSubtitle}>
+              Não há atividades ou ocorrências para exibir no mapa
+            </Text>
+            <Text style={styles.noDataHint}>
+              Use os filtros acima para buscar por data ou tipo específico
+            </Text>
+          </View>
+        </View>
+      )}
 
       {/* Filtros melhorados */}
       <View style={styles.filtersContainer}>
@@ -204,7 +206,7 @@ export default function Mapa() {
             <Text style={[styles.filterButtonText, type !== "Todos" && styles.filterButtonTextActive]}>
               {type}
             </Text>
-            <AntDesign name="caretdown" size={12} color={type !== "Todos" ? "#fff" : "#385866"} />
+            <AntDesign name="down" size={12} color={type !== "Todos" ? "#fff" : "#385866"} />
             {type !== "Todos" && (
               <TouchableOpacity
                 onPress={(e) => {
@@ -272,7 +274,8 @@ const styles = StyleSheet.create({
     left: 10,
     flexDirection: 'row',
     justifyContent: 'flex-start',
-    gap: 10
+    gap: 10,
+    zIndex: 9999,
   },
   filterWrapper: {
     position: "relative",
@@ -410,5 +413,47 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontWeight: '600',
     fontSize: 14
+  },
+  noDataOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    zIndex: 1,
+  },
+  noDataContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 15,
+    padding: 30,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 5,
+    maxWidth: '80%',
+    gap: 10,
+  },
+  noDataTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#385866',
+    textAlign: 'center',
+  },
+  noDataSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  noDataHint: {
+    fontSize: 12,
+    color: '#999',
+    textAlign: 'center',
+    fontStyle: 'italic',
   }
 });

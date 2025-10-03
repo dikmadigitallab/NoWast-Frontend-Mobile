@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { ActivityIndicator, Dimensions, Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Button, TextInput } from "react-native-paper";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const { width } = Dimensions.get("window");
 
@@ -17,7 +18,7 @@ export default function AuthRouter({ children }: ProtectRouteProps) {
   const [seePassword, setSeePassword] = useState(true);
   const { login, isAuthenticated, loading } = useAuth();
   const [fontsLoaded] = useFonts({ Bangers_400Regular });
-  const { control, handleSubmit, formState: { errors } } = useForm({ defaultValues: { document: "", password: "", } });
+  const { control, handleSubmit, formState: { errors } } = useForm({ defaultValues: { document: "70366626035 ", password: "123456", } });
 
   const onSubmit = (data: { document: string; password: string }) => {
     login(data.document, data.password);
@@ -29,7 +30,7 @@ export default function AuthRouter({ children }: ProtectRouteProps) {
 
   if (!isAuthenticated) {
     return (
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container}>
         <View style={styles.card}>
           <View style={styles.form}>
 
@@ -126,7 +127,7 @@ export default function AuthRouter({ children }: ProtectRouteProps) {
             </Button>
           </TouchableOpacity>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 

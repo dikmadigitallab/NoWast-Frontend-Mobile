@@ -14,10 +14,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "br.com.dikmadigital.nowaste"
+      "bundleIdentifier": "br.com.dikmadigital.nowaste",
+      "statusBarStyle": "dark-content"
     },
     "android": {
-      "usesCleartextTraffic": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -29,6 +29,8 @@
         "android.permission.ACCESS_FINE_LOCATION"
       ],
       "package": "br.com.dikmadigital.nowaste",
+      "statusBarStyle": "dark-content",
+      "statusBarBackgroundColor": "#ffffff",
       "config": {
         "googleMaps": {
           "apiKey": "AIzaSyD4tl_xNu0SFUJljUpiiNLKUIoNQ1AJl6U"

@@ -36,8 +36,6 @@ export function TopBar({ customBack, router, pathname }: TopBarProps) {
       styles.container,
       {
         backgroundColor: isHomeOrDashboard ? "#186B53" : "#fff",
-        marginTop: 0,
-        marginBottom: 0
       }
     ]}>
 
@@ -66,7 +64,7 @@ export function TopBar({ customBack, router, pathname }: TopBarProps) {
 
       {!isHomeOrDashboard && (
         <View style={styles.containerLogo}>
-          {pathname === "/main" && (
+          {pathname === "/listagem" && (
             <MaterialCommunityIcons name="excavator" size={24} color="#43575f" />
           )}
           <Text style={styles.title}>{title}</Text>
@@ -100,7 +98,7 @@ const styles = StyleSheet.create({
   container: {
     width: Dimensions.get("window").width,
     alignSelf: "center",
-    paddingHorizontal: 5,
+    paddingHorizontal: 12,
     flexDirection: "row",
     height: "100%",
     zIndex: 1,

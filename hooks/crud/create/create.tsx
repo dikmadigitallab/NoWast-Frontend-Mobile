@@ -104,7 +104,7 @@ export const useCreate = () => {
             );
 
             toast.success(message);
-            setTimeout(() => router.push("/main"), 1000);
+            setTimeout(() => router.push("/listagem"), 1000);
 
         } catch (err: any) {
             console.error('Erro ao finalizar atividade:', err);
