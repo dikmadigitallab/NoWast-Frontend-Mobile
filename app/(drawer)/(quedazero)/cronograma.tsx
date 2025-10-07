@@ -2,6 +2,7 @@
 import AprovacoStatus from "@/components/aprovacaoStatus";
 import LoadingScreen from "@/components/carregamento";
 import StatusIndicator from '@/components/StatusIndicator';
+import { useAuth } from '@/contexts/authProvider';
 import { useGetActivity } from '@/hooks/atividade/get';
 import { useGet } from '@/hooks/crud/get/get';
 import { useGetUsuario } from '@/hooks/usuarios/get';
@@ -52,6 +53,7 @@ const extractDateTime = (dateTime: string) => {
 export default function Cronograma() {
 
   const router = useRouter();
+  const { user } = useAuth();
   const { setitems } = useItemsStore();
   const [open, setOpen] = useState(false);
   const { data: supervisores } = useGetUsuario({})
@@ -60,7 +62,7 @@ export default function Cronograma() {
   const [showCalendar, setShowCalendar] = useState(true);
   const { data: environment } = useGet({ url: "environment" });
   const animatedHeight = useRef(new Animated.Value(360)).current;
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [currentMonthAnchor, setCurrentMonthAnchor] = useState<string>(moment().startOf('month').format('YYYY-MM-DD'));
   const [filter, setFilter] = useState({ supervisor: { id: 0, label: "" }, environment: { id: 0, label: "" } });
   const [activeFilters, setActiveFilters] = useState<Array<{ type: 'supervisor' | 'environment' | 'date'; label: string; value: any; onRemove: () => void; }>>([]);
@@ -74,7 +76,17 @@ export default function Cronograma() {
     return { startDate: start, endDate: end };
   }, [selectedDate, currentMonthAnchor]);
 
-  const { data, refetch } = useGetActivity({ pageSize: null, type: "Atividade", pagination: false, startDate: monthRange.startDate, endDate: monthRange.endDate, supervisorId: filter.supervisor.id, environmentId: filter.environment.id });
+  const { data, refetch } = useGetActivity({ 
+    pageSize: null, 
+    type: "Atividade", 
+    pagination: false, 
+    startDate: monthRange.startDate, 
+    endDate: monthRange.endDate, 
+    supervisorId: filter.supervisor.id, 
+    environmentId: filter.environment.id,
+    // Para operadores, mostrar todas as atividades independente do status de aprovação
+    approvalStatus: user?.userType === "OPERATIONAL" ? null : null
+  });
 
   useFocusEffect(
     useCallback(() => {
@@ -88,9 +100,9 @@ export default function Cronograma() {
     Animated.timing(animatedHeight, { toValue: showCalendar ? 360 : 100, duration: 300, useNativeDriver: false }).start();
   }, [showCalendar]);
 
-  // Sincroniza os filtros ativos
+  // Sincroniza os filtros ativos (não considera a data como filtro)
   useEffect(() => {
-    const newActiveFilters = [];
+    const newActiveFilters = [] as any[];
 
     if (filter.supervisor.id !== 0) {
       newActiveFilters.push({
@@ -110,17 +122,8 @@ export default function Cronograma() {
       });
     }
 
-    if (selectedDate) {
-      newActiveFilters.push({
-        type: 'date',
-        label: `Data: ${moment(selectedDate).format('DD/MM/YYYY')}`,
-        value: selectedDate,
-        onRemove: () => setSelectedDate(undefined)
-      });
-    }
-
-    setActiveFilters(newActiveFilters as { type: "environment" | "supervisor" | "date"; label: string; value: any; onRemove: () => void; }[]);
-  }, [filter, selectedDate]);
+    setActiveFilters(newActiveFilters as { type: "environment" | "supervisor"; label: string; value: any; onRemove: () => void; }[]);
+  }, [filter]);
 
   const onDismiss = () => setOpen(false);
 
@@ -130,16 +133,15 @@ export default function Cronograma() {
     setSelectedDate(params.date || undefined);
   };
 
-  // Função para limpar todos os filtros
+  // Função para limpar todos os filtros (não limpa a data)
   const clearFilters = () => {
     setFilter({ supervisor: { id: 0, label: "" }, environment: { id: 0, label: "" } });
-    setSelectedDate(undefined);
   };
 
-  // Verificar se há filtros ativos
+  // Verificar se há filtros ativos (ignora data)
   const hasActiveFilters = useMemo(() => {
-    return filter.supervisor.id !== 0 || filter.environment.id !== 0 || selectedDate !== undefined;
-  }, [filter, selectedDate]);
+    return filter.supervisor.id !== 0 || filter.environment.id !== 0;
+  }, [filter]);
 
   // Agrupa as atividades por data
   const sections = useMemo(() => {
@@ -150,7 +152,24 @@ export default function Cronograma() {
     const currentMonth = currentDate.month();
     const currentYear = currentDate.year();
 
-    data.forEach((item: any) => {
+
+    // Filtrar dados antes de agrupar
+    const filteredData = data.filter((item: any) => {
+      // Para ADM_CLIENTE, excluir justificativa interna e reprovados
+      if (user?.userType === "ADM_CLIENTE") {
+        // Excluir atividades com status de justificativa interna
+        if (item.statusEnum === "INTERNAL_JUSTIFICATION") {
+          return false;
+        }
+        // Excluir atividades reprovadas
+        if (item.approvalStatus === "REJECTED") {
+          return false;
+        }
+      }
+      return true;
+    });
+
+    filteredData.forEach((item: any) => {
       const { date } = extractDateTime(item.dateTime);
       const key = formatDateHeader(date);
 
@@ -161,6 +180,46 @@ export default function Cronograma() {
         const approvalMoment = moment(item.approvalDate);
         horaConclusaoFormatada = approvalMoment.format('HH:mm');
       }
+
+      // Buscar fotos relacionadas à conclusão da atividade
+      let fotos: string[] = [];
+      
+      // Verificar activityFiles primeiro (campo principal do hook)
+      if (item.activityFiles && Array.isArray(item.activityFiles)) {
+        // Filtrar apenas arquivos de IMAGEM e extrair as URLs
+        fotos = item.activityFiles
+          .filter((file: any) => file.fileType === 'IMAGE')
+          .map((file: any) => {
+            if (file?.file?.url) return file.file.url;
+            if (file?.url) return file.url;
+            return null;
+          })
+          .filter(Boolean);
+      }
+      
+      // Fallback para outros campos se activityFiles não tiver fotos
+      if (fotos.length === 0) {
+        if (item.completionPhotos && Array.isArray(item.completionPhotos)) {
+          fotos = item.completionPhotos;
+        } else if (item.finalPhotos && Array.isArray(item.finalPhotos)) {
+          fotos = item.finalPhotos;
+        } else if (item.conclusionImages && Array.isArray(item.conclusionImages)) {
+          fotos = item.conclusionImages;
+        } else if (item.photos && Array.isArray(item.photos)) {
+          fotos = item.photos;
+        } else if (item.images && Array.isArray(item.images)) {
+          fotos = item.images;
+        } else if (item.attachments && Array.isArray(item.attachments)) {
+          fotos = item.attachments;
+        } else if (item.media && Array.isArray(item.media)) {
+          fotos = item.media;
+        }
+      }
+
+      // Pegar apenas a primeira foto se existir
+      const primeiraFoto = fotos.length > 0 ? [fotos[0]] : [];
+
+
 
       grouped[key].push({
         id: item.id.toString(),
@@ -177,7 +236,7 @@ export default function Cronograma() {
         horaConclusao: horaConclusaoFormatada,
         aprovacao: item.approvalStatus ?? "",
         dataAprovacao: item.approvalDate ? moment(item.approvalDate).format('DD/MM/YYYY HH:mm') : null,
-        foto: []
+        foto: primeiraFoto
       });
     });
 

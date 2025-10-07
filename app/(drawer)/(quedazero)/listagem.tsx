@@ -51,7 +51,8 @@ export default function Mainpage() {
         pageSize: pageSize, 
         startDate: (startDate && endDate) ? startDate : null, 
         endDate: (startDate && endDate) ? endDate : null,
-        //approvalStatus: user?.userType === "OPERATIONAL" ? "APPROVED" : null
+        // Para operadores, mostrar todas as atividades independente do status de aprovação
+        approvalStatus: user?.userType === "OPERATIONAL" ? null : null
     });
     
     console.log(data && data[0])
@@ -165,26 +166,47 @@ export default function Mainpage() {
         return (<LoadingScreen />)
     }
 
-    // Ordenar os dados por data em ordem decrescente (mais recente para mais antiga)
-    const sortedData = [...data].sort((a, b) => {
-        let dateA: Date;
-        let dateB: Date;
+    // Filtrar e ordenar os dados
+    const filteredAndSortedData = [...data]
+        .filter((item) => {
+            // Para atividades, excluir aquelas com status 'OPEN'
+            if (type === "Atividade" && item.statusEnum === "OPEN") {
+                return false;
+            }
+            
+            // Para ADM_CLIENTE, excluir justificativa interna e reprovados
+            if (user?.userType === "ADM_CLIENTE" && type === "Atividade") {
+                // Excluir atividades com status de justificativa interna
+                if (item.statusEnum === "INTERNAL_JUSTIFICATION") {
+                    return false;
+                }
+                // Excluir atividades reprovadas
+                if (item.approvalStatus === "REJECTED") {
+                    return false;
+                }
+            }
+            
+            return true;
+        })
+        .sort((a, b) => {
+            let dateA: Date;
+            let dateB: Date;
 
-        if (type === "Atividade") {
-            // Para atividades, usar dateTimeOriginal se disponível, senão createdAt
-            dateA = new Date((a as any).dateTimeOriginal || a.createdAt);
-            dateB = new Date((b as any).dateTimeOriginal || b.createdAt);
-        } else {
-            // Para ocorrências, usar o campo createdAt
-            dateA = new Date(a.createdAt);
-            dateB = new Date(b.createdAt);
-        }
+            if (type === "Atividade") {
+                // Para atividades, usar dateTimeOriginal se disponível, senão createdAt
+                dateA = new Date((a as any).dateTimeOriginal || a.createdAt);
+                dateB = new Date((b as any).dateTimeOriginal || b.createdAt);
+            } else {
+                // Para ocorrências, usar o campo createdAt
+                dateA = new Date(a.createdAt);
+                dateB = new Date(b.createdAt);
+            }
 
-        return dateB.getTime() - dateA.getTime(); // Ordem decrescente
-    });
+            return dateB.getTime() - dateA.getTime(); // Ordem decrescente
+        });
 
     const hasActiveFilters = activeFilters.length > 0;
-    const isEmpty = sortedData.length === 0;
+    const isEmpty = filteredAndSortedData.length === 0;
 
     // função para renderizar os itens da lista
     const renderAtividadeItem = ({ item }: { item: any }) => {
@@ -402,7 +424,7 @@ export default function Mainpage() {
                     </View>
                 ) : (
                 <FlatList
-                    data={sortedData || []}
+                    data={filteredAndSortedData || []}
                     showsVerticalScrollIndicator={false}
                     keyExtractor={(item) => String(item?.id)}
                     onEndReached={loadMoreItems}

@@ -18,7 +18,7 @@ export default function AuthRouter({ children }: ProtectRouteProps) {
   const [seePassword, setSeePassword] = useState(true);
   const { login, isAuthenticated, loading } = useAuth();
   const [fontsLoaded] = useFonts({ Bangers_400Regular });
-  const { control, handleSubmit, formState: { errors } } = useForm({ defaultValues: { document: "18378999084", password: "123456", } });
+  const { control, handleSubmit, formState: { errors } } = useForm({ defaultValues: { document: "", password: "", } });
 
   const onSubmit = (data: { document: string; password: string }) => {
     login(data.document, data.password);

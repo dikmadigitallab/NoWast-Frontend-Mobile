@@ -2,7 +2,7 @@
   "expo": {
     "name": "Nowast-V2",
     "slug": "dikmaapp",
-    "version": "1.1.0",
+    "version": "1.1.1",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -68,9 +68,9 @@
         "origin": false
       },
       "eas": {
-        "projectId": "e0ae7972-3e84-406a-87b6-ef0147fa1b8d"
+        "projectId": "2f148666-8e32-489b-b253-35d444ce88e2"
       }
     },
-    "owner": "warllei.martins"
+    "owner": "harrykaray"
   }
 }

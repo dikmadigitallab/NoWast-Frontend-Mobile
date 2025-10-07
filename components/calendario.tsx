@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { Calendar, LocaleConfig } from 'react-native-calendars';
 
 LocaleConfig.locales['br'] = {
@@ -18,8 +18,9 @@ type CalendarioProps = {
 
 export default function Calendario({ onMonthChange, onDaySelect }: CalendarioProps) {
 
-    const [selected, setSelected] = useState('');
-    const [currentMonth, setCurrentMonth] = useState('');
+    const today = new Date().toISOString().split('T')[0];
+    const [selected, setSelected] = useState(today);
+    const [currentMonth, setCurrentMonth] = useState(today);
 
     return (
         <View style={{ height: 310 }}>
@@ -37,22 +38,43 @@ export default function Calendario({ onMonthChange, onDaySelect }: CalendarioPro
                     setCurrentMonth(month.dateString);
                     if (onMonthChange) onMonthChange(month.dateString);
                 }}
-                markedDates={{
-                    [selected]: {
-                        selected: true,
-                        selectedColor: '#186B53',
-                        disableTouchEvent: true,
-                    }
+                dayComponent={({ date, state }) => {
+                    const dateString = date?.dateString as string;
+                    const isSelected = dateString === selected;
+                    const isDisabled = state === 'disabled';
+                    return (
+                        <TouchableOpacity
+                            disabled={isDisabled}
+                            onPress={() => {
+                                setSelected(dateString);
+                                if (onDaySelect) onDaySelect(dateString);
+                            }}
+                            style={{
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                width: 32,
+                                height: 32,
+                                borderRadius: 16,
+                                backgroundColor: isSelected ? '#ffffff' : 'transparent',
+                                marginVertical: 3,
+                            }}
+                        >
+                            <Text style={{
+                                color: isSelected ? '#00C98F' : '#ffffff',
+                                fontSize: 12,
+                                opacity: isDisabled ? 0.3 : 1,
+                            }}>
+                                {date?.day}
+                            </Text>
+                        </TouchableOpacity>
+                    );
                 }}
                 theme={{
                     calendarBackground: '#186B53',
                     textSectionTitleColor: '#ffffff',
                     dayTextColor: '#ffffff',
                     monthTextColor: '#ffffff',
-                    selectedDayBackgroundColor: '#ffffff',
-                    selectedDayTextColor: '#00C98F',
-                    todayBackgroundColor: '#fff',
-                    todayTextColor: '#00C98F',
+                    // selected and today styles handled by custom dayComponent
                     arrowColor: '#ffffff',
                     textDisabledColor: '#b0c4b1',
                     dotColor: '#ffffff',
@@ -61,8 +83,8 @@ export default function Calendario({ onMonthChange, onDaySelect }: CalendarioPro
                     textMonthFontSize: 14,
                     textDayHeaderFontSize: 12,
                 }}
-                enableSwipeMonths={true}
-                hideExtraDays={true}
+                enableSwipeMonths={false}
+                hideExtraDays={false}
             />
         </View>
     )
