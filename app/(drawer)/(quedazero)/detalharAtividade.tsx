@@ -17,6 +17,7 @@ import { Modalize } from 'react-native-modalize';
 import { ActivityIndicator, TextInput } from "react-native-paper";
 import { Dropdown } from "react-native-paper-dropdown";
 import CapturaImagens from "../../../components/capturaImagens";
+import { AudioPlayer } from "../../../components/reprodutorAudio";
 import { useAuth } from "../../../contexts/authProvider";
 import { useItemsStore } from "../../../store/storeOcorrencias";
 import { StyledMainContainer } from "../../../styles/StyledComponents";
@@ -137,6 +138,8 @@ export default function DetalharAtividade() {
         deleteChanges()
     }, [pathname])
 
+    console.log(items)
+
     return (
         <View style={styles.mainContainer}>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent} >
@@ -161,17 +164,17 @@ export default function DetalharAtividade() {
                                         <AntDesign name="camera" size={15} color="#43575F" />
                                         <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
                                     </View>
-                                    {items?.activityFiles?.length > 0 ?
+                                    {items?.activityFiles?.filter((file: any) => file.fileType === "IMAGE")?.length > 0 ?
                                         <ScrollView
                                             horizontal
                                             showsHorizontalScrollIndicator={false}
                                             contentContainerStyle={{ paddingRight: 50 }}
                                         >
-                                            {items?.activityFiles?.map((url: any, index: number) => (
+                                            {items?.activityFiles?.filter((file: any) => file.fileType === "IMAGE")?.map((url: any, index: number) => (
                                                 <TouchableOpacity
                                                     key={index}
                                                     style={{ width: 200, height: "100%", marginRight: 10 }}
-                                                    onPress={() => openImageViewer(url?.file?.url, items.activityFiles, index)}
+                                                    onPress={() => openImageViewer(url?.file?.url, items.activityFiles.filter((file: any) => file.fileType === "IMAGE"), index)}
                                                 >
                                                     <Image source={{ uri: url?.file?.url }} style={styles.image} resizeMode="cover" />
                                                 </TouchableOpacity>
@@ -183,15 +186,34 @@ export default function DetalharAtividade() {
                                         </View>
                                     }
 
-                                    {items.justification?.justificationFiles?.map((url: any, index: number) => (
+                                    {items.justification?.justificationFiles?.filter((file: any) => file.fileType === "IMAGE")?.map((url: any, index: number) => (
                                         <TouchableOpacity
                                             key={index}
                                             style={{ width: 200, height: 120, marginRight: 10 }}
-                                            onPress={() => openImageViewer(url?.file?.url, items.justification.justificationFiles, index)}
+                                            onPress={() => openImageViewer(url?.file?.url, items.justification.justificationFiles.filter((file: any) => file.fileType === "IMAGE"), index)}
                                         >
                                             <Image source={{ uri: url?.file?.url }} style={styles.image} resizeMode="cover" />
                                         </TouchableOpacity>
                                     ))}
+                                </View>
+                            )}
+
+                            {/* Seção de Áudios da Atividade */}
+                            {items?.activityFiles?.filter((file: any) => file.fileType === "AUDIO")?.length > 0 && (
+                                <View style={[styles.linha, { height: "auto", alignItems: "flex-start", marginTop: 10 }]}>
+                                    <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 10 }]}>
+                                        <AntDesign name="sound" size={15} color="#43575F" />
+                                        <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+                                    </View>
+                                    <View style={{ flexDirection: "column", gap: 10, width: "80%" }}>
+                                        <Text style={styles.textBold}>Áudios da Atividade:</Text>
+                                        {items?.activityFiles?.filter((file: any) => file.fileType === "AUDIO")?.map((audioFile: any, index: number) => (
+                                            <View key={index} style={styles.audioContainer}>
+                                                <Text style={styles.audioLabel}>Áudio {index + 1}</Text>
+                                                <AudioPlayer source={audioFile?.file?.url} />
+                                            </View>
+                                        ))}
+                                    </View>
                                 </View>
                             )}
 
@@ -209,11 +231,11 @@ export default function DetalharAtividade() {
                                         <View style={{ flexDirection: "column", gap: 5 }}>
                                             <Text style={styles.textBold}>Justificativa:</Text>
                                             <Text style={styles.text}>{items?.justification?.description}</Text>
-                                            {items.justification?.justificationFiles?.map((url: any, index: number) => (
+                                            {items.justification?.justificationFiles?.filter((file: any) => file.fileType === "IMAGE")?.map((url: any, index: number) => (
                                                 <TouchableOpacity
                                                     key={index}
                                                     style={{ width: 200, height: 120, marginRight: 10 }}
-                                                    onPress={() => openImageViewer(url?.file?.url, items.activityFiles, index)}
+                                                    onPress={() => openImageViewer(url?.file?.url, items.justification.justificationFiles.filter((file: any) => file.fileType === "IMAGE"), index)}
                                                 >
                                                     <Image source={{ uri: url?.file?.url }} style={styles.image} resizeMode="cover" />
                                                 </TouchableOpacity>
@@ -222,6 +244,25 @@ export default function DetalharAtividade() {
                                     </View>
                                 )
                             }
+
+                            {/* Seção de Áudios de Justificativa */}
+                            {items?.justification?.justificationFiles?.filter((file: any) => file.fileType === "AUDIO")?.length > 0 && (
+                                <View style={[styles.linha, { height: "auto", alignItems: "flex-start", marginTop: 10 }]}>
+                                    <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 10 }]}>
+                                        <AntDesign name="sound" size={15} color="#43575F" />
+                                        <View style={{ flex: 1, width: 1, backgroundColor: "#ccc" }} />
+                                    </View>
+                                    <View style={{ flexDirection: "column", gap: 10, width: "80%" }}>
+                                        <Text style={styles.textBold}>Áudios da Justificativa:</Text>
+                                        {items?.justification?.justificationFiles?.filter((file: any) => file.fileType === "AUDIO")?.map((audioFile: any, index: number) => (
+                                            <View key={index} style={styles.audioContainer}>
+                                                <Text style={styles.audioLabel}>Áudio {index + 1}</Text>
+                                                <AudioPlayer source={audioFile?.file?.url} />
+                                            </View>
+                                        ))}
+                                    </View>
+                                </View>
+                            )}
 
                             <View style={styles.linha}>
                                 <View style={[styles.coluna, { height: "100%", justifyContent: "flex-start", gap: 5 }]}>
@@ -1002,5 +1043,18 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 16,
         fontWeight: 'bold',
+    },
+    audioContainer: {
+        backgroundColor: '#f8f9fa',
+        borderRadius: 8,
+        padding: 10,
+        borderWidth: 1,
+        borderColor: '#e9ecef',
+    },
+    audioLabel: {
+        fontSize: 12,
+        color: '#6c757d',
+        marginBottom: 5,
+        fontWeight: '500',
     },
 });

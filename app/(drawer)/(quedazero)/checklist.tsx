@@ -3,7 +3,8 @@ import GravadorAudio from '@/components/gravadorAudio';
 import { useCloseActivity } from '@/hooks/atividade/update';
 import { useChecklistStore } from '@/store/dataStore';
 import { AntDesign } from '@expo/vector-icons';
-import { useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Checkbox, TextInput } from 'react-native-paper';
 import { StyledMainContainer } from '../../../styles/StyledComponents';
@@ -29,6 +30,17 @@ export default function Checklist() {
     const { close, loading, error } = useCloseActivity();
     const defaultForm: IFormData = { id: data?.[0]?.id || 0, status: "COMPLETED", observation: "", completedChecklistIds: [], pendingChecklistIds: [], images: [], audio: '' };
     const [form, setForm] = useState<IFormData | null>(defaultForm);
+    const [resetKey, setResetKey] = useState(0);
+
+    // Resetar o formulário quando a tela ganhar foco
+    useFocusEffect(
+        useCallback(() => {
+            // Resetar o formulário para o estado inicial
+            setForm(defaultForm);
+            // Forçar re-render dos componentes filhos com uma nova key
+            setResetKey(prev => prev + 1);
+        }, [data])
+    );
 
     // Função responsável por atualizar o estado do checkbox ela verifica se o item já está na lista de itens completos se estiver, remove o item da lista se não estiver, adiciona o item  lista
     const handleCheckboxChange = (id: number) => {
@@ -118,6 +130,7 @@ export default function Checklist() {
                     <View style={styles.mediaSection}>
                         <View style={styles.mediaContainer}>
                             <CapturaImagens
+                                key={`captura-${resetKey}`}
                                 texto="Adicionar fotos"
                                 qtsImagens={3}
                                 setForm={(uris) => setForm((prev) => prev ? { ...prev, images: uris } : { ...defaultForm, images: uris })}
@@ -127,6 +140,7 @@ export default function Checklist() {
 
                     <View style={styles.audioSection}>
                         <GravadorAudio
+                            key={`gravador-${resetKey}`}
                             setForm={(audioUri) => 
                                 setForm((prev) => 
                                     prev ? { ...prev, audio: audioUri } : { ...defaultForm, audio: audioUri }

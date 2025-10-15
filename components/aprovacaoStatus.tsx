@@ -14,7 +14,19 @@ export default function AprovacoStatus({ status, date }: AprovacoStatusProps) {
     const isApproved = status === "APPROVED";
     const isDisapproved = status === "REJECTED";
     const isPENDINGNoJustification = status === "PENDING";
-    const formattedDate = date ? moment(date).format("DD/MM/YYYY HH:mm") : "";
+    
+    let formattedDate = "";
+    if (date) {
+        const momentDate = moment(date);
+        
+        if (momentDate.isValid()) {
+            formattedDate = momentDate.format("DD/MM/YYYY HH:mm");
+        } else {
+            // Se não conseguir formatar, tenta outras abordagens
+            console.log('AprovacoStatus - tentando outras abordagens para:', date);
+            formattedDate = date.toString();
+        }
+    }
 
     return (
         <View

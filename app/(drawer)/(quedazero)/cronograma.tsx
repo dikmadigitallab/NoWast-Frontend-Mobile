@@ -77,15 +77,12 @@ export default function Cronograma() {
   }, [selectedDate, currentMonthAnchor]);
 
   const { data, refetch } = useGetActivity({ 
-    pageSize: null, 
     type: "Atividade", 
-    pagination: false, 
+    pagination: true, 
     startDate: monthRange.startDate, 
     endDate: monthRange.endDate, 
     supervisorId: filter.supervisor.id, 
-    environmentId: filter.environment.id,
-    // Para operadores, mostrar todas as atividades independente do status de aprovação
-    approvalStatus: user?.userType === "OPERATIONAL" ? null : null
+    environmentId: filter.environment.id
   });
 
   useFocusEffect(
@@ -185,7 +182,7 @@ export default function Cronograma() {
       let fotos: string[] = [];
       
       // Verificar activityFiles primeiro (campo principal do hook)
-      if (item.activityFiles && Array.isArray(item.activityFiles)) {
+      if (item.activityFiles && Array.isArray(item.activityFiles) && item.activityFiles.length > 0) {
         // Filtrar apenas arquivos de IMAGEM e extrair as URLs
         fotos = item.activityFiles
           .filter((file: any) => file.fileType === 'IMAGE')
@@ -195,6 +192,15 @@ export default function Cronograma() {
             return null;
           })
           .filter(Boolean);
+      }
+      
+      // Se não encontrou fotos em activityFiles, verificar o campo file direto
+      if (fotos.length === 0 && item.file) {
+        // Verificar se o campo file é uma imagem (não é áudio)
+        const fileUrl = item.file;
+        if (!fileUrl.includes('.mp3') && !fileUrl.includes('.wav') && !fileUrl.includes('.m4a') && !fileUrl.includes('.aac')) {
+          fotos = [fileUrl];
+        }
       }
       
       // Fallback para outros campos se activityFiles não tiver fotos

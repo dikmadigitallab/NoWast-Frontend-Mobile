@@ -27,7 +27,7 @@ export interface UseGetParams {
     approvalStatus?: string | null
 }
 
-export const useGetActivity = ({ pagination = null, type, page = 1, pageSize = 1, query = null, supervisorId = null, positionId = null, managerId = null, responsibleManagerId = null, buildingId = null, environmentId = null, dateTimeFrom = null, startDate = null, endDate = null, statusEnum = null, approvalStatus = null }: UseGetParams) => {
+export const useGetActivity = ({ pagination = null, type, page = 1, pageSize = 10, query = null, supervisorId = null, positionId = null, managerId = null, responsibleManagerId = null, buildingId = null, environmentId = null, dateTimeFrom = null, startDate = null, endDate = null, statusEnum = null, approvalStatus = null }: UseGetParams) => {
 
     const { logout } = useAuth();
     const [loading, setLoading] = useState<boolean>(false);

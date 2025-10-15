@@ -47,7 +47,7 @@ export default function Mainpage() {
     // Só passa startDate e endDate se ambos estiverem definidos
     const { data, refetch } = useGetActivity({ 
         type: type, 
-        pagination: false, 
+        pagination: true, 
         pageSize: pageSize, 
         startDate: (startDate && endDate) ? startDate : null, 
         endDate: (startDate && endDate) ? endDate : null,
@@ -55,7 +55,7 @@ export default function Mainpage() {
         approvalStatus: user?.userType === "OPERATIONAL" ? null : null
     });
     
-    console.log(data && data[0])
+    console.log(data?.length)
 
     // Sincroniza os filtros ativos
     useEffect(() => {
@@ -169,11 +169,6 @@ export default function Mainpage() {
     // Filtrar e ordenar os dados
     const filteredAndSortedData = [...data]
         .filter((item) => {
-            // Para atividades, excluir aquelas com status 'OPEN'
-            if (type === "Atividade" && item.statusEnum === "OPEN") {
-                return false;
-            }
-            
             // Para ADM_CLIENTE, excluir justificativa interna e reprovados
             if (user?.userType === "ADM_CLIENTE" && type === "Atividade") {
                 // Excluir atividades com status de justificativa interna
