@@ -217,35 +217,71 @@ export default function Mainpage() {
             >
                 <View style={styles.occurrenceItem}>
                     <View style={styles.photoContainer}>
-                        <View style={{
-                            flex: 1,
-                            backgroundColor: '#f0f0f0',
-                            borderRadius: 10,
-                            justifyContent: 'center',
-                            alignItems: 'center'
-                        }}>
-                            {item?.activityFiles?.length > 0 ? (
-                                item?.activityFiles[0]?.file?.url?.includes('.mp3') || item?.activityFiles[0]?.file?.url?.includes('.wav') ? (
-                                    <MaterialCommunityIcons name="image-off-outline" size={40} color="#385866" />
-                                ) : (
-                                    <Image
-                                        source={{ uri: item?.activityFiles[0]?.file?.url }}
-                                        style={{ width: "100%", height: "100%", borderRadius: 10 }}
-                                    />
-                                )
-                            ) : item?.justification?.justificationFiles?.length > 0 ? (
-                                item?.justification.justificationFiles[0]?.file?.url?.includes('.mp3') || item?.justification.justificationFiles[0]?.file?.url?.includes('.wav') ? (
-                                    <MaterialCommunityIcons name="image-off-outline" size={40} color="#385866" />
-                                ) : (
-                                    <Image
-                                        source={{ uri: item?.justification.justificationFiles[0]?.file?.url }}
-                                        style={{ width: "100%", height: "100%", borderRadius: 10 }}
-                                    />
-                                )
+                        {(() => {
+                            // Buscar fotos relacionadas à conclusão da atividade
+                            let fotos: string[] = [];
+                            
+                            // Verificar activityFiles primeiro (campo principal do hook)
+                            if (item.activityFiles && Array.isArray(item.activityFiles) && item.activityFiles.length > 0) {
+                                // Filtrar apenas arquivos de IMAGEM e extrair as URLs
+                                fotos = item.activityFiles
+                                    .filter((file: any) => file.fileType === 'IMAGE')
+                                    .map((file: any) => {
+                                        if (file?.file?.url) return file.file.url;
+                                        if (file?.url) return file.url;
+                                        return null;
+                                    })
+                                    .filter(Boolean);
+                            }
+                            
+                            // Se não encontrou fotos em activityFiles, verificar o campo file direto
+                            if (fotos.length === 0 && item.file) {
+                                // Verificar se o campo file é uma imagem (não é áudio)
+                                const fileUrl = item.file;
+                                if (!fileUrl.includes('.mp3') && !fileUrl.includes('.wav') && !fileUrl.includes('.m4a') && !fileUrl.includes('.aac')) {
+                                    fotos = [fileUrl];
+                                }
+                            }
+                            
+                            // Fallback para outros campos se activityFiles não tiver fotos
+                            if (fotos.length === 0) {
+                                if (item.completionPhotos && Array.isArray(item.completionPhotos)) {
+                                    fotos = item.completionPhotos;
+                                } else if (item.finalPhotos && Array.isArray(item.finalPhotos)) {
+                                    fotos = item.finalPhotos;
+                                } else if (item.conclusionImages && Array.isArray(item.conclusionImages)) {
+                                    fotos = item.conclusionImages;
+                                } else if (item.photos && Array.isArray(item.photos)) {
+                                    fotos = item.photos;
+                                } else if (item.images && Array.isArray(item.images)) {
+                                    fotos = item.images;
+                                } else if (item.attachments && Array.isArray(item.attachments)) {
+                                    fotos = item.attachments;
+                                } else if (item.media && Array.isArray(item.media)) {
+                                    fotos = item.media;
+                                }
+                            }
+
+                            // Pegar apenas a primeira foto se existir
+                            const primeiraFoto = fotos.length > 0 ? fotos[0] : null;
+
+                            return primeiraFoto ? (
+                                <Image
+                                    source={{ uri: primeiraFoto }}
+                                    style={{ width: "100%", height: "100%", borderRadius: 10 }}
+                                />
                             ) : (
-                                <MaterialCommunityIcons name="image-off-outline" size={40} color="#385866" />
-                            )}
-                        </View>
+                                <View style={{
+                                    flex: 1,
+                                    backgroundColor: '#f0f0f0',
+                                    borderRadius: 10,
+                                    justifyContent: 'center',
+                                    alignItems: 'center'
+                                }}>
+                                    <MaterialCommunityIcons name="image-off-outline" size={40} color="#385866" />
+                                </View>
+                            );
+                        })()}
                     </View>
                     <View style={styles.detailsSection}>
                         <View style={styles.dateSection}>
