@@ -18,14 +18,16 @@ export default function Mainpage() {
     const { user } = useAuth();
 
     const { setitems } = useItemsStore();
-    const [pageSize, setPageSize] = useState(20);
+    const [pageSize, setPageSize] = useState(50);
     const [type, setType] = useState("Atividade");
     const [openTypeModal, setOpenTypeModal] = useState(false);
     const [openDateModal, setOpenDateModal] = useState(false);
+    const [openStatusModal, setOpenStatusModal] = useState(false);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const [selectedMonth, setSelectedMonth] = useState<number | undefined>(undefined);
     const [selectedYear, setSelectedYear] = useState<number | undefined>(undefined);
-    const [activeFilters, setActiveFilters] = useState<Array<{ type: 'date' | 'activityType'; label: string; value: any; onRemove: () => void; }>>([]);
+    const [selectedStatus, setSelectedStatus] = useState<string | undefined>(undefined);
+    const [activeFilters, setActiveFilters] = useState<Array<{ type: 'date' | 'activityType' | 'status'; label: string; value: any; onRemove: () => void; }>>([]);
 
     // Calcular startDate e endDate baseado no mês/ano selecionado
     const getDateRange = () => {
@@ -51,6 +53,7 @@ export default function Mainpage() {
         pageSize: pageSize, 
         startDate: (startDate && endDate) ? startDate : null, 
         endDate: (startDate && endDate) ? endDate : null,
+        statusEnum: selectedStatus || null,
         // Para operadores, mostrar todas as atividades independente do status de aprovação
         approvalStatus: user?.userType === "OPERATIONAL" ? null : null
     });
@@ -70,6 +73,15 @@ export default function Mainpage() {
             });
         }
 
+        if (selectedStatus !== undefined) {
+            newActiveFilters.push({
+                type: 'status',
+                label: `Status: ${getStatusDisplayName(selectedStatus)}`,
+                value: selectedStatus,
+                onRemove: () => setSelectedStatus(undefined)
+            });
+        }
+
         if (type !== "Atividade") {
             newActiveFilters.push({
                 type: 'activityType',
@@ -79,14 +91,14 @@ export default function Mainpage() {
             });
         }
 
-        setActiveFilters(newActiveFilters as { type: "date" | "activityType"; label: string; value: any; onRemove: () => void; }[]);
-    }, [selectedMonth, selectedYear, type]);
+        setActiveFilters(newActiveFilters as { type: "date" | "activityType" | "status"; label: string; value: any; onRemove: () => void; }[]);
+    }, [selectedMonth, selectedYear, selectedStatus, type]);
 
     const loadMoreItems = async () => {
         if (isLoadingMore) return;
         setIsLoadingMore(true);
         await new Promise(resolve => setTimeout(resolve, 2000));
-        setPageSize(prev => prev + 20);
+        setPageSize(prev => prev + 50);
         setIsLoadingMore(false);
     };
 
@@ -102,6 +114,7 @@ export default function Mainpage() {
     const clearFilters = () => {
         setSelectedMonth(undefined);
         setSelectedYear(undefined);
+        setSelectedStatus(undefined);
         setType("Atividade");
     };
 
@@ -118,6 +131,19 @@ export default function Mainpage() {
 
     // Meses para exibição nos filtros ativos
     const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+
+    // Função para obter o nome amigável do status
+    const getStatusDisplayName = (status: string) => {
+        const statusMap: { [key: string]: string } = {
+            'OPEN': 'Aberto',
+            'COMPLETED': 'Concluído',
+            'UNDER_REVIEW': 'Em Revisão',
+            'PENDING': 'Pendente',
+            'JUSTIFIED': 'Justificativa Externa',
+            'INTERNAL_JUSTIFICATION': 'Justificativa Interna'
+        };
+        return statusMap[status] || status;
+    };
 
     const onSelected = (data: any, rota: string) => {
         setitems(data);
@@ -369,6 +395,16 @@ export default function Mainpage() {
                             <AntDesign name="down" size={10} color="black" />
                         </TouchableOpacity>
                         <TouchableOpacity
+                            style={styles.filterButton}
+                            onPress={() => setOpenStatusModal(true)}
+                        >
+                            <MaterialCommunityIcons name="filter" size={24} color="black" />
+                            <Text>
+                                {selectedStatus ? getStatusDisplayName(selectedStatus) : "Status"}
+                            </Text>
+                            <AntDesign name="down" size={10} color="black" />
+                        </TouchableOpacity>
+                        <TouchableOpacity
                             onPress={() => setOpenTypeModal(true)}
                             style={styles.filterButton}
                         >
@@ -476,6 +512,60 @@ export default function Mainpage() {
                                 </Text>
                                 {type === "Ocorrencia" && <AntDesign name="check" size={20} color="#186B53" />}
                             </TouchableOpacity>
+                        </View>
+                    </TouchableOpacity>
+                </Modal>
+
+                {/* Modal de Seleção de Status */}
+                <Modal
+                    visible={openStatusModal}
+                    transparent={true}
+                    animationType="fade"
+                    onRequestClose={() => setOpenStatusModal(false)}
+                >
+                    <TouchableOpacity 
+                        style={styles.modalOverlay}
+                        activeOpacity={1}
+                        onPress={() => setOpenStatusModal(false)}
+                    >
+                        <View style={styles.modalContent}>
+                            <View style={styles.modalHeader}>
+                                <Text style={styles.modalTitle}>Selecione o Status</Text>
+                                <TouchableOpacity onPress={() => setOpenStatusModal(false)}>
+                                    <AntDesign name="close" size={24} color="#385866" />
+                                </TouchableOpacity>
+                            </View>
+                            
+                            {/* Opção "Todos" */}
+                            <TouchableOpacity
+                                style={[styles.modalOption, selectedStatus === undefined && styles.modalOptionSelected]}
+                                onPress={() => {
+                                    setSelectedStatus(undefined);
+                                    setOpenStatusModal(false);
+                                }}
+                            >
+                                <Text style={[styles.modalOptionText, selectedStatus === undefined && styles.modalOptionTextSelected]}>
+                                    Todos
+                                </Text>
+                                {selectedStatus === undefined && <AntDesign name="check" size={20} color="#186B53" />}
+                            </TouchableOpacity>
+
+                            {/* Opções de Status */}
+                            {['OPEN', 'COMPLETED', 'UNDER_REVIEW', 'PENDING', 'JUSTIFIED', 'INTERNAL_JUSTIFICATION'].map((status) => (
+                                <TouchableOpacity
+                                    key={status}
+                                    style={[styles.modalOption, selectedStatus === status && styles.modalOptionSelected]}
+                                    onPress={() => {
+                                        setSelectedStatus(status);
+                                        setOpenStatusModal(false);
+                                    }}
+                                >
+                                    <Text style={[styles.modalOptionText, selectedStatus === status && styles.modalOptionTextSelected]}>
+                                        {getStatusDisplayName(status)}
+                                    </Text>
+                                    {selectedStatus === status && <AntDesign name="check" size={20} color="#186B53" />}
+                                </TouchableOpacity>
+                            ))}
                         </View>
                     </TouchableOpacity>
                 </Modal>

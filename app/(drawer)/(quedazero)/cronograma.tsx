@@ -64,8 +64,9 @@ export default function Cronograma() {
   const animatedHeight = useRef(new Animated.Value(360)).current;
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [currentMonthAnchor, setCurrentMonthAnchor] = useState<string>(moment().startOf('month').format('YYYY-MM-DD'));
-  const [filter, setFilter] = useState({ supervisor: { id: 0, label: "" }, environment: { id: 0, label: "" } });
-  const [activeFilters, setActiveFilters] = useState<Array<{ type: 'supervisor' | 'environment' | 'date'; label: string; value: any; onRemove: () => void; }>>([]);
+  const [filter, setFilter] = useState({ supervisor: { id: 0, label: "" }, environment: { id: 0, label: "" }, person: { id: 0, label: "" } });
+  const [activeFilters, setActiveFilters] = useState<Array<{ type: 'supervisor' | 'environment' | 'person' | 'date'; label: string; value: any; onRemove: () => void; }>>([]);
+  const [openPersonModal, setOpenPersonModal] = useState(false);
   const monthRange = useMemo(() => {
     if (selectedDate) {
       const day = moment(selectedDate).format('YYYY-MM-DD');
@@ -119,7 +120,16 @@ export default function Cronograma() {
       });
     }
 
-    setActiveFilters(newActiveFilters as { type: "environment" | "supervisor"; label: string; value: any; onRemove: () => void; }[]);
+    if (filter.person.id !== 0) {
+      newActiveFilters.push({
+        type: 'person',
+        label: `Pessoa: ${filter.person.label}`,
+        value: filter.person.id,
+        onRemove: () => setFilter(prev => ({ ...prev, person: { id: 0, label: "" } }))
+      });
+    }
+
+    setActiveFilters(newActiveFilters as { type: "environment" | "supervisor" | "person"; label: string; value: any; onRemove: () => void; }[]);
   }, [filter]);
 
   const onDismiss = () => setOpen(false);
@@ -128,16 +138,71 @@ export default function Cronograma() {
   const onConfirmSingle = (params: { date: CalendarDate }) => {
     setOpen(false);
     setSelectedDate(params.date || undefined);
+    // Reset do filtro de pessoa quando o dia muda
+    setFilter(prev => ({ ...prev, person: { id: 0, label: "" } }));
   };
 
   // Função para limpar todos os filtros (não limpa a data)
   const clearFilters = () => {
-    setFilter({ supervisor: { id: 0, label: "" }, environment: { id: 0, label: "" } });
+    setFilter({ supervisor: { id: 0, label: "" }, environment: { id: 0, label: "" }, person: { id: 0, label: "" } });
   };
+
+  // Extrair pessoas únicas das atividades do calendário atual
+  const availablePersons = useMemo(() => {
+    if (!data || !Array.isArray(data)) return [];
+    
+    const personsMap = new Map();
+    
+    data.forEach((item: any) => {
+      // Verificar diferentes estruturas possíveis de userActivities
+      let userActivities = item.userActivities;
+      
+      // Se userActivities não existe ou está vazio, tentar outras estruturas
+      if (!userActivities || !Array.isArray(userActivities) || userActivities.length === 0) {
+        // Tentar userJustification se existir
+        if (item.userJustification && Array.isArray(item.userJustification)) {
+          userActivities = item.userJustification;
+        }
+      }
+      
+      if (userActivities && Array.isArray(userActivities)) {
+        userActivities.forEach((userActivity: any) => {
+          // Verificar diferentes estruturas de dados do usuário
+          let userId = null;
+          let userName = null;
+          
+          // Estrutura 1: userActivity.user.id e userActivity.user.person.name
+          if (userActivity?.user?.id && userActivity?.user?.person?.name) {
+            userId = userActivity.user.id;
+            userName = userActivity.user.person.name;
+          }
+          // Estrutura 2: userActivity.id e userActivity.name (direto)
+          else if (userActivity?.id && userActivity?.name) {
+            userId = userActivity.id;
+            userName = userActivity.name;
+          }
+          // Estrutura 3: userActivity.userId e userActivity.userName
+          else if (userActivity?.userId && userActivity?.userName) {
+            userId = userActivity.userId;
+            userName = userActivity.userName;
+          }
+          
+          if (userId && userName) {
+            personsMap.set(userId, {
+              id: userId,
+              name: userName
+            });
+          }
+        });
+      }
+    });
+    
+    return Array.from(personsMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [data]);
 
   // Verificar se há filtros ativos (ignora data)
   const hasActiveFilters = useMemo(() => {
-    return filter.supervisor.id !== 0 || filter.environment.id !== 0;
+    return filter.supervisor.id !== 0 || filter.environment.id !== 0 || filter.person.id !== 0;
   }, [filter]);
 
   // Agrupa as atividades por data
@@ -163,6 +228,46 @@ export default function Cronograma() {
           return false;
         }
       }
+
+      // Filtro local por pessoa
+      if (filter.person.id !== 0) {
+        // Verificar diferentes estruturas possíveis de userActivities
+        let userActivities = item.userActivities;
+        
+        // Se userActivities não existe ou está vazio, tentar outras estruturas
+        if (!userActivities || !Array.isArray(userActivities) || userActivities.length === 0) {
+          // Tentar userJustification se existir
+          if (item.userJustification && Array.isArray(item.userJustification)) {
+            userActivities = item.userJustification;
+          }
+        }
+        
+        const hasPerson = userActivities && Array.isArray(userActivities) && 
+          userActivities.some((userActivity: any) => {
+            // Verificar diferentes estruturas de dados do usuário
+            let userId = null;
+            
+            // Estrutura 1: userActivity.user.id
+            if (userActivity?.user?.id) {
+              userId = userActivity.user.id;
+            }
+            // Estrutura 2: userActivity.id (direto)
+            else if (userActivity?.id) {
+              userId = userActivity.id;
+            }
+            // Estrutura 3: userActivity.userId
+            else if (userActivity?.userId) {
+              userId = userActivity.userId;
+            }
+            
+            return userId === filter.person.id;
+          });
+        
+        if (!hasPerson) {
+          return false;
+        }
+      }
+
       return true;
     });
 
@@ -264,7 +369,7 @@ export default function Cronograma() {
         // Se apenas uma está no mês atual, ela vem primeiro
         return isAInCurrentMonth ? -1 : 1;
       });
-  }, [data]);
+  }, [data, filter, user]);
 
   // Componente para renderizar os filtros ativos
   const renderActiveFilters = () => {
@@ -377,7 +482,7 @@ export default function Cronograma() {
           contentContainerStyle={{ paddingBottom: 20 }}
         >
           <View style={{ flexDirection: "column", gap: 10, }}>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, height: 50, marginBottom: 10 }}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, height: 50, marginBottom: 0 }}>
               <TouchableOpacity style={styles.filterButton} onPress={() => setOpenEnvironmentModal(true)} >
                 <FontAwesome6 name="location-dot" size={15} color="#43575F" />
                 <Text style={styles.filterButtonText}>{filter.environment.label ? filter.environment.label : "Ambiente"}</Text>
@@ -386,6 +491,11 @@ export default function Cronograma() {
               <TouchableOpacity style={styles.filterButton} onPress={() => setOpenSupervisorModal(true)}>
                 <FontAwesome6 name="user-tie" size={15} color="#43575F" />
                 <Text style={styles.filterButtonText}>{filter.supervisor.label ? filter.supervisor.label : "Supervisor"}</Text>
+                <AntDesign name="down" size={10} color="black" />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.filterButton} onPress={() => setOpenPersonModal(true)}>
+                <FontAwesome6 name="user" size={15} color="#43575F" />
+                <Text style={styles.filterButtonText}>{filter.person.label ? filter.person.label : "Pessoa"}</Text>
                 <AntDesign name="down" size={10} color="black" />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => setOpen(true)} style={[styles.filterButton]}>
@@ -591,6 +701,64 @@ export default function Cronograma() {
                     {supervisor.name}
                   </Text>
                   {filter.supervisor.id === supervisor.id && <AntDesign name="check" size={20} color="#186B53" />}
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </TouchableOpacity>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Modal de Seleção de Pessoa */}
+      <Modal
+        visible={openPersonModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setOpenPersonModal(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setOpenPersonModal(false)}
+        >
+          <TouchableOpacity 
+            activeOpacity={1} 
+            style={styles.modalContent}
+            onPress={(e) => e.stopPropagation()}
+          >
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Selecione a Pessoa</Text>
+              <TouchableOpacity onPress={() => setOpenPersonModal(false)}>
+                <AntDesign name="close" size={24} color="#385866" />
+              </TouchableOpacity>
+            </View>
+            
+            <ScrollView style={styles.modalScrollView}>
+              <TouchableOpacity
+                style={[styles.modalOption, filter.person.id === 0 && styles.modalOptionSelected]}
+                onPress={() => {
+                  setFilter((prevState) => ({ ...prevState, person: { id: 0, label: "" } }));
+                  setOpenPersonModal(false);
+                }}
+              >
+                <Text style={[styles.modalOptionText, filter.person.id === 0 && styles.modalOptionTextSelected]}>
+                  Todas as pessoas
+                </Text>
+                {filter.person.id === 0 && <AntDesign name="check" size={20} color="#186B53" />}
+              </TouchableOpacity>
+
+              {availablePersons?.map((person: { id: number; name: string }) => (
+                <TouchableOpacity
+                  key={person.id}
+                  style={[styles.modalOption, filter.person.id === person.id && styles.modalOptionSelected]}
+                  onPress={() => {
+                    setFilter((prevState) => ({ ...prevState, person: { id: person.id, label: person.name } }));
+                    setOpenPersonModal(false);
+                  }}
+                >
+                  <Text style={[styles.modalOptionText, filter.person.id === person.id && styles.modalOptionTextSelected]} numberOfLines={2}>
+                    {person.name}
+                  </Text>
+                  {filter.person.id === person.id && <AntDesign name="check" size={20} color="#186B53" />}
                 </TouchableOpacity>
               ))}
             </ScrollView>
